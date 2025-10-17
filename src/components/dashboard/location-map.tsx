@@ -1,12 +1,14 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { APIProvider, Map, Marker } from "@vis.gl/react-google-maps";
+import dynamic from 'next/dynamic';
+
+const LeafletMap = dynamic(() => import('./leaflet-map'), {
+  ssr: false,
+  loading: () => <div className="h-[200px] w-full rounded-lg bg-muted animate-pulse" />,
+});
 
 export function LocationMap() {
-  const position = { lat: 10.7769, lng: 106.7009 }; // Example: Ho Chi Minh City
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-
   return (
     <Card>
       <CardHeader>
@@ -15,23 +17,7 @@ export function LocationMap() {
       </CardHeader>
       <CardContent>
         <div className="h-[200px] w-full rounded-lg overflow-hidden">
-            {apiKey ? (
-            <APIProvider apiKey={apiKey}>
-                <Map
-                defaultCenter={position}
-                defaultZoom={12}
-                gestureHandling={'greedy'}
-                disableDefaultUI={true}
-                mapId="aquadash-map"
-                >
-                <Marker position={position} />
-                </Map>
-            </APIProvider>
-            ) : (
-            <div className="flex h-full w-full items-center justify-center rounded-lg bg-muted">
-                <p className="text-center text-sm text-muted-foreground">Google Maps API Key not configured.<br/>Set NEXT_PUBLIC_GOOGLE_MAPS_API_KEY.</p>
-            </div>
-            )}
+          <LeafletMap />
         </div>
       </CardContent>
     </Card>
