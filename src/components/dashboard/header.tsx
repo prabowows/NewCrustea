@@ -12,10 +12,10 @@ export function Header() {
         <SidebarTrigger className="md:hidden" />
         <img
           src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQA-UtPzOcllXSkO1J3LIuzgkY7xzq7ZwxT5g&s"
-          alt="AquaControl Logo"
+          alt="Crustea Logo"
           className="h-6 w-6"
         />
-        <h1 className="text-lg font-semibold text-card-foreground">AquaControl Dashboard</h1>
+        <h1 className="text-lg font-semibold text-card-foreground">Crustea</h1>
       </div>
       <div className="flex items-center gap-4">
         <div className="relative hidden md:block">

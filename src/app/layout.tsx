@@ -4,7 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
-  title: 'AquaControl Dashboard',
+  title: 'Crustea',
   description: 'Real-time monitoring and control for aquaculture.',
 };
 
