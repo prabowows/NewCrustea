@@ -11,11 +11,10 @@ export function Header() {
       <div className="flex items-center gap-4">
         <SidebarTrigger className="md:hidden" />
         <img
-          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQA-UtPzOcllXSkO1J3LIuzgkY7xzq7ZwxT5g&s"
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQtV2QX_XZ0w2m4T5fGrx38CDpKDu4eYJh53g&s"
           alt="Crustea Logo"
-          className="h-6 w-6"
+          className="h-8"
         />
-        <h1 className="text-lg font-semibold text-card-foreground">Crustea</h1>
       </div>
       <div className="flex items-center gap-4">
         <div className="relative hidden md:block">
