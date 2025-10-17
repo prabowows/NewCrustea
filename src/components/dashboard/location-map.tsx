@@ -1,6 +1,7 @@
 "use client"
 
 import dynamic from 'next/dynamic'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const LeafletMap = dynamic(() => import('./leaflet-map'), { 
   ssr: false,
@@ -8,5 +9,17 @@ const LeafletMap = dynamic(() => import('./leaflet-map'), {
 });
 
 export function LocationMap() {
-    return <LeafletMap />
+    return (
+        <Card>
+            <CardHeader>
+                <CardTitle>Pond Location</CardTitle>
+                <CardDescription>Geographical location of the facility.</CardDescription>
+            </CardHeader>
+            <CardContent>
+                <div className="h-[200px] w-full rounded-lg overflow-hidden">
+                    <LeafletMap />
+                </div>
+            </CardContent>
+        </Card>
+    );
 }

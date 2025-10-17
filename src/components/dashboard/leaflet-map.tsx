@@ -3,9 +3,8 @@
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function LocationMap() {
+export default function LeafletMap() {
   const position: [number, number] = [10.7769, 106.7009]; // Example: Ho Chi Minh City
 
   useEffect(() => {
@@ -24,23 +23,17 @@ export default function LocationMap() {
     })();
   }, []);
 
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Pond Location</CardTitle>
-        <CardDescription>Geographical location of the facility.</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="h-[200px] w-full rounded-lg overflow-hidden">
-          <MapContainer center={position} zoom={12} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            <Marker position={position} />
-          </MapContainer>
-        </div>
-      </CardContent>
-    </Card>
+      <MapContainer center={position} zoom={12} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <Marker position={position} />
+      </MapContainer>
   );
 }
