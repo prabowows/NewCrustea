@@ -11,7 +11,7 @@ export function Header() {
       <div className="flex items-center gap-4">
         <SidebarTrigger className="md:hidden" />
         <img
-          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQtV2QX_XZ0w2m4T5fGrx38CDpKDu4eYJh53g&s"
+          src="https://res.cloudinary.com/dtnsf2etf/image/upload/v1760671820/logo1-removebg-preview_cyzktd.png"
           alt="Crustea Logo"
           className="h-8"
         />
