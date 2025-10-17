@@ -4,15 +4,16 @@ import dynamic from 'next/dynamic';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useMemo } from 'react';
 
-export function LocationMap() {
-    const Map = useMemo(() => dynamic(
-      () => import('@/components/dashboard/leaflet-map'),
-      { 
-        loading: () => <div className="h-[200px] w-full rounded-lg bg-muted animate-pulse" />,
-        ssr: false
-      }
-    ), [])
+// Dynamically import the map component with SSR turned off
+const LeafletMap = dynamic(
+  () => import('@/components/dashboard/leaflet-map'),
+  { 
+    loading: () => <div className="h-[200px] w-full rounded-lg bg-muted animate-pulse" />,
+    ssr: false
+  }
+);
 
+export function LocationMap() {
     return (
         <Card>
             <CardHeader>
@@ -21,7 +22,7 @@ export function LocationMap() {
             </CardHeader>
             <CardContent>
                 <div className="h-[200px] w-full rounded-lg overflow-hidden">
-                    <Map />
+                    <LeafletMap />
                 </div>
             </CardContent>
         </Card>

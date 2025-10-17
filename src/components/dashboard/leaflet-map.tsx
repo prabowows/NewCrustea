@@ -4,23 +4,28 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet';
 
-// Fix for default icon issue with webpack
+// This is a workaround for a known issue with react-leaflet and Next.js
+// It manually sets the icon paths for the default marker.
 import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
 import iconUrl from 'leaflet/dist/images/marker-icon.png';
 import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
 
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+if (typeof window !== 'undefined') {
+    delete (L.Icon.Default.prototype as any)._getIconUrl;
 
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: iconRetinaUrl.src,
-  iconUrl: iconUrl.src,
-  shadowUrl: shadowUrl.src,
-});
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: iconRetinaUrl.src,
+      iconUrl: iconUrl.src,
+      shadowUrl: shadowUrl.src,
+    });
+}
 
 
 export default function LeafletMap() {
-  const position: [number, number] = [10.7769, 106.7009]; // Example: Ho Chi Minh City
+  // Ho Chi Minh City coordinates
+  const position: [number, number] = [10.7769, 106.7009]; 
   
+  // This check ensures the component only renders on the client side.
   if (typeof window === 'undefined') {
     return null;
   }
