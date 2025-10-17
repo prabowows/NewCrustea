@@ -1,36 +1,32 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { MapPin, ExternalLink } from "lucide-react";
+import { MapPin } from "lucide-react";
 
 export function LocationOverview() {
-  const latitude = 10.7769;
-  const longitude = 106.7009;
-  const googleMapsUrl = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
-
-  const handleCardClick = () => {
-    window.open(googleMapsUrl, "_blank");
-  };
-
   return (
-    <Card 
-      onClick={handleCardClick} 
-      className="cursor-pointer transition-all hover:shadow-md hover:-translate-y-1"
-    >
-      <CardHeader className="flex flex-row items-center justify-between">
+    <Card>
+      <CardHeader>
         <div className="flex items-center gap-4">
           <MapPin className="h-8 w-8 text-primary" />
           <div>
             <CardTitle>Pond Location</CardTitle>
-            <CardDescription>Ho Chi Minh City, Vietnam</CardDescription>
+            <CardDescription>BINUS University @Semarang</CardDescription>
           </div>
         </div>
-        <ExternalLink className="h-5 w-5 text-muted-foreground" />
       </CardHeader>
       <CardContent>
-        <p className="text-sm text-muted-foreground">
-          Coordinates: {latitude}, {longitude}
-        </p>
+        <div className="aspect-video w-full overflow-hidden rounded-lg border">
+            <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3960.5151917270027!2d110.37757937499671!3d-6.948390693051808!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e708b4e6b7b7f3d%3A0x324a7dee0cee3ee0!2sBINUS%20University%20%40Semarang!5e0!3m2!1sid!2sid!4v1760672269612!5m2!1sid!2sid" 
+                width="100%" 
+                height="100%" 
+                style={{ border:0 }} 
+                allowFullScreen={true} 
+                loading="lazy" 
+                referrerPolicy="no-referrer-when-downgrade"
+            ></iframe>
+        </div>
       </CardContent>
     </Card>
   );
