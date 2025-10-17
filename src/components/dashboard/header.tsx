@@ -10,19 +10,11 @@ export function Header() {
     <header className="flex h-16 items-center justify-between border-b bg-card px-4 md:px-6 sticky top-0 z-30">
       <div className="flex items-center gap-4">
         <SidebarTrigger className="md:hidden" />
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="h-6 w-6 text-primary"
-        >
-          <path d="M21.22 12.33a3.5 3.5 0 0 0-3.3-6.52H17.9a4 4 0 0 0-3.2-1.81H9.3a4 4 0 0 0-3.2 1.81H5.08a3.5 3.5 0 0 0-3.3 6.52c.11.33.28.64.49.92A6.5 6.5 0 0 0 8.8 22h6.4a6.5 6.5 0 0 0 6.52-8.75c.21-.28.38-.59.49-.92Z" />
-          <path d="M12 15a3 3 0 0 0 3-3c0-2-3-3-3-3s-3 1-3 3a3 3 0 0 0 3 3Z" />
-        </svg>
+        <img
+          src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQA-UtPzOcllXSkO1J3LIuzgkY7xzq7ZwxT5g&s"
+          alt="AquaControl Logo"
+          className="h-6 w-6"
+        />
         <h1 className="text-lg font-semibold text-card-foreground">AquaControl Dashboard</h1>
       </div>
       <div className="flex items-center gap-4">
