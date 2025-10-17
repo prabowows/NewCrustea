@@ -1,30 +1,26 @@
 "use client";
 
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
-import { useEffect } from 'react';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
+import 'leaflet/dist/leaflet.css'
+import L from 'leaflet';
 
-// This is a client component that will be dynamically imported
+// Fix for default icon issue with webpack
+import iconRetinaUrl from 'leaflet/dist/images/marker-icon-2x.png';
+import iconUrl from 'leaflet/dist/images/marker-icon.png';
+import shadowUrl from 'leaflet/dist/images/marker-shadow.png';
+
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: iconRetinaUrl.src,
+  iconUrl: iconUrl.src,
+  shadowUrl: shadowUrl.src,
+});
+
+
 export default function LeafletMap() {
   const position: [number, number] = [10.7769, 106.7009]; // Example: Ho Chi Minh City
-
-  useEffect(() => {
-    // This effect runs only on the client after the component mounts.
-    (async () => {
-      const L = await import('leaflet');
-      // This is a workaround for a known issue with react-leaflet and Next.js
-      // It prevents Leaflet from trying to access server-side URLs for icons.
-      delete (L.Icon.Default.prototype as any)._getIconUrl;
-
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: (await import('leaflet/dist/images/marker-icon-2x.png')).default.src,
-        iconUrl: (await import('leaflet/dist/images/marker-icon.png')).default.src,
-        shadowUrl: (await import('leaflet/dist/images/marker-shadow.png')).default.src,
-      });
-    })();
-  }, []);
-
-  // Avoid rendering on the server
+  
   if (typeof window === 'undefined') {
     return null;
   }
@@ -35,7 +31,11 @@ export default function LeafletMap() {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <Marker position={position} />
+        <Marker position={position}>
+            <Popup>
+                Pond Location A-1
+            </Popup>
+        </Marker>
       </MapContainer>
   );
 }
