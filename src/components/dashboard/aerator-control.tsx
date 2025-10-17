@@ -30,7 +30,7 @@ export function AeratorControl() {
         <div className="flex items-center justify-between space-x-2 rounded-lg border p-4">
           <Label htmlFor="aerator-status" className="flex flex-col space-y-1">
             <span>Master Switch</span>
-            <span className={cn("text-sm font-bold", isAeratorOn ? "text-primary" : "text-destructive")}>
+            <span className={cn("text-sm font-bold", isAeratorOn ? "text-accent" : "text-destructive")}>
               {isAeratorOn ? 'ACTIVE' : 'INACTIVE'}
             </span>
           </Label>
