@@ -3,6 +3,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import dynamic from 'next/dynamic';
 import 'leaflet/dist/leaflet.css';
+import { useEffect } from "react";
 
 const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), { ssr: false });
 const TileLayer = dynamic(() => import('react-leaflet').then(mod => mod.TileLayer), { ssr: false });
@@ -11,16 +12,22 @@ const Marker = dynamic(() => import('react-leaflet').then(mod => mod.Marker), { 
 export function LocationMap() {
   const position: [number, number] = [10.7769, 106.7009]; // Example: Ho Chi Minh City
 
-  // react-leaflet doesn't have a built-in way to handle icons in SSR, so we do this on the client.
-  if (typeof window !== 'undefined') {
-    const L = require('leaflet');
-    delete (L.Icon.Default.prototype as any)._getIconUrl;
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl: require('leaflet/dist/images/marker-icon-2x.png').default.src,
-      iconUrl: require('leaflet/dist/images/marker-icon.png').default.src,
-      shadowUrl: require('leaflet/dist/images/marker-shadow.png').default.src,
-    });
-  }
+  useEffect(() => {
+    (async () => {
+      const L = await import('leaflet');
+      const markerIcon2x = (await import('leaflet/dist/images/marker-icon-2x.png')).default;
+      const markerIcon = (await import('leaflet/dist/images/marker-icon.png')).default;
+      const markerShadow = (await import('leaflet/dist/images/marker-shadow.png')).default;
+      
+      // react-leaflet doesn't have a built-in way to handle icons in SSR, so we do this on the client.
+      delete (L.Icon.Default.prototype as any)._getIconUrl;
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: markerIcon2x.src,
+        iconUrl: markerIcon.src,
+        shadowUrl: markerShadow.src,
+      });
+    })();
+  }, []);
 
   return (
     <Card>
