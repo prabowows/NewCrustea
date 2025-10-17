@@ -3,7 +3,6 @@ import { AppSidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
 import { RealTimeMetrics } from "@/components/dashboard/real-time-metrics";
 import { AeratorControl } from "@/components/dashboard/aerator-control";
-import { LocationMap } from "@/components/dashboard/location-map";
 import { HistoricalChart } from "@/components/dashboard/historical-chart";
 import { AlarmsTable } from "@/components/dashboard/alarms-table";
 import { ParameterAnalysis } from "@/components/dashboard/parameter-analysis";
@@ -26,7 +25,6 @@ export default function Home() {
               </div>
               <div className="grid gap-4 md:gap-8">
                 <AeratorControl />
-                <LocationMap />
               </div>
             </div>
 
