@@ -4,11 +4,12 @@ import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect } from 'react';
 
+// This is a client component that will be dynamically imported
 export default function LeafletMap() {
   const position: [number, number] = [10.7769, 106.7009]; // Example: Ho Chi Minh City
 
   useEffect(() => {
-    // This effect runs only once on the client after the component mounts.
+    // This effect runs only on the client after the component mounts.
     (async () => {
       const L = await import('leaflet');
       // This is a workaround for a known issue with react-leaflet and Next.js
@@ -23,6 +24,7 @@ export default function LeafletMap() {
     })();
   }, []);
 
+  // Avoid rendering on the server
   if (typeof window === 'undefined') {
     return null;
   }
