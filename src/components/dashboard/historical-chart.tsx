@@ -64,7 +64,7 @@ export function HistoricalChart() {
               <Line
                 dataKey="do"
                 type="monotone"
-                stroke="var(--color-do)"
+                stroke="hsl(var(--primary))"
                 strokeWidth={2}
                 dot={true}
               />
