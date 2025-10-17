@@ -1,12 +1,13 @@
-import { SidebarProvider, Sidebar, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
+import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/dashboard/sidebar";
 import { Header } from "@/components/dashboard/header";
 import { RealTimeMetrics } from "@/components/dashboard/real-time-metrics";
 import { AeratorControl } from "@/components/dashboard/aerator-control";
-import { LocationMap } from "@/components/dashboard/location-map";
 import { HistoricalChart } from "@/components/dashboard/historical-chart";
 import { AlarmsTable } from "@/components/dashboard/alarms-table";
 import { ParameterAnalysis } from "@/components/dashboard/parameter-analysis";
+import { LocationMap } from "@/components/dashboard/location-map";
+
 
 export default function Home() {
   return (
