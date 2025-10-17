@@ -3,11 +3,13 @@ import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Search, Settings, User, LifeBuoy, LogOut } from "lucide-react";
 import { Input } from "../ui/input";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 
 export function Header() {
   return (
     <header className="flex h-16 items-center justify-between border-b bg-card px-4 md:px-6 sticky top-0 z-30">
       <div className="flex items-center gap-4">
+        <SidebarTrigger className="md:hidden" />
         <svg
           xmlns="http://www.w3.org/2000/svg"
           viewBox="0 0 24 24"
