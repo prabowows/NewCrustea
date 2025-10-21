@@ -259,7 +259,7 @@ export default function HomePage() {
                 <TabsTrigger value="without">Without Crustea</TabsTrigger>
               </TabsList>
               <TabsContent value="with">
-                <div className="grid gap-12 lg:grid-cols-2 mt-12 items-center">
+                <div className="grid gap-12 lg:grid-cols-2 mt-8 items-center">
                   <div className="rounded-lg overflow-hidden border shadow-lg [perspective:2000px]">
                     <Image
                       src="https://picsum.photos/seed/dashboard/600/400"
@@ -287,7 +287,7 @@ export default function HomePage() {
                 </div>
               </TabsContent>
               <TabsContent value="without">
-                <div className="grid gap-12 lg:grid-cols-2 mt-12 items-center">
+                <div className="grid gap-12 lg:grid-cols-2 mt-8 items-center">
                    <div className="rounded-lg overflow-hidden border bg-background p-4 shadow-lg">
                      <Image
                        src="https://picsum.photos/seed/manual/600/400"
