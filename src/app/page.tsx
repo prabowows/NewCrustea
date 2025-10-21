@@ -253,15 +253,14 @@ export default function HomePage() {
               </TabsList>
               <TabsContent value="with" className="mt-6">
                 <div className="grid gap-12 lg:grid-cols-2 mt-8 items-center">
-                  <div className="rounded-lg overflow-hidden border shadow-lg [perspective:2000px]">
-                    <Image
-                      src="https://crustea.id/wp-content/uploads/2023/10/Dashboard-Crustea-1024x631.webp"
-                      width={600}
-                      height={370}
-                      alt="Crustea Dashboard"
-                      className="w-full animate-rotate-y-3d"
-                      data-ai-hint="dashboard analytics"
-                    />
+                  <div className="rounded-lg overflow-hidden border shadow-lg aspect-video">
+                    <iframe
+                        className="w-full h-full"
+                        src="https://www.youtube.com/embed/3-U_8b9f7sI?autoplay=1&mute=1&loop=1&playlist=3-U_8b9f7sI&controls=0"
+                        title="Crustea Dashboard Video"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                    ></iframe>
                   </div>
                   <div className="flex flex-col justify-center space-y-6">
                     <h3 className="text-2xl font-bold tracking-tighter sm:text-3xl">Manajemen Budidaya Jadi Lebih Mudah</h3>
@@ -379,3 +378,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
