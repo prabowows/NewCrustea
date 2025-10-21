@@ -33,6 +33,12 @@ const nextConfig: NextConfig = {
         hostname: 'res.cloudinary.com',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'crustea.id',
+        port: '',
+        pathname: '/**',
       }
     ],
   },
