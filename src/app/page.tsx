@@ -255,7 +255,7 @@ export default function HomePage() {
               </TabsList>
               <TabsContent value="with" className="mt-6">
                 <div className="grid gap-12 lg:grid-cols-2 items-center">
-                  <div className="relative rounded-lg overflow-hidden border shadow-lg group [perspective:1000px] aspect-video">
+                  <div className="relative rounded-lg overflow-hidden border shadow-lg group [perspective:1000px] aspect-video animate-rotate-y-3d">
                      <Image
                        src="https://www.bluelifehub.com/wp-content/uploads/2022/12/Egypt-fish-farming.png"
                        width={600}
@@ -381,6 +381,8 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
 
     
 
