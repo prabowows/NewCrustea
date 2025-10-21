@@ -1,7 +1,8 @@
+
 "use client"
 
 import { useTheme } from "next-themes";
-import { SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
+import { SidebarContent, Sidebar, SidebarMenuItem, SidebarMenu, SidebarFooter, SidebarHeader, SidebarMenuButton } from "@/components/ui/sidebar";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Moon, Sun, Home, Settings, BarChart, Bell } from "lucide-react";
@@ -14,14 +15,14 @@ export function AppSidebar() {
   };
 
   return (
-    <>
+    <Sidebar>
       <SidebarHeader>
-        <h2 className="text-lg font-semibold">Settings</h2>
+        <h2 className="text-lg font-semibold">Menu</h2>
       </SidebarHeader>
       <SidebarContent className="p-2">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton href="#" isActive>
+            <SidebarMenuButton href="/dashboard" isActive>
               <Home />
               Dashboard
             </SidebarMenuButton>
@@ -50,7 +51,7 @@ export function AppSidebar() {
         <div className="flex items-center justify-between p-2">
             <Label htmlFor="theme-switch" className="flex items-center gap-2">
                 {theme === 'dark' ? <Moon /> : <Sun />}
-                <span>{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
+                <span>{theme === 'dark' ? 'Dark' : 'Light'}</span>
             </Label>
             <Switch 
                 id="theme-switch" 
@@ -59,6 +60,6 @@ export function AppSidebar() {
             />
         </div>
       </SidebarFooter>
-    </>
+    </Sidebar>
   );
 }

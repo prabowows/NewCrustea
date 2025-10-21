@@ -4,17 +4,21 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Search, Settings, User, LifeBuoy, LogOut } from "lucide-react";
 import { Input } from "../ui/input";
 import { SidebarTrigger } from "@/components/ui/sidebar";
+import Link from "next/link";
 
 export function Header() {
   return (
     <header className="flex h-16 items-center justify-between border-b bg-card px-4 md:px-6 sticky top-0 z-30">
       <div className="flex items-center gap-4">
         <SidebarTrigger className="md:hidden" />
-        <img
-          src="https://res.cloudinary.com/dtnsf2etf/image/upload/v1760671820/logo1-removebg-preview_cyzktd.png"
-          alt="Crustea Logo"
-          className="h-8"
-        />
+        <Link href="/" className="flex items-center gap-2">
+            <img
+            src="https://res.cloudinary.com/dtnsf2etf/image/upload/v1760671820/logo1-removebg-preview_cyzktd.png"
+            alt="Crustea Logo"
+            className="h-8"
+            />
+            <span className="font-bold text-xl hidden md:block">AquaControl</span>
+        </Link>
       </div>
       <div className="flex items-center gap-4">
         <div className="relative hidden md:block">
