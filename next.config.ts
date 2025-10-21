@@ -39,6 +39,12 @@ const nextConfig: NextConfig = {
         hostname: 'crustea.id',
         port: '',
         pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'www.bluelifehub.com',
+        port: '',
+        pathname: '/**',
       }
     ],
   },

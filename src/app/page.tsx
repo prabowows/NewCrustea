@@ -171,11 +171,11 @@ export default function HomePage() {
               </div>
               <div className="mx-auto aspect-square overflow-hidden sm:w-full lg:order-last">
                  <Image
-                    src="https://crustea.id/wp-content/uploads/2023/10/6469395_3329916-1024x1024.webp"
+                    src="https://www.bluelifehub.com/wp-content/uploads/2022/12/Egypt-fish-farming.png"
                     width={600}
                     height={600}
                     alt="Ilustrasi Budidaya Udang Modern"
-                    className="w-full"
+                    className="w-full object-cover aspect-square rounded-lg"
                     data-ai-hint="modern shrimp farming illustration"
                   />
               </div>
