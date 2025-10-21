@@ -2,7 +2,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Settings, User, LifeBuoy, LogOut } from "lucide-react";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 import Link from "next/link";
 import { ThemeSwitcher } from "../theme-switcher";
 
@@ -10,7 +9,6 @@ export function Header() {
   return (
     <header className="flex h-16 items-center justify-between border-b bg-card px-4 md:px-6 sticky top-0 z-30">
       <div className="flex items-center gap-4">
-        <SidebarTrigger />
         <Link href="/" className="flex items-center gap-2">
             <img
             src="https://res.cloudinary.com/dtnsf2etf/image/upload/v1760671820/logo1-removebg-preview_cyzktd.png"
