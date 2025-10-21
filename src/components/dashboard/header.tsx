@@ -17,7 +17,6 @@ export function Header() {
             alt="Crustea Logo"
             className="h-8"
             />
-            <span className="font-bold text-xl hidden md:block">AquaControl</span>
         </Link>
       </div>
       <div className="flex items-center gap-4">
