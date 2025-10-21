@@ -237,6 +237,7 @@ export default function HomePage() {
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground">{feature.description}</p>
+
                   </CardContent>
                 </Card>
               ))}
@@ -254,11 +255,11 @@ export default function HomePage() {
                 <div className="grid gap-12 lg:grid-cols-2 items-center">
                   <div className="relative rounded-lg overflow-hidden border shadow-lg group [perspective:1000px]">
                     <Image
-                      src="https://crustea.id/wp-content/uploads/2023/10/Dashboard-Crustea-1024x631.webp"
+                      src="https://www.bluelifehub.com/wp-content/uploads/2022/12/Egypt-fish-farming.png"
                       width={600}
                       height={370}
                       alt="Crustea Dashboard"
-                      className="w-full animate-rotate-y-3d"
+                      className="w-full"
                       data-ai-hint="dashboard interface"
                     />
                   </div>
@@ -378,3 +379,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
