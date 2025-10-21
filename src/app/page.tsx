@@ -14,6 +14,7 @@ import { Droplets, Bell, Wifi, QrCode, CheckCircle2, LineChart, Cpu } from "luci
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useEffect, useState } from "react";
 
 const partners = [
   { name: "Aqua Dynamics", logo: "https://picsum.photos/seed/p1/140/70" },
@@ -88,6 +89,16 @@ const testimonials = [
   ];
 
 export default function HomePage() {
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) {
+        return null;
+    }
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="px-4 lg:px-6 h-14 flex items-center">
@@ -249,13 +260,13 @@ export default function HomePage() {
               </TabsList>
               <TabsContent value="with">
                 <div className="grid gap-12 lg:grid-cols-2 mt-12 items-center">
-                  <div className="rounded-lg overflow-hidden border shadow-lg">
+                  <div className="rounded-lg overflow-hidden border shadow-lg [perspective:2000px]">
                     <Image
                       src="https://picsum.photos/seed/dashboard/600/400"
                       width={600}
                       height={400}
                       alt="Crustea Dashboard"
-                      className="w-full"
+                      className="w-full animate-rotate-y-3d"
                       data-ai-hint="dashboard analytics"
                     />
                   </div>
