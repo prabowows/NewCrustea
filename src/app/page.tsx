@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Droplets, Wifi, BrainCircuit, DollarSign, CheckCircle2, LineChart, Cpu } from "lucide-react";
+import { Droplets, Wifi, BrainCircuit, DollarSign, CheckCircle2, LineChart, Cpu, Zap, Wind, Battery } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -218,7 +218,62 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
         <section className="w-full py-8 md:py-10">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
+              <div className="space-y-2">
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Produk Unggulan Kami</h2>
+                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                  Implementasi Eco-Aerator: Aerator Cerdas dan Ramah Lingkungan untuk Akuakultur.
+                </p>
+              </div>
+            </div>
+            <div className="grid gap-8 lg:grid-cols-3">
+              <Card className="flex flex-col">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2"><Wind className="w-6 h-6 text-primary" /> Eco-Aerator</CardTitle>
+                </CardHeader>
+                <CardContent className="flex-grow">
+                  <Image src="https://res.cloudinary.com/dtnsf2etf/image/upload/v1760682223/eco-aerator_f4w6ax.png" alt="Eco-Aerator" width={400} height={250} className="rounded-lg mb-4 object-cover w-full aspect-video"/>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-2">
+                    <li>Meningkatkan kualitas dan ukuran udang/ikan hingga 200%.</li>
+                    <li>Impeller menghasilkan gelembung lebih kecil untuk kadar oksigen lebih tinggi.</li>
+                    <li>Didukung oleh energi terbarukan (Photovoltaic).</li>
+                  </ul>
+                </CardContent>
+              </Card>
+              <Card className="flex flex-col">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2"><Droplets className="w-6 h-6 text-primary" /> EBII System</CardTitle>
+                </CardHeader>
+                <CardContent className="flex-grow">
+                  <Image src="https://res.cloudinary.com/dtnsf2etf/image/upload/v1760682223/ebil-system_mcfpd2.png" alt="EBII System" width={400} height={250} className="rounded-lg mb-4 object-cover w-full aspect-video"/>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-2">
+                    <li>Mengukur 4 parameter: pH, DO, salinitas, dan suhu.</li>
+                    <li>Terhubung dengan aplikasi mobile untuk pemantauan mudah.</li>
+                    <li>Mengurangi emisi GHG hingga 23.044 tCO2e.</li>
+                  </ul>
+                </CardContent>
+              </Card>
+              <Card className="flex flex-col">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2"><Zap className="w-6 h-6 text-primary" /> Smart Energy & Control</CardTitle>
+                </CardHeader>
+                <CardContent className="flex-grow">
+                  <Image src="https://res.cloudinary.com/dtnsf2etf/image/upload/v1760682223/smart-energy_y9xsvc.png" alt="Smart Energy" width={400} height={250} className="rounded-lg mb-4 object-cover w-full aspect-video"/>
+                  <ul className="list-disc list-inside text-muted-foreground space-y-2">
+                    <li>Monitor dan kontrol penggunaan energi setiap aerator melalui ponsel.</li>
+                    <li>Kontrol otomatis on/off aerator berdasarkan pengukuran EBII System.</li>
+                    <li>Meningkatkan efisiensi dan mengurangi biaya operasional.</li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        <section className="w-full py-8 md:py-10 bg-muted">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
