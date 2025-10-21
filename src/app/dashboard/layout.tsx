@@ -13,10 +13,8 @@ export default function DashboardLayout({
       <div className="flex min-h-screen w-full flex-col bg-muted/40">
         <AppSidebar />
         <SidebarInset>
-          <div className="flex flex-col sm:gap-4 sm:py-4">
-            <Header />
-            {children}
-          </div>
+          <Header />
+          {children}
         </SidebarInset>
       </div>
     </SidebarProvider>
