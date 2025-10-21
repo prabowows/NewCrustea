@@ -11,16 +11,16 @@ import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Power } from "lucide-react";
 
-type Day = 'S' | 'M' | 'T' | 'W' | 'R' | 'F' | 'A';
+type Day = 'Sun' | 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat';
 
 const daysOfWeek: { key: Day, label: string }[] = [
-    { key: 'S', label: 'Sun' },
-    { key: 'M', label: 'Mon' },
-    { key: 'T', label: 'Tue' },
-    { key: 'W', label: 'Wed' },
-    { key: 'R', label: 'Thu' },
-    { key: 'F', label: 'Fri' },
-    { key: 'A', label: 'Sat' },
+    { key: 'Sun', label: 'Sun' },
+    { key: 'Mon', label: 'Mon' },
+    { key: 'Tue', label: 'Tue' },
+    { key: 'Wed', label: 'Wed' },
+    { key: 'Thu', label: 'Thu' },
+    { key: 'Fri', label: 'Fri' },
+    { key: 'Sat', label: 'Sat' },
 ];
 
 
@@ -172,17 +172,17 @@ export function AeratorControl() {
             <div className="space-y-4">
                 <div className="space-y-2">
                     <Label>Repeat on</Label>
-                    <div className="flex justify-between gap-1">
+                    <div className="grid grid-cols-4 gap-2">
                         {daysOfWeek.map(day => (
                             <Button
                                 key={day.key}
                                 variant={selectedDays.includes(day.key) ? 'default' : 'outline'}
-                                size="icon"
-                                className="h-8 w-8 rounded-full"
+                                size="sm"
+                                className="h-8"
                                 onClick={() => toggleDay(day.key)}
                                 aria-label={day.label}
                             >
-                                {day.key}
+                                {day.label}
                             </Button>
                         ))}
                     </div>
