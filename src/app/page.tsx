@@ -91,7 +91,7 @@ export default function HomePage() {
                     Get Started
                   </Link>
                   <Link
-                    href="#"
+                    href="/dashboard"
                     className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-8 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
                     prefetch={false}
                   >
@@ -99,14 +99,15 @@ export default function HomePage() {
                   </Link>
                 </div>
               </div>
-              <Image
-                src="https://picsum.photos/seed/1/600/400"
-                width="600"
-                height="400"
-                alt="Hero"
-                data-ai-hint="shrimp farm technology"
-                className="mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full lg:order-last"
-              />
+              <div className="mx-auto aspect-video overflow-hidden rounded-xl sm:w-full lg:order-last">
+                <iframe
+                  className="w-full h-full"
+                  src="https://www.youtube.com/embed/tR9EkkuBjUI"
+                  title="YouTube video player"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                ></iframe>
+              </div>
             </div>
           </div>
         </section>
