@@ -10,7 +10,8 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Droplets, Bell, Wifi, QrCode } from "lucide-react";
+import { Droplets, Bell, Wifi, QrCode, CheckCircle2, LineChart, Cpu } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const partners = [
   { name: "Aqua Dynamics", logo: "https://picsum.photos/seed/p1/140/70" },
@@ -45,7 +46,25 @@ const features = [
     title: "Easy Device Integration",
     description: "Seamlessly connect and manage all your monitoring devices. Scan a simple QR code to add new sensors to your dashboard.",
   },
-]
+];
+
+const comparisonFeatures = [
+    {
+        icon: CheckCircle2,
+        title: "Centralized Data Platform",
+        description: "All your farm data, from water quality history to device status, is gathered in one accessible digital platform."
+    },
+    {
+        icon: LineChart,
+        title: "Smart Analytics & Insights",
+        description: "Receive intelligent notifications, predictive analysis on crop cycles, and recommendations relevant to your farm's profile."
+    },
+    {
+        icon: Cpu,
+        title: "Automated & Remote Control",
+        description: "Automate and control your devices like aerators and feeders remotely, saving time and operational costs."
+    }
+];
 
 export default function HomePage() {
   return (
@@ -197,6 +216,64 @@ export default function HomePage() {
                 </Card>
               ))}
             </div>
+          </div>
+        </section>
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
+          <div className="container px-4 md:px-6">
+            <Tabs defaultValue="with" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
+                <TabsTrigger value="with">With Crustea</TabsTrigger>
+                <TabsTrigger value="without">Without Crustea</TabsTrigger>
+              </TabsList>
+              <TabsContent value="with">
+                <div className="grid gap-12 lg:grid-cols-2 mt-12 items-center">
+                  <div className="rounded-lg overflow-hidden border shadow-lg">
+                    <Image
+                      src="https://picsum.photos/seed/dashboard/600/400"
+                      width={600}
+                      height={400}
+                      alt="Crustea Dashboard"
+                      className="w-full"
+                      data-ai-hint="dashboard analytics"
+                    />
+                  </div>
+                  <div className="flex flex-col justify-center space-y-6">
+                    <h3 className="text-2xl font-bold tracking-tighter sm:text-3xl">Centralized Data, Smarter Decisions</h3>
+                    <ul className="space-y-4">
+                      {comparisonFeatures.map((feature, index) => (
+                        <li key={index} className="flex items-start gap-4">
+                          <feature.icon className="h-8 w-8 text-primary mt-1 flex-shrink-0" />
+                          <div>
+                            <h4 className="font-semibold text-lg">{feature.title}</h4>
+                            <p className="text-muted-foreground">{feature.description}</p>
+                          </div>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              </TabsContent>
+              <TabsContent value="without">
+                <div className="grid gap-12 lg:grid-cols-2 mt-12 items-center">
+                   <div className="rounded-lg overflow-hidden border bg-background p-4 shadow-lg">
+                     <Image
+                       src="https://picsum.photos/seed/manual/600/400"
+                       width={600}
+                       height={400}
+                       alt="Manual Labor"
+                       className="w-full grayscale"
+                       data-ai-hint="manual labor farm"
+                     />
+                   </div>
+                   <div className="flex flex-col justify-center space-y-6">
+                     <h3 className="text-2xl font-bold tracking-tighter sm:text-3xl">Manual Operations, Scattered Data</h3>
+                     <p className="text-muted-foreground max-w-prose">
+                        Relying on manual checks, handwritten logs, and guesswork leads to inefficiencies, higher risks, and potential for crop failure. Data is scattered, difficult to analyze, and real-time decision-making is nearly impossible.
+                     </p>
+                   </div>
+                </div>
+              </TabsContent>
+            </Tabs>
           </div>
         </section>
       </main>
