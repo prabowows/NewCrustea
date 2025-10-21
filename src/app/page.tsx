@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -253,15 +254,15 @@ export default function HomePage() {
               </TabsList>
               <TabsContent value="with" className="mt-6">
                 <div className="grid gap-12 lg:grid-cols-2 items-center">
-                  <div className="relative rounded-lg overflow-hidden border shadow-lg group [perspective:1000px]">
-                    <Image
-                      src="https://www.bluelifehub.com/wp-content/uploads/2022/12/Egypt-fish-farming.png"
-                      width={600}
-                      height={370}
-                      alt="Crustea Dashboard"
-                      className="w-full"
-                      data-ai-hint="dashboard interface"
-                    />
+                  <div className="relative rounded-lg overflow-hidden border shadow-lg group [perspective:1000px] aspect-video">
+                    <iframe 
+                      className="w-full h-full"
+                      src="https://www.youtube.com/embed/tR9EkkuBjUI" 
+                      title="YouTube video player" 
+                      frameBorder="0" 
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                      allowFullScreen>
+                    </iframe>
                   </div>
                   <div className="flex flex-col justify-center space-y-6">
                     <h3 className="text-2xl font-bold tracking-tighter sm:text-3xl">Manajemen Budidaya Jadi Lebih Mudah</h3>
@@ -379,5 +380,7 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
 
     
