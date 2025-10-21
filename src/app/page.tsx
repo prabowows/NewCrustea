@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Droplets, Bell, Wifi, Cpu, CheckCircle2, LineChart, FileText, DollarSign, BrainCircuit, Users } from "lucide-react";
+import { Droplets, Wifi, BrainCircuit, DollarSign, CheckCircle2, LineChart, Cpu } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -252,15 +252,16 @@ export default function HomePage() {
                 <TabsTrigger value="without">Tanpa Crustea</TabsTrigger>
               </TabsList>
               <TabsContent value="with" className="mt-6">
-                <div className="grid gap-12 lg:grid-cols-2 mt-8 items-center">
-                  <div className="rounded-lg overflow-hidden border shadow-lg aspect-video">
-                    <iframe
-                        className="w-full h-full"
-                        src="https://www.youtube.com/embed/3-U_8b9f7sI?autoplay=1&mute=1&loop=1&playlist=3-U_8b9f7sI&controls=0"
-                        title="Crustea Dashboard Video"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                    ></iframe>
+                <div className="grid gap-12 lg:grid-cols-2 items-center">
+                  <div className="relative rounded-lg overflow-hidden border shadow-lg group [perspective:1000px]">
+                    <Image
+                      src="https://crustea.id/wp-content/uploads/2023/10/Dashboard-Crustea-1024x631.webp"
+                      width={600}
+                      height={370}
+                      alt="Crustea Dashboard"
+                      className="w-full animate-rotate-y-3d"
+                      data-ai-hint="dashboard interface"
+                    />
                   </div>
                   <div className="flex flex-col justify-center space-y-6">
                     <h3 className="text-2xl font-bold tracking-tighter sm:text-3xl">Manajemen Budidaya Jadi Lebih Mudah</h3>
@@ -279,7 +280,7 @@ export default function HomePage() {
                 </div>
               </TabsContent>
               <TabsContent value="without" className="mt-6">
-                <div className="grid gap-12 lg:grid-cols-2 mt-8 items-center">
+                <div className="grid gap-12 lg:grid-cols-2 items-center">
                    <div className="rounded-lg overflow-hidden border bg-background p-4 shadow-lg">
                      <Image
                        src="https://crustea.id/wp-content/uploads/2023/10/Frame-9-1024x631.webp"
