@@ -310,9 +310,9 @@ export default function HomePage() {
         <section className="w-full pb-8 md:pb-10">
           <div className="container px-4 md:px-6">
             <Tabs defaultValue="with" className="w-full">
-              <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
-                <TabsTrigger value="with">Dengan Crustea</TabsTrigger>
-                <TabsTrigger value="without">Tanpa Crustea</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto h-12">
+                <TabsTrigger value="with" className="text-base py-2.5">Dengan Crustea</TabsTrigger>
+                <TabsTrigger value="without" className="text-base py-2.5">Tanpa Crustea</TabsTrigger>
               </TabsList>
               <TabsContent value="with" className="mt-6">
                 <div className="grid gap-12 lg:grid-cols-2 items-center">
