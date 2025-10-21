@@ -169,15 +169,15 @@ export default function HomePage() {
                   </Link>
                 </div>
               </div>
-              <div className="mx-auto aspect-square overflow-hidden sm:w-full lg:order-last">
-                 <Image
-                    src="https://www.bluelifehub.com/wp-content/uploads/2022/12/Egypt-fish-farming.png"
-                    width={600}
-                    height={600}
-                    alt="Ilustrasi Budidaya Udang Modern"
-                    className="w-full object-cover aspect-square rounded-lg"
-                    data-ai-hint="modern shrimp farming illustration"
-                  />
+              <div className="mx-auto aspect-video overflow-hidden rounded-lg sm:w-full lg:order-last">
+                <iframe
+                  className="w-full h-full"
+                  src="https://www.youtube.com/embed/tR9EkkuBjUI"
+                  title="YouTube video player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                ></iframe>
               </div>
             </div>
           </div>
@@ -379,5 +379,7 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
 
     
