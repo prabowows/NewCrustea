@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Droplets, Bell, Wifi, QrCode, CheckCircle2, LineChart, Cpu } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const partners = [
   { name: "Aqua Dynamics", logo: "https://picsum.photos/seed/p1/140/70" },
@@ -66,6 +67,25 @@ const comparisonFeatures = [
         description: "Automate and control your devices like aerators and feeders remotely, saving time and operational costs."
     }
 ];
+
+const testimonials = [
+    {
+      name: "Budi Santoso",
+      role: "Shrimp Farm Owner",
+      avatar: "https://picsum.photos/seed/t1/100/100",
+      avatarFallback: "BS",
+      quote:
+        "Crustea has been a game-changer for my farm. The real-time data and remote control features have simplified my daily operations. Now I can manage my ponds from anywhere, giving me incredible peace of mind.",
+    },
+    {
+      name: "Dr. Anisa Putri",
+      role: "Aquaculture Consultant",
+      quote:
+        "As a consultant, getting accurate and quick data is crucial. Crustea's smart analytics provide deep insights into pond health, allowing me to give better, data-driven advice to my clients. It's a huge step forward for sustainable aquaculture.",
+      avatar: "https://picsum.photos/seed/t2/100/100",
+      avatarFallback: "AP",
+    },
+  ];
 
 export default function HomePage() {
   return (
@@ -221,6 +241,37 @@ export default function HomePage() {
           </div>
         </section>
         <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
+          <div className="container px-4 md:px-6 text-center">
+            <div className="space-y-2 mb-12">
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">What Our Users Say</h2>
+              <p className="max-w-[900px] mx-auto text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                Hear from real farm owners and consultants who have transformed their aquaculture experience.
+              </p>
+            </div>
+            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-1 md:grid-cols-2 lg:max-w-none">
+              {testimonials.map((testimonial, index) => (
+                <Card key={index} className="text-left">
+                  <CardContent className="p-6">
+                    <div className="flex flex-col items-center text-center gap-4">
+                      <Avatar className="w-20 h-20 border-2 border-primary">
+                        <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
+                        <AvatarFallback>{testimonial.avatarFallback}</AvatarFallback>
+                      </Avatar>
+                      <blockquote className="text-lg italic text-muted-foreground mt-4">
+                        "{testimonial.quote}"
+                      </blockquote>
+                      <div className="mt-4">
+                        <p className="font-semibold">{testimonial.name}</p>
+                        <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        </section>
+        <section className="w-full py-12 md:py-24 lg:py-32">
           <div className="container px-4 md:px-6">
             <Tabs defaultValue="with" className="w-full">
               <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
