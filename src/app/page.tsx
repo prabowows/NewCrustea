@@ -10,81 +10,78 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Droplets, Bell, Wifi, QrCode, CheckCircle2, LineChart, Cpu } from "lucide-react";
+import { Droplets, Bell, Wifi, Cpu, CheckCircle2, LineChart, FileText, DollarSign, BrainCircuit, Users } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 
 const partners = [
-  { name: "Aqua Dynamics", logo: "https://picsum.photos/seed/p1/140/70" },
-  { name: "OceanHarvest", logo: "https://picsum.photos/seed/p2/140/70" },
-  { name: "Blue Water Farms", logo: "https://picsum.photos/seed/p3/140/70" },
-  { name: "Shrimp Solutions", logo: "https://picsum.photos/seed/p4/140/70" },
-  { name: "Marine Tech Inc.", logo: "https://picsum.photos/seed/p5/140/70" },
-  { name: "Coastal Aquaculture", logo: "https://picsum.photos/seed/p6/140/70" },
-  { name: "Prawn Paradise", logo: "https://picsum.photos/seed/p7/140/70" },
-  { name: "DeepSea Cultivations", logo: "https://picsum.photos/seed/p8/140/70" },
-  { name: "Freshwater Finest", logo: "https://picsum.photos/seed/p9/140/70" },
+  { name: "Aqua Dynamics", logo: "https://res.cloudinary.com/dtnsf2etf/image/upload/v1760677133/download_1_etf80y.png" },
+  { name: "OceanHarvest", logo: "https://res.cloudinary.com/dtnsf2etf/image/upload/v1760677133/download_2_i3qwn5.png" },
+  { name: "Blue Water Farms", logo: "https://res.cloudinary.com/dtnsf2etf/image/upload/v1760677133/download_3_e0h0ea.png" },
+  { name: "Shrimp Solutions", logo: "https://res.cloudinary.com/dtnsf2etf/image/upload/v1760677134/download_4_y5g5sg.png" },
+  { name: "Marine Tech Inc.", logo: "https://res.cloudinary.com/dtnsf2etf/image/upload/v1760677134/download_5_rslpda.png" },
+  { name: "Coastal Aquaculture", logo: "https://res.cloudinary.com/dtnsf2etf/image/upload/v1760677134/download_6_t0j8la.png" },
 ];
 
 const features = [
   {
     icon: Droplets,
-    title: "Real-time Water Quality",
-    description: "Get live data on crucial parameters like Dissolved Oxygen (DO), pH, temperature, and salinity, ensuring optimal conditions for your shrimp.",
-  },
-  {
-    icon: Bell,
-    title: "Smart Alerts & Notifications",
-    description: "Receive instant alerts on your phone when water quality parameters go outside the optimal range, allowing for immediate action.",
+    title: "Pantau Kualitas Air Real-time",
+    description: "Monitor parameter kunci seperti DO, pH, suhu, dan salinitas untuk memastikan kondisi optimal untuk udang Anda.",
   },
   {
     icon: Wifi,
-    title: "Remote Aerator Control",
-    description: "Manage your pond's aerators from anywhere. Turn them on or off remotely to maintain ideal oxygen levels and save energy.",
+    title: "Kontrol Kincir & Pompa",
+    description: "Nyalakan dan matikan perangkat dari jarak jauh, atur jadwal, atau biarkan sistem bekerja otomatis sesuai target parameter.",
   },
   {
-    icon: QrCode,
-    title: "Easy Device Integration",
-    description: "Seamlessly connect and manage all your monitoring devices. Scan a simple QR code to add new sensors to your dashboard.",
+    icon: BrainCircuit,
+    title: "Analisa & Rekomendasi Cerdas",
+    description: "Dapatkan notifikasi cerdas, prediksi siklus, dan rekomendasi yang relevan dengan profil tambak Anda.",
+  },
+  {
+    icon: DollarSign,
+    title: "Manajemen Pakan & Finansial",
+    description: "Catat dan analisis penggunaan pakan serta biaya operasional untuk meningkatkan efisiensi dan profitabilitas.",
   },
 ];
 
 const comparisonFeatures = [
     {
         icon: CheckCircle2,
-        title: "Centralized Data Platform",
-        description: "All your farm data, from water quality history to device status, is gathered in one accessible digital platform."
+        title: "Platform Data Terpusat",
+        description: "Semua data tambak Anda, dari riwayat kualitas air hingga status perangkat, terkumpul dalam satu platform digital yang dapat diakses."
     },
     {
         icon: LineChart,
-        title: "Smart Analytics & Insights",
-        description: "Receive intelligent notifications, predictive analysis on crop cycles, and recommendations relevant to your farm's profile."
+        title: "Analitik & Wawasan Cerdas",
+        description: "Terima notifikasi cerdas, analisis prediktif pada siklus panen, dan rekomendasi yang relevan dengan profil tambak Anda."
     },
     {
         icon: Cpu,
-        title: "Automated & Remote Control",
-        description: "Automate and control your devices like aerators and feeders remotely, saving time and operational costs."
+        title: "Kontrol Otomatis & Jarak Jauh",
+        description: "Otomatiskan dan kontrol perangkat Anda seperti kincir dan feeder dari jarak jauh, menghemat waktu dan biaya operasional."
     }
 ];
 
 const testimonials = [
     {
-      name: "Budi Santoso",
-      role: "Shrimp Farm Owner",
-      avatar: "https://picsum.photos/seed/t1/100/100",
-      avatarFallback: "BS",
+      name: "Bapak H. Sugianto",
+      role: "Pemilik Tambak, Indramayu",
+      avatar: "https://crustea.id/wp-content/uploads/2023/11/Pak-Sugianto-150x150.webp",
+      avatarFallback: "HS",
       quote:
-        "Crustea has been a game-changer for my farm. The real-time data and remote control features have simplified my daily operations. Now I can manage my ponds from anywhere, giving me incredible peace of mind.",
+        "Crustea sangat membantu dalam efisiensi tenaga kerja dan waktu, terutama dalam monitoring kualitas air. Saya bisa memantau kondisi tambak kapan saja dan di mana saja, bahkan saat sedang tidak di lokasi.",
     },
     {
-      name: "Dr. Anisa Putri",
-      role: "Aquaculture Consultant",
+      name: "Bapak Azis",
+      role: "Manajer Tambak, Subang",
       quote:
-        "As a consultant, getting accurate and quick data is crucial. Crustea's smart analytics provide deep insights into pond health, allowing me to give better, data-driven advice to my clients. It's a huge step forward for sustainable aquaculture.",
-      avatar: "https://picsum.photos/seed/t2/100/100",
-      avatarFallback: "AP",
+        "Dengan Crustea, kontrol terhadap kualitas air jadi lebih presisi. Notifikasi real-time memungkinkan kami mengambil tindakan cepat jika ada parameter yang tidak sesuai, sehingga risiko gagal panen bisa diminimalisir.",
+      avatar: "https://crustea.id/wp-content/uploads/2023/11/Pak-Azis-150x150.webp",
+      avatarFallback: "AZ",
     },
   ];
 
@@ -101,7 +98,7 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="px-4 lg:px-6 h-14 flex items-center">
+      <header className="px-4 lg:px-6 h-14 flex items-center sticky top-0 bg-background/80 backdrop-blur-sm z-50">
         <Link
           href="#"
           className="flex items-center justify-center"
@@ -112,7 +109,7 @@ export default function HomePage() {
             alt="Crustea Logo"
             className="h-8"
           />
-          <span className="sr-only">Crustea</span>
+          <span className="font-bold text-xl ml-2">Crustea</span>
         </Link>
         <nav className="ml-auto flex items-center gap-4 sm:gap-6">
           <Link
@@ -120,43 +117,39 @@ export default function HomePage() {
             className="text-sm font-medium hover:underline underline-offset-4"
             prefetch={false}
           >
-            Features
+            Solusi
           </Link>
           <Link
             href="#"
             className="text-sm font-medium hover:underline underline-offset-4"
             prefetch={false}
           >
-            Pricing
+            Harga
           </Link>
           <Link
             href="#"
             className="text-sm font-medium hover:underline underline-offset-4"
             prefetch={false}
           >
-            About
+            Tentang Kami
           </Link>
-          <Link
-            href="#"
-            className="text-sm font-medium hover:underline underline-offset-4"
-            prefetch={false}
-          >
-            Contact
-          </Link>
+          <Button asChild>
+            <Link href="#">Hubungi Kami</Link>
+          </Button>
           <ThemeSwitcher />
         </nav>
       </header>
       <main className="flex-1">
         <section className="w-full py-8 md:py-10">
           <div className="container px-4 md:px-6">
-            <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
+            <div className="grid gap-6 lg:grid-cols-[1fr_500px] lg:gap-12 xl:grid-cols-[1fr_600px] items-center">
               <div className="flex flex-col justify-center space-y-4">
                 <div className="space-y-2">
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
-                    Smart, Simple & Secure Aquaculture Monitoring
+                    Revolusi Digital untuk Budidaya Udang Anda
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl">
-                    Crustea provides a comprehensive platform for real-time water quality monitoring, remote aerator control, and data analysis to optimize your shrimp farming operations.
+                    Tingkatkan produktivitas, efisiensi, dan keberlanjutan tambak udang Anda dengan teknologi monitoring dan manajemen terintegrasi dari Crustea.
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
@@ -165,25 +158,26 @@ export default function HomePage() {
                     className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
                     prefetch={false}
                   >
-                    Get Started
+                    Jadwalkan Demo
                   </Link>
                   <Link
                     href="/dashboard"
                     className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-8 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
                     prefetch={false}
                   >
-                    View Dashboard
+                    Lihat Dashboard
                   </Link>
                 </div>
               </div>
-              <div className="mx-auto aspect-video overflow-hidden rounded-xl sm:w-full lg:order-last">
-                <iframe
-                  className="w-full h-full"
-                  src="https://www.youtube.com/embed/tR9EkkuBjUI"
-                  title="YouTube video player"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                ></iframe>
+              <div className="mx-auto aspect-square overflow-hidden sm:w-full lg:order-last">
+                 <Image
+                    src="https://crustea.id/wp-content/uploads/2023/10/6469395_3329916-1024x1024.webp"
+                    width={600}
+                    height={600}
+                    alt="Ilustrasi Budidaya Udang Modern"
+                    className="w-full"
+                    data-ai-hint="modern shrimp farming illustration"
+                  />
               </div>
             </div>
           </div>
@@ -192,13 +186,10 @@ export default function HomePage() {
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Trusted by Leading Aquaculture Partners</h2>
-                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  We partner with the most innovative companies in the aquaculture industry to bring you the best-in-class monitoring solutions.
-                </p>
+                <h2 className="text-sm font-bold tracking-widest text-primary uppercase">DIDUKUNG OLEH</h2>
               </div>
             </div>
-            <div className="py-12">
+            <div className="py-8">
               <Carousel
                 plugins={[
                   Autoplay({
@@ -216,8 +207,8 @@ export default function HomePage() {
                 <CarouselContent>
                   {partners.map((partner, index) => (
                     <CarouselItem key={index} className="basis-1/3 md:basis-1/4 lg:basis-1/6">
-                      <div className="p-4 bg-background rounded-lg flex items-center justify-center h-24">
-                        <Image src={partner.logo} alt={partner.name} width={140} height={70} className="object-contain" />
+                      <div className="p-4 flex items-center justify-center h-24">
+                        <Image src={partner.logo} alt={partner.name} width={140} height={70} className="object-contain grayscale hover:grayscale-0 transition-all" />
                       </div>
                     </CarouselItem>
                   ))}
@@ -230,17 +221,19 @@ export default function HomePage() {
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
-                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Our Core Features</h2>
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Solusi Lengkap Budidaya Udang</h2>
                 <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                  Crustea empowers shrimp farmers with cutting-edge features designed for efficiency and peace of mind.
+                  Crustea menyediakan solusi end-to-end untuk membantu Anda mengelola setiap aspek budidaya udang secara efisien dan cerdas.
                 </p>
               </div>
             </div>
-            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:max-w-none lg:grid-cols-2 xl:grid-cols-2 mt-12">
+            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:max-w-none lg:grid-cols-2 xl:grid-cols-4 mt-12">
               {features.map((feature, index) => (
-                <Card key={index} className="group">
-                  <CardHeader className="flex flex-row items-center gap-4">
-                    <feature.icon className="h-10 w-10 text-primary transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1" />
+                <Card key={index} className="group text-center">
+                  <CardHeader className="flex flex-col items-center gap-4">
+                    <div className="bg-primary/10 p-3 rounded-full">
+                       <feature.icon className="h-10 w-10 text-primary transition-transform duration-300 group-hover:scale-110" />
+                    </div>
                     <CardTitle className="text-xl">{feature.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -255,23 +248,23 @@ export default function HomePage() {
           <div className="container px-4 md:px-6">
             <Tabs defaultValue="with" className="w-full">
               <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
-                <TabsTrigger value="with">With Crustea</TabsTrigger>
-                <TabsTrigger value="without">Without Crustea</TabsTrigger>
+                <TabsTrigger value="with">Dengan Crustea</TabsTrigger>
+                <TabsTrigger value="without">Tanpa Crustea</TabsTrigger>
               </TabsList>
-              <TabsContent value="with">
+              <TabsContent value="with" className="mt-6">
                 <div className="grid gap-12 lg:grid-cols-2 mt-8 items-center">
                   <div className="rounded-lg overflow-hidden border shadow-lg [perspective:2000px]">
                     <Image
-                      src="https://picsum.photos/seed/dashboard/600/400"
+                      src="https://crustea.id/wp-content/uploads/2023/10/Dashboard-Crustea-1024x631.webp"
                       width={600}
-                      height={400}
+                      height={370}
                       alt="Crustea Dashboard"
                       className="w-full animate-rotate-y-3d"
                       data-ai-hint="dashboard analytics"
                     />
                   </div>
                   <div className="flex flex-col justify-center space-y-6">
-                    <h3 className="text-2xl font-bold tracking-tighter sm:text-3xl">Centralized Data, Smarter Decisions</h3>
+                    <h3 className="text-2xl font-bold tracking-tighter sm:text-3xl">Manajemen Budidaya Jadi Lebih Mudah</h3>
                     <ul className="space-y-4">
                       {comparisonFeatures.map((feature, index) => (
                         <li key={index} className="flex items-start gap-4">
@@ -286,22 +279,22 @@ export default function HomePage() {
                   </div>
                 </div>
               </TabsContent>
-              <TabsContent value="without">
+              <TabsContent value="without" className="mt-6">
                 <div className="grid gap-12 lg:grid-cols-2 mt-8 items-center">
                    <div className="rounded-lg overflow-hidden border bg-background p-4 shadow-lg">
                      <Image
-                       src="https://picsum.photos/seed/manual/600/400"
+                       src="https://crustea.id/wp-content/uploads/2023/10/Frame-9-1024x631.webp"
                        width={600}
-                       height={400}
+                       height={370}
                        alt="Manual Labor"
-                       className="w-full grayscale"
+                       className="w-full"
                        data-ai-hint="manual labor farm"
                      />
                    </div>
                    <div className="flex flex-col justify-center space-y-6">
-                     <h3 className="text-2xl font-bold tracking-tighter sm:text-3xl">Manual Operations, Scattered Data</h3>
+                     <h3 className="text-2xl font-bold tracking-tighter sm:text-3xl">Operasional Manual, Data Terpencar</h3>
                      <p className="text-muted-foreground max-w-prose">
-                        Relying on manual checks, handwritten logs, and guesswork leads to inefficiencies, higher risks, and potential for crop failure. Data is scattered, difficult to analyze, and real-time decision-making is nearly impossible.
+                        Mengandalkan pengecekan manual, pencatatan di buku, dan intuisi menyebabkan inefisiensi, risiko lebih tinggi, dan potensi kegagalan panen. Data tersebar, sulit dianalisis, dan pengambilan keputusan real-time hampir mustahil.
                      </p>
                    </div>
                 </div>
@@ -312,26 +305,28 @@ export default function HomePage() {
         <section className="w-full py-8 md:py-10 bg-muted">
           <div className="container px-4 md:px-6 text-center">
             <div className="space-y-2 mb-12">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">What Our Users Say</h2>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">Cerita Sukses dari Petambak</h2>
               <p className="max-w-[900px] mx-auto text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Hear from real farm owners and consultants who have transformed their aquaculture experience.
+                Dengarkan langsung dari para pemilik dan manajer tambak yang telah merasakan transformasi bersama Crustea.
               </p>
             </div>
             <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-1 md:grid-cols-2 lg:max-w-none">
               {testimonials.map((testimonial, index) => (
-                <Card key={index} className="text-left">
+                <Card key={index} className="text-left bg-background">
                   <CardContent className="p-6">
-                    <div className="flex flex-col items-center text-center gap-4">
-                      <Avatar className="w-20 h-20 border-2 border-primary">
-                        <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
-                        <AvatarFallback>{testimonial.avatarFallback}</AvatarFallback>
-                      </Avatar>
-                      <blockquote className="text-lg italic text-muted-foreground mt-4">
+                    <div className="space-y-4">
+                      <blockquote className="text-lg italic text-muted-foreground">
                         "{testimonial.quote}"
                       </blockquote>
-                      <div className="mt-4">
-                        <p className="font-semibold">{testimonial.name}</p>
-                        <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                      <div className="flex items-center gap-4 pt-4">
+                        <Avatar className="w-16 h-16 border-2 border-primary">
+                            <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
+                            <AvatarFallback>{testimonial.avatarFallback}</AvatarFallback>
+                        </Avatar>
+                        <div>
+                            <p className="font-semibold">{testimonial.name}</p>
+                            <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
@@ -341,6 +336,46 @@ export default function HomePage() {
           </div>
         </section>
       </main>
+      <footer className="bg-foreground text-background">
+        <div className="container px-4 md:px-6 py-8">
+            <div className="grid gap-8 md:grid-cols-4">
+                <div>
+                    <h3 className="font-bold text-lg mb-2">Crustea</h3>
+                    <p className="text-sm text-muted-foreground">Revolusi Digital untuk Budidaya Udang Anda.</p>
+                </div>
+                <div>
+                    <h3 className="font-bold text-lg mb-2">Navigasi</h3>
+                    <ul className="space-y-2 text-sm">
+                        <li><Link href="#" className="text-muted-foreground hover:text-background">Solusi</Link></li>
+                        <li><Link href="#" className="text-muted-foreground hover:text-background">Harga</Link></li>
+                        <li><Link href="#" className="text-muted-foreground hover:text-background">Tentang Kami</Link></li>
+                    </ul>
+                </div>
+                 <div>
+                    <h3 className="font-bold text-lg mb-2">Hubungi Kami</h3>
+                    <ul className="space-y-2 text-sm">
+                        <li className="text-muted-foreground">Gedung Wisti Sabha, Lt. 3</li>
+                        <li className="text-muted-foreground">Universitas Udayana, Jimbaran</li>
+                        <li className="text-muted-foreground">info@crustea.com</li>
+                    </ul>
+                </div>
+                 <div>
+                    <h3 className="font-bold text-lg mb-2">Ikuti Kami</h3>
+                    <div className="flex gap-4">
+                         <Link href="#" className="text-muted-foreground hover:text-background">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-instagram"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+                         </Link>
+                         <Link href="#" className="text-muted-foreground hover:text-background">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-linkedin"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect width="4" height="12" x="2" y="9"/><circle cx="4" cy="4" r="2"/></svg>
+                         </Link>
+                    </div>
+                </div>
+            </div>
+            <div className="border-t border-muted-foreground/20 mt-8 pt-6 text-center text-sm text-muted-foreground">
+                <p>&copy; 2024 Crustea. All rights reserved.</p>
+            </div>
+        </div>
+      </footer>
     </div>
   );
 }
