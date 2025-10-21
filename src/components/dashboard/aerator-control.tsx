@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -13,21 +13,72 @@ import { Power } from "lucide-react";
 
 export function AeratorControl() {
   const [isAeratorOn, setIsAeratorOn] = useState(true);
+  const [timeoutInput, setTimeoutInput] = useState("");
+  const [countdown, setCountdown] = useState(0);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    if (!isTimerRunning || countdown <= 0) {
+      if (isTimerRunning) {
+        toast({
+            title: "Timer Finished",
+            description: "Aerator has been turned off.",
+        });
+        setIsAeratorOn(false);
+      }
+      setIsTimerRunning(false);
+      setCountdown(0);
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setCountdown((prevCountdown) => prevCountdown - 1);
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isTimerRunning, countdown, toast]);
+
   const handleApplyTimeout = () => {
-    toast({
-        title: "Timer Set",
-        description: "Aerator will turn off automatically after the specified duration.",
+    const minutes = parseInt(timeoutInput, 10);
+    if (isNaN(minutes) || minutes <= 0) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Input",
+        description: "Please enter a valid number of minutes.",
       });
-  }
+      return;
+    }
+    setCountdown(minutes * 60);
+    setIsTimerRunning(true);
+    toast({
+      title: "Timer Set",
+      description: `Aerator will turn off automatically in ${minutes} minute(s).`,
+    });
+  };
+
+  const handleCancelTimer = () => {
+    setIsTimerRunning(false);
+    setCountdown(0);
+    toast({
+        title: "Timer Cancelled",
+        description: "The auto-off timer has been cancelled.",
+    });
+  };
 
   const handleSetSchedule = () => {
     toast({
         title: "Schedule Set",
         description: "Aerator will now turn on and off at the scheduled times.",
       });
-  }
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
+
 
   return (
     <Card>
@@ -64,13 +115,29 @@ export function AeratorControl() {
             <TabsTrigger value="schedule">Daily Schedule</TabsTrigger>
           </TabsList>
           <TabsContent value="timer" className="mt-4">
-            <div className="space-y-2">
-                <Label htmlFor="aerator-timeout">Set Duration</Label>
-                <div className="flex space-x-2">
-                    <Input id="aerator-timeout" type="number" placeholder="e.g., 30" />
-                    <Button onClick={handleApplyTimeout} className="whitespace-nowrap">Set (minutes)</Button>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                  <Label htmlFor="aerator-timeout">Set Duration</Label>
+                  <div className="flex space-x-2">
+                      <Input 
+                        id="aerator-timeout" 
+                        type="number" 
+                        placeholder="e.g., 30"
+                        value={timeoutInput}
+                        onChange={(e) => setTimeoutInput(e.target.value)}
+                        disabled={isTimerRunning}
+                      />
+                      <Button onClick={handleApplyTimeout} className="whitespace-nowrap" disabled={isTimerRunning}>Set (minutes)</Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">The aerator will turn off after the timer ends.</p>
+              </div>
+              {isTimerRunning && (
+                <div className="space-y-2 rounded-lg border border-dashed p-4 text-center">
+                    <p className="text-sm text-muted-foreground">Turning off in:</p>
+                    <p className="text-4xl font-bold font-mono">{formatTime(countdown)}</p>
+                    <Button variant="outline" size="sm" onClick={handleCancelTimer}>Cancel Timer</Button>
                 </div>
-                <p className="text-xs text-muted-foreground">The aerator will turn off after the timer ends.</p>
+              )}
             </div>
           </TabsContent>
           <TabsContent value="schedule" className="mt-4">
