@@ -11,11 +11,25 @@ import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Power } from "lucide-react";
 
+type Day = 'S' | 'M' | 'T' | 'W' | 'R' | 'F' | 'A';
+
+const daysOfWeek: { key: Day, label: string }[] = [
+    { key: 'S', label: 'Sun' },
+    { key: 'M', label: 'Mon' },
+    { key: 'T', label: 'Tue' },
+    { key: 'W', label: 'Wed' },
+    { key: 'R', label: 'Thu' },
+    { key: 'F', label: 'Fri' },
+    { key: 'A', label: 'Sat' },
+];
+
+
 export function AeratorControl() {
   const [isAeratorOn, setIsAeratorOn] = useState(true);
   const [timeoutInput, setTimeoutInput] = useState("");
   const [countdown, setCountdown] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [selectedDays, setSelectedDays] = useState<Day[]>([]);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -67,10 +81,24 @@ export function AeratorControl() {
   };
 
   const handleSetSchedule = () => {
+    if (selectedDays.length === 0) {
+        toast({
+            variant: "destructive",
+            title: "No Days Selected",
+            description: "Please select at least one day for the schedule.",
+        });
+        return;
+    }
     toast({
         title: "Schedule Set",
         description: "Aerator will now turn on and off at the scheduled times.",
       });
+  };
+
+  const toggleDay = (day: Day) => {
+    setSelectedDays(prev => 
+        prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+    );
   };
 
   const formatTime = (seconds: number) => {
@@ -142,6 +170,23 @@ export function AeratorControl() {
           </TabsContent>
           <TabsContent value="schedule" className="mt-4">
             <div className="space-y-4">
+                <div className="space-y-2">
+                    <Label>Repeat on</Label>
+                    <div className="flex justify-between gap-1">
+                        {daysOfWeek.map(day => (
+                            <Button
+                                key={day.key}
+                                variant={selectedDays.includes(day.key) ? 'default' : 'outline'}
+                                size="icon"
+                                className="h-8 w-8 rounded-full"
+                                onClick={() => toggleDay(day.key)}
+                                aria-label={day.label}
+                            >
+                                {day.key}
+                            </Button>
+                        ))}
+                    </div>
+                </div>
                 <div className="space-y-2">
                     <Label htmlFor="turn-on-time">Turn On Time</Label>
                     <Input id="turn-on-time" type="time" />
