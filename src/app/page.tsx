@@ -147,7 +147,7 @@ export default function HomePage() {
         </nav>
       </header>
       <main className="flex-1">
-        <section className="w-full py-12 md:py-20 lg:py-28">
+        <section className="w-full py-8 md:py-10">
           <div className="container px-4 md:px-6">
             <div className="grid gap-6 lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]">
               <div className="flex flex-col justify-center space-y-4">
@@ -188,7 +188,7 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-        <section className="w-full py-12 md:py-16 lg:py-20 bg-muted">
+        <section className="w-full py-8 md:py-10 bg-muted">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
@@ -226,7 +226,7 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-        <section className="w-full py-12 md:py-16 lg:py-20">
+        <section className="w-full py-8 md:py-10">
           <div className="container px-4 md:px-6">
             <div className="flex flex-col items-center justify-center space-y-4 text-center">
               <div className="space-y-2">
@@ -251,7 +251,7 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-        <section className="w-full py-12 md:py-16 lg:py-20">
+        <section className="w-full pb-8 md:pb-10">
           <div className="container px-4 md:px-6">
             <Tabs defaultValue="with" className="w-full">
               <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto">
@@ -309,7 +309,7 @@ export default function HomePage() {
             </Tabs>
           </div>
         </section>
-        <section className="w-full py-12 md:py-16 lg:py-20 bg-muted">
+        <section className="w-full py-8 md:py-10 bg-muted">
           <div className="container px-4 md:px-6 text-center">
             <div className="space-y-2 mb-12">
               <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">What Our Users Say</h2>
