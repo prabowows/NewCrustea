@@ -4,9 +4,19 @@ import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { useState, useEffect } from "react";
 
 export function ThemeSwitcher() {
   const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   const handleThemeChange = (checked: boolean) => {
     setTheme(checked ? "dark" : "light");
