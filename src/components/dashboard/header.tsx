@@ -10,7 +10,7 @@ export function Header() {
   return (
     <header className="flex h-16 items-center justify-between border-b bg-card px-4 md:px-6 sticky top-0 z-30">
       <div className="flex items-center gap-4">
-        <SidebarTrigger className="md:hidden" />
+        <SidebarTrigger />
         <Link href="/" className="flex items-center gap-2">
             <img
             src="https://res.cloudinary.com/dtnsf2etf/image/upload/v1760671820/logo1-removebg-preview_cyzktd.png"
