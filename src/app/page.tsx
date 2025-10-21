@@ -1,42 +1,66 @@
-import { SidebarProvider, Sidebar, SidebarInset } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/components/dashboard/sidebar";
-import { Header } from "@/components/dashboard/header";
-import { RealTimeMetrics } from "@/components/dashboard/real-time-metrics";
-import { AeratorControl } from "@/components/dashboard/aerator-control";
-import { HistoricalChart } from "@/components/dashboard/historical-chart";
-import { AlarmsTable } from "@/components/dashboard/alarms-table";
-import { ParameterAnalysis } from "@/components/dashboard/parameter-analysis";
-import { LocationOverview } from "@/components/dashboard/location-overview";
+
+import { Button } from "@/components/ui/button";
+import { PlusSquare, PlayCircle, ArrowRight, LogIn } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <SidebarProvider>
-      <Sidebar>
-        <AppSidebar />
-      </Sidebar>
-      <SidebarInset>
-        <div className="flex min-h-screen w-full flex-col">
-          <Header />
-          <main className="flex flex-1 flex-col gap-4 p-4 md:gap-8 md:p-6 lg:p-8">
-            <LocationOverview />
-            <RealTimeMetrics />
-            
-            <div className="grid grid-cols-1 items-start gap-4 md:gap-8 lg:grid-cols-3">
-              <div className="grid gap-4 md:gap-8 lg:col-span-2">
-                <HistoricalChart />
+    <div className="flex flex-col min-h-screen bg-background text-foreground">
+      <header className="px-4 lg:px-6 h-16 flex items-center border-b">
+        <Link href="#" className="flex items-center justify-center" prefetch={false}>
+          <PlusSquare className="h-6 w-6 text-primary" />
+          <span className="ml-2 text-xl font-bold">MediPass</span>
+        </Link>
+        <nav className="ml-auto flex gap-4 sm:gap-6">
+          <Link href="#" className="text-sm font-medium hover:underline underline-offset-4 text-primary" prefetch={false}>
+            Home
+          </Link>
+          <Link href="#" className="text-sm font-medium hover:underline underline-offset-4" prefetch={false}>
+            Contact Us
+          </Link>
+        </nav>
+      </header>
+      <main className="flex-1">
+        <section className="w-full py-12 md:py-24 lg:py-32">
+          <div className="container px-4 md:px-6">
+            <div className="grid gap-6 lg:grid-cols-2 lg:gap-12 xl:gap-16">
+              <div className="flex flex-col justify-center space-y-6">
+                <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none">
+                  Your Health Story, Smart, Simple & Secure.
+                </h1>
+                <p className="max-w-[600px] text-muted-foreground md:text-xl">
+                  MediPass intelligently organizes your complete medical records and provides personalized AI
+                  insights, all in a single, secure digital passport.
+                </p>
+                <div className="flex flex-col gap-4 sm:flex-row">
+                  <Button size="lg" className="bg-primary hover:bg-primary/90">
+                    Get Started
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                  <Button size="lg" variant="secondary">
+                     <LogIn className="mr-2 h-5 w-5" />
+                    Login
+                  </Button>
+                </div>
               </div>
-              <div className="grid gap-4 md:gap-8">
-                <AeratorControl />
+              <div className="relative flex items-center justify-center">
+                <Image
+                  src="https://picsum.photos/seed/medipass/600/400"
+                  alt="Doctor using a smartphone"
+                  width={600}
+                  height={400}
+                  className="rounded-xl object-cover"
+                  data-ai-hint="doctor phone"
+                />
+                <div className="absolute">
+                  <PlayCircle className="h-20 w-20 text-white/80 hover:text-white transition-colors cursor-pointer" />
+                </div>
               </div>
             </div>
-
-            <div className="grid grid-cols-1 gap-4 md:gap-8 lg:grid-cols-2">
-                <AlarmsTable />
-                <ParameterAnalysis />
-            </div>
-          </main>
-        </div>
-      </SidebarInset>
-    </SidebarProvider>
+          </div>
+        </section>
+      </main>
+    </div>
   );
 }
