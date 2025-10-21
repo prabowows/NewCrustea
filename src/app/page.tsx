@@ -1,8 +1,25 @@
 
 import { Button } from "@/components/ui/button";
-import { Mountain } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
+import Autoplay from "embla-carousel-autoplay";
+
+const partners = [
+  { name: "Aqua Dynamics", logo: "https://picsum.photos/seed/p1/140/70" },
+  { name: "OceanHarvest", logo: "https://picsum.photos/seed/p2/140/70" },
+  { name: "Blue Water Farms", logo: "https://picsum.photos/seed/p3/140/70" },
+  { name: "Shrimp Solutions", logo: "https://picsum.photos/seed/p4/140/70" },
+  { name: "Marine Tech Inc.", logo: "https://picsum.photos/seed/p5/140/70" },
+  { name: "Coastal Aquaculture", logo: "https://picsum.photos/seed/p6/140/70" },
+  { name: "Prawn Paradise", logo: "https://picsum.photos/seed/p7/140/70" },
+  { name: "DeepSea Cultivations", logo: "https://picsum.photos/seed/p8/140/70" },
+  { name: "Freshwater Finest", logo: "https://picsum.photos/seed/p9/140/70" },
+];
 
 export default function HomePage() {
   return (
@@ -89,6 +106,44 @@ export default function HomePage() {
                 data-ai-hint="shrimp farm technology"
                 className="mx-auto aspect-video overflow-hidden rounded-xl object-cover sm:w-full lg:order-last"
               />
+            </div>
+          </div>
+        </section>
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
+          <div className="container px-4 md:px-6">
+            <div className="flex flex-col items-center justify-center space-y-4 text-center">
+              <div className="space-y-2">
+                <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl">Trusted by Leading Aquaculture Partners</h2>
+                <p className="max-w-[900px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                  We partner with the most innovative companies in the aquaculture industry to bring you the best-in-class monitoring solutions.
+                </p>
+              </div>
+            </div>
+            <div className="py-12">
+              <Carousel
+                plugins={[
+                  Autoplay({
+                    delay: 2000,
+                    stopOnInteraction: true,
+                    stopOnMouseEnter: true,
+                  }),
+                ]}
+                opts={{
+                  align: "start",
+                  loop: true,
+                }}
+                className="w-full"
+              >
+                <CarouselContent>
+                  {partners.map((partner, index) => (
+                    <CarouselItem key={index} className="basis-1/3 md:basis-1/4 lg:basis-1/6">
+                      <div className="p-4 bg-background rounded-lg flex items-center justify-center h-24">
+                        <Image src={partner.logo} alt={partner.name} width={140} height={70} className="object-contain" />
+                      </div>
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+              </Carousel>
             </div>
           </div>
         </section>
