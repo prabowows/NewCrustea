@@ -7,8 +7,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "MediPass",
-  description: "Your Health Story, Smart, Simple & Secure.",
+  title: "Crustea",
+  description: "Your Aquaculture Story, Smart, Simple & Secure.",
 };
 
 export default function RootLayout({
