@@ -9,6 +9,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Power } from "lucide-react";
 
 export function AeratorControl() {
   const [isAeratorOn, setIsAeratorOn] = useState(true);
@@ -39,14 +40,21 @@ export function AeratorControl() {
           <div className="flex items-center justify-between">
             <Label htmlFor="aerator-status" className="flex flex-col space-y-1">
               <span>Master Control</span>
-              <span className={cn("text-sm font-bold", isAeratorOn ? "text-accent" : "text-destructive")}>
+              <span className={cn("text-sm font-bold", isAeratorOn ? "text-primary" : "text-destructive")}>
                 {isAeratorOn ? 'ACTIVE' : 'INACTIVE'}
               </span>
             </Label>
-          </div>
-          <div className="grid grid-cols-2 gap-2">
-            <Button onClick={() => setIsAeratorOn(true)} disabled={isAeratorOn} variant="outline">Turn On</Button>
-            <Button onClick={() => setIsAeratorOn(false)} disabled={!isAeratorOn} variant="destructive">Turn Off</Button>
+            <Button 
+              onClick={() => setIsAeratorOn(!isAeratorOn)} 
+              size="icon" 
+              className={cn(
+                "rounded-full w-14 h-14",
+                isAeratorOn ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground" : "bg-primary hover:bg-primary/90"
+              )}
+              aria-label="Toggle Aerator Power"
+            >
+              <Power className="h-6 w-6" />
+            </Button>
           </div>
         </div>
         
