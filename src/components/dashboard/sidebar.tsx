@@ -17,7 +17,6 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
-        <h2 className="text-lg font-semibold">Menu</h2>
       </SidebarHeader>
       <SidebarContent className="p-2">
         <SidebarMenu>
