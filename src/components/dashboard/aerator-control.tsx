@@ -9,18 +9,38 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Power } from "lucide-react";
+import { Power, CalendarDays } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Separator } from "@/components/ui/separator";
 
 type Day = 'Sun' | 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat';
 
-const daysOfWeek: { key: Day, label: string }[] = [
-    { key: 'Sun', label: 'Sun' },
-    { key: 'Mon', label: 'Mon' },
-    { key: 'Tue', label: 'Tue' },
-    { key: 'Wed', label: 'Wed' },
-    { key: 'Thu', label: 'Thu' },
-    { key: 'Fri', label: 'Fri' },
-    { key: 'Sat', label: 'Sat' },
+type DailySchedule = {
+  onTime: string;
+  offTime: string;
+  enabled: boolean;
+};
+
+type ScheduleState = Record<Day, DailySchedule>;
+
+const initialScheduleState: ScheduleState = {
+  Sun: { onTime: '', offTime: '', enabled: false },
+  Mon: { onTime: '', offTime: '', enabled: false },
+  Tue: { onTime: '', offTime: '', enabled: false },
+  Wed: { onTime: '', offTime: '', enabled: false },
+  Thu: { onTime: '', offTime: '', enabled: false },
+  Fri: { onTime: '', offTime: '', enabled: false },
+  Sat: { onTime: '', offTime: '', enabled: false },
+};
+
+const daysOfWeek: { key: Day; label: string }[] = [
+    { key: 'Sun', label: 'Sunday' },
+    { key: 'Mon', label: 'Monday' },
+    { key: 'Tue', label: 'Tuesday' },
+    { key: 'Wed', label: 'Wednesday' },
+    { key: 'Thu', label: 'Thursday' },
+    { key: 'Fri', label: 'Friday' },
+    { key: 'Sat', label: 'Saturday' },
 ];
 
 
@@ -29,7 +49,7 @@ export function AeratorControl() {
   const [timeoutInput, setTimeoutInput] = useState("");
   const [countdown, setCountdown] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [selectedDays, setSelectedDays] = useState<Day[]>([]);
+  const [schedule, setSchedule] = useState<ScheduleState>(initialScheduleState);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -80,28 +100,35 @@ export function AeratorControl() {
     });
   };
 
-  const handleSetSchedule = () => {
-    if (selectedDays.length === 0) {
+  const handleScheduleChange = (day: Day, field: keyof DailySchedule, value: string | boolean) => {
+    setSchedule(prev => ({
+        ...prev,
+        [day]: {
+            ...prev[day],
+            [field]: value,
+        },
+    }));
+  };
+
+  const handleSaveSchedule = () => {
+    const activeSchedules = Object.entries(schedule).filter(([, details]) => details.enabled);
+
+    if (activeSchedules.length === 0) {
         toast({
             variant: "destructive",
-            title: "No Days Selected",
-            description: "Please select at least one day for the schedule.",
+            title: "No Schedule Active",
+            description: "Please enable and configure a schedule for at least one day.",
         });
         return;
     }
+    
+    console.log("Saving schedule:", schedule);
     toast({
-        title: "Schedule Set",
-        description: `Schedule set for: ${selectedDays.join(', ')}.`,
-      });
+      title: "Schedule Saved",
+      description: "Your daily aerator schedules have been updated.",
+    });
   };
 
-  const toggleDay = (day: Day) => {
-    if (selectedDays.includes(day)) {
-        handleSetSchedule();
-    } else {
-        setSelectedDays(prev => [...prev, day]);
-    }
-  };
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -172,36 +199,58 @@ export function AeratorControl() {
           </TabsContent>
           <TabsContent value="schedule" className="mt-4">
             <div className="space-y-4">
-                <div className="space-y-2">
-                    <Label>Repeat on</Label>
-                    <div className="grid grid-cols-4 gap-2">
-                        {daysOfWeek.map(day => (
-                            <Button
-                                key={day.key}
-                                variant={selectedDays.includes(day.key) ? 'default' : 'outline'}
-                                size="sm"
-                                className="h-8"
-                                onClick={() => toggleDay(day.key)}
-                                aria-label={day.label}
-                            >
-                                {day.label}
-                            </Button>
+                <Card className="border-dashed">
+                    <CardHeader className="p-4">
+                        <div className="flex items-center gap-2 text-muted-foreground">
+                            <CalendarDays className="h-5 w-5" />
+                            <h3 className="font-semibold text-foreground">Set Weekly Schedule</h3>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="p-4 pt-0 space-y-4">
+                        {daysOfWeek.map((day, index) => (
+                            <div key={day.key}>
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor={`schedule-switch-${day.key}`} className="font-medium">{day.label}</Label>
+                                    <Switch
+                                        id={`schedule-switch-${day.key}`}
+                                        checked={schedule[day.key].enabled}
+                                        onCheckedChange={(checked) => handleScheduleChange(day.key, 'enabled', checked)}
+                                    />
+                                </div>
+                                <div className={cn(
+                                    "grid grid-cols-2 gap-2 mt-2 transition-all duration-300 ease-in-out",
+                                    schedule[day.key].enabled ? "max-h-20 opacity-100" : "max-h-0 opacity-0 overflow-hidden"
+                                )}>
+                                    <div className="space-y-1">
+                                        <Label htmlFor={`on-time-${day.key}`} className="text-xs">Turn On</Label>
+                                        <Input 
+                                            id={`on-time-${day.key}`} 
+                                            type="time" 
+                                            value={schedule[day.key].onTime}
+                                            onChange={(e) => handleScheduleChange(day.key, 'onTime', e.target.value)}
+                                            disabled={!schedule[day.key].enabled}
+                                        />
+                                    </div>
+                                    <div className="space-y-1">
+                                        <Label htmlFor={`off-time-${day.key}`} className="text-xs">Turn Off</Label>
+                                        <Input 
+                                            id={`off-time-${day.key}`} 
+                                            type="time"
+                                            value={schedule[day.key].offTime}
+                                            onChange={(e) => handleScheduleChange(day.key, 'offTime', e.target.value)}
+                                            disabled={!schedule[day.key].enabled}
+                                        />
+                                    </div>
+                                </div>
+                                {index < daysOfWeek.length - 1 && <Separator className="mt-4" />}
+                            </div>
                         ))}
-                    </div>
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="turn-on-time">Turn On Time</Label>
-                    <Input id="turn-on-time" type="time" />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="turn-off-time">Turn Off Time</Label>
-                    <Input id="turn-off-time" type="time" />
-                </div>
-                <Button onClick={handleSetSchedule} className="w-full">Set Schedule</Button>
+                    </CardContent>
+                </Card>
+                <Button onClick={handleSaveSchedule} className="w-full">Save All Schedules</Button>
             </div>
           </TabsContent>
         </Tabs>
-
       </CardContent>
     </Card>
   );
