@@ -229,44 +229,50 @@ export default function HomePage() {
                 </p>
               </div>
             </div>
-            <div className="grid gap-8 lg:grid-cols-3">
-              <Card className="flex flex-col">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><Wind className="w-6 h-6 text-primary" /> Eco-Aerator</CardTitle>
-                </CardHeader>
-                <CardContent className="flex-grow">
-                  <Image src="https://res.cloudinary.com/dtnsf2etf/image/upload/v1760682223/eco-aerator_f4w6ax.png" alt="Eco-Aerator" width={400} height={250} className="rounded-lg mb-4 object-cover w-full aspect-video"/>
-                  <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                    <li>Meningkatkan kualitas dan ukuran udang/ikan hingga 200%.</li>
-                    <li>Impeller menghasilkan gelembung lebih kecil untuk kadar oksigen lebih tinggi.</li>
-                    <li>Didukung oleh energi terbarukan (Photovoltaic).</li>
-                  </ul>
+            <div className="grid gap-8 lg:grid-cols-1">
+              <Card>
+                <CardContent className="grid md:grid-cols-2 gap-6 items-center p-6">
+                  <div className="relative w-full aspect-video rounded-lg overflow-hidden">
+                    <Image src="https://picsum.photos/seed/aerator/600/400" alt="Eco-Aerator" layout="fill" objectFit="cover" data-ai-hint="eco-aerator aquaculture"/>
+                  </div>
+                  <div>
+                    <CardTitle className="flex items-center gap-2 mb-4"><Wind className="w-6 h-6 text-primary" /> Eco-Aerator</CardTitle>
+                    <ul className="list-disc list-inside text-muted-foreground space-y-2">
+                      <li>Meningkatkan kualitas dan ukuran udang/ikan hingga 200%.</li>
+                      <li>Impeller menghasilkan gelembung lebih kecil untuk kadar oksigen lebih tinggi.</li>
+                      <li>Didukung oleh energi terbarukan (Photovoltaic).</li>
+                    </ul>
+                  </div>
                 </CardContent>
               </Card>
-              <Card className="flex flex-col">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><Droplets className="w-6 h-6 text-primary" /> EBII System</CardTitle>
-                </CardHeader>
-                <CardContent className="flex-grow">
-                  <Image src="https://res.cloudinary.com/dtnsf2etf/image/upload/v1760682223/ebil-system_mcfpd2.png" alt="EBII System" width={400} height={250} className="rounded-lg mb-4 object-cover w-full aspect-video"/>
-                  <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                    <li>Mengukur 4 parameter: pH, DO, salinitas, dan suhu.</li>
-                    <li>Terhubung dengan aplikasi mobile untuk pemantauan mudah.</li>
-                    <li>Mengurangi emisi GHG hingga 23.044 tCO2e.</li>
-                  </ul>
+              <Card>
+                <CardContent className="grid md:grid-cols-2 gap-6 items-center p-6">
+                  <div className="relative w-full aspect-video rounded-lg overflow-hidden">
+                     <Image src="https://picsum.photos/seed/sensor/600/400" alt="EBII System" layout="fill" objectFit="cover" data-ai-hint="water sensor aquaculture"/>
+                  </div>
+                  <div>
+                    <CardTitle className="flex items-center gap-2 mb-4"><Droplets className="w-6 h-6 text-primary" /> EBII System</CardTitle>
+                    <ul className="list-disc list-inside text-muted-foreground space-y-2">
+                      <li>Mengukur 4 parameter: pH, DO, salinitas, dan suhu.</li>
+                      <li>Terhubung dengan aplikasi mobile untuk pemantauan mudah.</li>
+                      <li>Mengurangi emisi GHG hingga 23.044 tCO2e.</li>
+                    </ul>
+                  </div>
                 </CardContent>
               </Card>
-              <Card className="flex flex-col">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><Zap className="w-6 h-6 text-primary" /> Smart Energy & Control</CardTitle>
-                </CardHeader>
-                <CardContent className="flex-grow">
-                  <Image src="https://res.cloudinary.com/dtnsf2etf/image/upload/v1760682223/smart-energy_y9xsvc.png" alt="Smart Energy" width={400} height={250} className="rounded-lg mb-4 object-cover w-full aspect-video"/>
-                  <ul className="list-disc list-inside text-muted-foreground space-y-2">
-                    <li>Monitor dan kontrol penggunaan energi setiap aerator melalui ponsel.</li>
-                    <li>Kontrol otomatis on/off aerator berdasarkan pengukuran EBII System.</li>
-                    <li>Meningkatkan efisiensi dan mengurangi biaya operasional.</li>
-                  </ul>
+              <Card>
+                <CardContent className="grid md:grid-cols-2 gap-6 items-center p-6">
+                   <div className="relative w-full aspect-video rounded-lg overflow-hidden">
+                      <Image src="https://picsum.photos/seed/control/600/400" alt="Smart Energy" layout="fill" objectFit="cover" data-ai-hint="smart energy control"/>
+                   </div>
+                  <div>
+                    <CardTitle className="flex items-center gap-2 mb-4"><Zap className="w-6 h-6 text-primary" /> Smart Energy & Control</CardTitle>
+                    <ul className="list-disc list-inside text-muted-foreground space-y-2">
+                      <li>Monitor dan kontrol penggunaan energi setiap aerator melalui ponsel.</li>
+                      <li>Kontrol otomatis on/off aerator berdasarkan pengukuran EBII System.</li>
+                      <li>Meningkatkan efisiensi dan mengurangi biaya operasional.</li>
+                    </ul>
+                  </div>
                 </CardContent>
               </Card>
             </div>
