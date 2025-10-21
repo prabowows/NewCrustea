@@ -91,14 +91,16 @@ export function AeratorControl() {
     }
     toast({
         title: "Schedule Set",
-        description: "Aerator will now turn on and off at the scheduled times.",
+        description: `Schedule set for: ${selectedDays.join(', ')}.`,
       });
   };
 
   const toggleDay = (day: Day) => {
-    setSelectedDays(prev => 
-        prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
-    );
+    if (selectedDays.includes(day)) {
+        handleSetSchedule();
+    } else {
+        setSelectedDays(prev => [...prev, day]);
+    }
   };
 
   const formatTime = (seconds: number) => {
