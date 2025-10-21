@@ -3,7 +3,6 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
@@ -36,14 +35,19 @@ export function AeratorControl() {
         <CardDescription>Remotely manage the main aerator system.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="flex items-center justify-between space-x-2 rounded-lg border p-4">
-          <Label htmlFor="aerator-status" className="flex flex-col space-y-1">
-            <span>Master Switch</span>
-            <span className={cn("text-sm font-bold", isAeratorOn ? "text-accent" : "text-destructive")}>
-              {isAeratorOn ? 'ACTIVE' : 'INACTIVE'}
-            </span>
-          </Label>
-          <Switch id="aerator-status" checked={isAeratorOn} onCheckedChange={setIsAeratorOn} aria-label="Toggle Aerator"/>
+        <div className="space-y-4 rounded-lg border p-4">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="aerator-status" className="flex flex-col space-y-1">
+              <span>Master Control</span>
+              <span className={cn("text-sm font-bold", isAeratorOn ? "text-accent" : "text-destructive")}>
+                {isAeratorOn ? 'ACTIVE' : 'INACTIVE'}
+              </span>
+            </Label>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Button onClick={() => setIsAeratorOn(true)} disabled={isAeratorOn} variant="outline">Turn On</Button>
+            <Button onClick={() => setIsAeratorOn(false)} disabled={!isAeratorOn} variant="destructive">Turn Off</Button>
+          </div>
         </div>
         
         <Tabs defaultValue="timer">
@@ -80,4 +84,3 @@ export function AeratorControl() {
     </Card>
   );
 }
-
