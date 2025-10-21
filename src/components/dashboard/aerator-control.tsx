@@ -40,7 +40,7 @@ export function AeratorControl() {
           <div className="flex items-center justify-between">
             <Label htmlFor="aerator-status" className="flex flex-col space-y-1">
               <span>Master Control</span>
-              <span className={cn("text-sm font-bold", isAeratorOn ? "text-primary" : "text-destructive")}>
+              <span className={cn("text-sm font-bold", isAeratorOn ? "text-success" : "text-muted-foreground")}>
                 {isAeratorOn ? 'ACTIVE' : 'INACTIVE'}
               </span>
             </Label>
@@ -48,8 +48,8 @@ export function AeratorControl() {
               onClick={() => setIsAeratorOn(!isAeratorOn)} 
               size="icon" 
               className={cn(
-                "rounded-full w-14 h-14",
-                isAeratorOn ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground" : "bg-primary hover:bg-primary/90"
+                "rounded-full w-14 h-14 text-white",
+                isAeratorOn ? "bg-success hover:bg-success/90" : "bg-muted-foreground hover:bg-muted-foreground/90"
               )}
               aria-label="Toggle Aerator Power"
             >
