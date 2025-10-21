@@ -3,9 +3,7 @@
 
 import { useTheme } from "next-themes";
 import { SidebarContent, Sidebar, SidebarMenuItem, SidebarMenu, SidebarFooter, SidebarHeader, SidebarMenuButton } from "@/components/ui/sidebar";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Moon, Sun, Home, Settings, BarChart, Bell } from "lucide-react";
+import { Home, Settings, BarChart, Bell } from "lucide-react";
 
 export function AppSidebar() {
   const { theme, setTheme } = useTheme();
@@ -47,18 +45,6 @@ export function AppSidebar() {
         </SidebarMenu>
       </SidebarContent>
       <SidebarFooter>
-        <div className="flex items-center justify-between p-2 group-data-[collapsed=true]:p-0 group-data-[collapsed=true]:justify-center">
-            <Label htmlFor="theme-switch" className="flex items-center gap-2">
-                {theme === 'dark' ? <Moon /> : <Sun />}
-                <span className="transition-all w-full group-data-[collapsed=true]:opacity-0 group-data-[collapsed=true]:w-0">{theme === 'dark' ? 'Dark' : 'Light'}</span>
-            </Label>
-            <Switch 
-                id="theme-switch" 
-                checked={theme === 'dark'}
-                onCheckedChange={handleThemeChange}
-                className="transition-all group-data-[collapsed=true]:opacity-0 group-data-[collapsed=true]:w-0"
-            />
-        </div>
       </SidebarFooter>
     </Sidebar>
   );

@@ -1,10 +1,10 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Search, Settings, User, LifeBuoy, LogOut } from "lucide-react";
-import { Input } from "../ui/input";
+import { Settings, User, LifeBuoy, LogOut } from "lucide-react";
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import Link from "next/link";
+import { ThemeSwitcher } from "../theme-switcher";
 
 export function Header() {
   return (
@@ -20,10 +20,7 @@ export function Header() {
         </Link>
       </div>
       <div className="flex items-center gap-4">
-        <div className="relative hidden md:block">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input type="search" placeholder="Search ponds or devices..." className="pl-8 sm:w-[300px] lg:w-[400px]" />
-        </div>
+        <ThemeSwitcher />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="rounded-full">
