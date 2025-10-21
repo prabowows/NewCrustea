@@ -240,37 +240,6 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
-          <div className="container px-4 md:px-6 text-center">
-            <div className="space-y-2 mb-12">
-              <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">What Our Users Say</h2>
-              <p className="max-w-[900px] mx-auto text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                Hear from real farm owners and consultants who have transformed their aquaculture experience.
-              </p>
-            </div>
-            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-1 md:grid-cols-2 lg:max-w-none">
-              {testimonials.map((testimonial, index) => (
-                <Card key={index} className="text-left">
-                  <CardContent className="p-6">
-                    <div className="flex flex-col items-center text-center gap-4">
-                      <Avatar className="w-20 h-20 border-2 border-primary">
-                        <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
-                        <AvatarFallback>{testimonial.avatarFallback}</AvatarFallback>
-                      </Avatar>
-                      <blockquote className="text-lg italic text-muted-foreground mt-4">
-                        "{testimonial.quote}"
-                      </blockquote>
-                      <div className="mt-4">
-                        <p className="font-semibold">{testimonial.name}</p>
-                        <p className="text-sm text-muted-foreground">{testimonial.role}</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </section>
         <section className="w-full py-12 md:py-24 lg:py-32">
           <div className="container px-4 md:px-6">
             <Tabs defaultValue="with" className="w-full">
@@ -327,6 +296,37 @@ export default function HomePage() {
                 </div>
               </TabsContent>
             </Tabs>
+          </div>
+        </section>
+        <section className="w-full py-12 md:py-24 lg:py-32 bg-muted">
+          <div className="container px-4 md:px-6 text-center">
+            <div className="space-y-2 mb-12">
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-5xl">What Our Users Say</h2>
+              <p className="max-w-[900px] mx-auto text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
+                Hear from real farm owners and consultants who have transformed their aquaculture experience.
+              </p>
+            </div>
+            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-1 md:grid-cols-2 lg:max-w-none">
+              {testimonials.map((testimonial, index) => (
+                <Card key={index} className="text-left">
+                  <CardContent className="p-6">
+                    <div className="flex flex-col items-center text-center gap-4">
+                      <Avatar className="w-20 h-20 border-2 border-primary">
+                        <AvatarImage src={testimonial.avatar} alt={testimonial.name} />
+                        <AvatarFallback>{testimonial.avatarFallback}</AvatarFallback>
+                      </Avatar>
+                      <blockquote className="text-lg italic text-muted-foreground mt-4">
+                        "{testimonial.quote}"
+                      </blockquote>
+                      <div className="mt-4">
+                        <p className="font-semibold">{testimonial.name}</p>
+                        <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
         </section>
       </main>
