@@ -227,9 +227,9 @@ export default function HomePage() {
             </div>
             <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:max-w-none lg:grid-cols-2 xl:grid-cols-2 mt-12">
               {features.map((feature, index) => (
-                <Card key={index}>
+                <Card key={index} className="group">
                   <CardHeader className="flex flex-row items-center gap-4">
-                    <feature.icon className="h-10 w-10 text-primary" />
+                    <feature.icon className="h-10 w-10 text-primary transition-transform duration-300 group-hover:scale-110 group-hover:-translate-y-1" />
                     <CardTitle className="text-xl">{feature.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
