@@ -12,6 +12,7 @@ import Autoplay from "embla-carousel-autoplay";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Droplets, Bell, Wifi, QrCode, CheckCircle2, LineChart, Cpu } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ThemeSwitcher } from "@/components/theme-switcher";
 
 const partners = [
   { name: "Aqua Dynamics", logo: "https://picsum.photos/seed/p1/140/70" },
@@ -82,7 +83,7 @@ export default function HomePage() {
           />
           <span className="sr-only">Crustea</span>
         </Link>
-        <nav className="ml-auto flex gap-4 sm:gap-6">
+        <nav className="ml-auto flex items-center gap-4 sm:gap-6">
           <Link
             href="#"
             className="text-sm font-medium hover:underline underline-offset-4"
@@ -111,6 +112,7 @@ export default function HomePage() {
           >
             Contact
           </Link>
+          <ThemeSwitcher />
         </nav>
       </header>
       <main className="flex-1">
