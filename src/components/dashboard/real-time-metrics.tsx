@@ -42,8 +42,11 @@ const initialMetrics: Metric[] = [
 export function RealTimeMetrics() {
   const [metrics, setMetrics] = useState<Metric[]>(initialMetrics);
   const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+
     const metricsRef = ref(database, 'metrics');
     const unsubscribe = onValue(metricsRef, (snapshot) => {
       if (snapshot.exists()) {
@@ -66,7 +69,7 @@ export function RealTimeMetrics() {
     return () => unsubscribe();
   }, []);
 
-  if (loading) {
+  if (!mounted || loading) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {initialMetrics.map((metric) => (
