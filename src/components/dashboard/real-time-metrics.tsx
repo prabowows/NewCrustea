@@ -53,23 +53,31 @@ export function RealTimeMetrics() {
         const data = snapshot.val();
         const updatedMetrics = initialMetrics.map(metric => {
             const metricData = data[metric.id];
-            if (metricData) {
+            if (metricData && typeof metricData.value !== 'undefined') {
                 return { ...metric, value: `${metricData.value} ${metricData.unit || ''}`.trim() };
             }
-            return metric;
+            return { ...metric, value: 'N/A' };
         });
         setMetrics(updatedMetrics);
+      } else {
+        // If 'metrics' path doesn't exist, keep showing N/A
+        setMetrics(initialMetrics);
       }
       setLoading(false);
     }, (error) => {
         console.error("Firebase read failed: ", error);
+        setMetrics(initialMetrics);
         setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  if (!mounted || loading) {
+  if (!mounted) {
+    return null; // Avoid rendering on the server to prevent hydration mismatch
+  }
+  
+  if (loading) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {initialMetrics.map((metric) => (
