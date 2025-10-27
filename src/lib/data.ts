@@ -4,6 +4,7 @@ export type Metric = {
   id: string;
   name: string;
   value: string;
+  unit: string;
   icon: string; // Now a string key for the icon map
   description: string;
 };
