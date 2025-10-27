@@ -18,12 +18,12 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 
 const partners = [
-  { name: "Aqua Dynamics", logo: "https://res.cloudinary.com/dtnsf2etf/image/upload/v1760677133/download_1_etf80y.png" },
-  { name: "OceanHarvest", logo: "https://res.cloudinary.com/dtnsf2etf/image/upload/v1760677133/download_2_i3qwn5.png" },
-  { name: "Blue Water Farms", logo: "https://res.cloudinary.com/dtnsf2etf/image/upload/v1760677133/download_3_e0h0ea.png" },
-  { name: "Shrimp Solutions", logo: "https://res.cloudinary.com/dtnsf2etf/image/upload/v1760677134/download_4_y5g5sg.png" },
-  { name: "Marine Tech Inc.", logo: "https://res.cloudinary.com/dtnsf2etf/image/upload/v1760677134/download_5_rslpda.png" },
-  { name: "Coastal Aquaculture", logo: "https://res.cloudinary.com/dtnsf2etf/image/upload/v1760677134/download_6_t0j8la.png" },
+  { name: "Aqua Dynamics", logo: "https://picsum.photos/seed/partner1/140/70" },
+  { name: "OceanHarvest", logo: "https://picsum.photos/seed/partner2/140/70" },
+  { name: "Blue Water Farms", logo: "https://picsum.photos/seed/partner3/140/70" },
+  { name: "Shrimp Solutions", logo: "https://picsum.photos/seed/partner4/140/70" },
+  { name: "Marine Tech Inc.", logo: "https://picsum.photos/seed/partner5/140/70" },
+  { name: "Coastal Aquaculture", logo: "https://picsum.photos/seed/partner6/140/70" },
 ];
 
 const features = [
