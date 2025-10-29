@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { database } from "@/lib/firebase";
-import { ref, onValue } from "firebase/database";
+import { ref, onValue, set } from "firebase/database";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
@@ -13,9 +13,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { initialMetrics, type Metric } from "@/lib/data";
 import { Power, Zap, GaugeCircle, Waves, Droplets, Thermometer, FlaskConical, Scale, Wind } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+
 
 const iconMap = {
   Power,
@@ -37,7 +40,7 @@ const metricKeyMap: { [key: string]: string } = {
     'do': 'DO',
     'temperature': 'Temp',
     'ph': 'pH',
-    'salinity': 'Salinity', // Assuming no mapping for salinity in the new structure
+    'salinity': 'Salinity',
     'pump': 'Pump',
 };
 
@@ -79,7 +82,6 @@ export function RealTimeMetrics() {
         });
         setMetrics(updatedMetrics);
       } else {
-        // If there's no data at the path, reset to initial state with N/A
          const resetMetrics = initialMetrics.map(m => ({ ...m, value: 'N/A' }));
         setMetrics(resetMetrics);
       }
@@ -95,27 +97,17 @@ export function RealTimeMetrics() {
     return () => unsubscribe();
   }, [mounted]);
 
-  if (!mounted) {
-    return (
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
-        {initialMetrics.map((metric) => (
-          <Card key={metric.id}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{metric.name}</CardTitle>
-               <Skeleton className="h-4 w-4 rounded-full" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-8 w-24" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
+  const togglePump = (currentStatus: string) => {
+    const newStatus = currentStatus === 'ON' ? 'OFF' : 'ON';
+    const pumpRef = ref(database, '/device1/water_quality/Pump');
+    set(pumpRef, newStatus).catch(error => {
+      console.error("Failed to update pump status: ", error);
+    });
+  };
 
-  if (loading) {
+  if (!mounted || loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-4">
         {initialMetrics.map((metric) => (
           <Card key={metric.id}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -135,6 +127,30 @@ export function RealTimeMetrics() {
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-4">
       {metrics.map((metric) => {
         const Icon = iconMap[metric.icon as keyof typeof iconMap] || Power;
+
+        if (metric.id === 'pump') {
+          const isPumpOn = metric.value === 'ON';
+          return (
+            <Card key={metric.id}>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">{metric.name}</CardTitle>
+                  <Icon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <Button 
+                  onClick={() => togglePump(metric.value)}
+                  className={cn(
+                    "w-full text-lg font-bold",
+                    isPumpOn ? "bg-green-500 hover:bg-green-600" : "bg-gray-400 hover:bg-gray-500"
+                  )}
+                >
+                  {metric.value}
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        }
+
         return (
             <Dialog key={metric.id}>
             <DialogTrigger asChild>
