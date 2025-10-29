@@ -110,7 +110,6 @@ export default function HomePage() {
             alt="Crustea Logo"
             className="h-8"
           />
-          <span className="font-bold text-xl ml-2">Crustea</span>
         </Link>
         <nav className="ml-auto flex items-center gap-4 sm:gap-6">
           <Link
@@ -229,9 +228,9 @@ export default function HomePage() {
                 </p>
               </div>
             </div>
-            <div className="grid gap-8 lg:grid-cols-3">
+            <div className="grid gap-8 lg:grid-cols-1">
               <Card>
-                <CardContent className="flex flex-col gap-6 items-center p-6 h-full">
+                <CardContent className="grid md:grid-cols-2 gap-6 items-center p-6">
                   <div className="relative w-full aspect-video rounded-lg overflow-hidden">
                     <Image src="https://picsum.photos/seed/aerator/600/400" alt="Eco-Aerator" layout="fill" objectFit="cover" data-ai-hint="eco-aerator aquaculture"/>
                   </div>
@@ -246,8 +245,8 @@ export default function HomePage() {
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="flex flex-col gap-6 items-center p-6 h-full">
-                  <div className="relative w-full aspect-video rounded-lg overflow-hidden">
+                <CardContent className="grid md:grid-cols-2 gap-6 items-center p-6">
+                   <div className="relative w-full aspect-video rounded-lg overflow-hidden">
                      <Image src="https://picsum.photos/seed/sensor/600/400" alt="EBII System" layout="fill" objectFit="cover" data-ai-hint="water sensor aquaculture"/>
                   </div>
                   <div className="flex flex-col">
@@ -261,7 +260,7 @@ export default function HomePage() {
                 </CardContent>
               </Card>
               <Card>
-                <CardContent className="flex flex-col gap-6 items-center p-6 h-full">
+                <CardContent className="grid md:grid-cols-2 gap-6 items-center p-6">
                    <div className="relative w-full aspect-video rounded-lg overflow-hidden">
                       <Image src="https://picsum.photos/seed/control/600/400" alt="Smart Energy" layout="fill" objectFit="cover" data-ai-hint="smart energy control"/>
                    </div>
@@ -289,7 +288,7 @@ export default function HomePage() {
                 </p>
               </div>
             </div>
-            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:max-w-none lg:grid-cols-2 mt-12">
+            <div className="mx-auto grid max-w-5xl items-start gap-8 sm:grid-cols-2 md:gap-12 lg:grid-cols-2 mt-12">
               {features.map((feature, index) => (
                 <Card key={index} className="group text-center">
                   <CardHeader className="flex flex-col items-center gap-4">
@@ -442,3 +441,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
