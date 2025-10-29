@@ -46,6 +46,10 @@ export function RealTimeMetrics() {
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+  
+  useEffect(() => {
+    if (!mounted) return;
 
     // Reference the root of your database
     const dbRef = ref(database, '/');
@@ -78,9 +82,27 @@ export function RealTimeMetrics() {
     });    
 
     return () => unsubscribe();
-  }, []);
+  }, [mounted]);
 
-  if (!mounted || loading) {
+  if (!mounted) {
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        {initialMetrics.map((metric) => (
+          <Card key={metric.id}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">{metric.name}</CardTitle>
+               <Skeleton className="h-4 w-4 rounded-full" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-8 w-24" />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
+
+  if (loading) {
     return (
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {initialMetrics.map((metric) => (
