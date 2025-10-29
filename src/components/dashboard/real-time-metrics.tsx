@@ -138,10 +138,11 @@ export function RealTimeMetrics() {
               </CardHeader>
               <CardContent>
                 <Button 
-                  onClick={() => togglePump(metric.value)}
+                  disabled
                   className={cn(
                     "w-full text-lg font-bold",
-                    isPumpOn ? "bg-green-500 hover:bg-green-600" : "bg-gray-400 hover:bg-gray-500"
+                    isPumpOn ? "bg-green-500 hover:bg-green-600" : "bg-gray-400 hover:bg-gray-500",
+                    "disabled:opacity-100"
                   )}
                 >
                   {metric.value}
