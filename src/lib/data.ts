@@ -18,6 +18,7 @@ export const initialMetrics: Metric[] = [
     { id: 'temperature', name: 'Temperature', value: 'N/A', unit: '°C', icon: 'Thermometer', description: 'Monitors the water temperature. Temperature affects shrimp metabolism, growth rate, and the water\'s ability to hold dissolved oxygen.' },
     { id: 'ph', name: 'pH Level', value: 'N/A', unit: '', icon: 'FlaskConical', description: 'Measures the acidity or alkalinity of the water. Shrimp thrive within a specific pH range, and deviations can cause stress or mortality.' },
     { id: 'salinity', name: 'Salinity', value: 'N/A', unit: 'ppt', icon: 'Scale', description: 'Measures the concentration of dissolved salts in the water, expressed in parts per thousand (ppt). Salinity is vital for the osmotic balance of shrimp.' },
+    { id: 'pump', name: 'Pump', value: 'N/A', unit: '', icon: 'Wind', description: 'Indicates the current status of the aerator pump (ON/OFF).' },
 ];
 
 export const historicalData = [

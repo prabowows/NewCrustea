@@ -14,7 +14,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { initialMetrics, type Metric } from "@/lib/data";
-import { Power, Zap, GaugeCircle, Waves, Droplets, Thermometer, FlaskConical, Scale } from 'lucide-react';
+import { Power, Zap, GaugeCircle, Waves, Droplets, Thermometer, FlaskConical, Scale, Wind } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
 
 const iconMap = {
@@ -26,6 +26,7 @@ const iconMap = {
   Thermometer,
   FlaskConical,
   Scale,
+  Wind,
 };
 
 const metricKeyMap: { [key: string]: string } = {
@@ -37,6 +38,7 @@ const metricKeyMap: { [key: string]: string } = {
     'temperature': 'Temp',
     'ph': 'pH',
     'salinity': 'Salinity', // Assuming no mapping for salinity in the new structure
+    'pump': 'Pump',
 };
 
 
@@ -52,7 +54,6 @@ export function RealTimeMetrics() {
   useEffect(() => {
     if (!mounted) return;
 
-    // Reference the specific path for water quality data
     const dbRef = ref(database, '/device1/water_quality');
     const unsubscribe = onValue(dbRef, (snapshot) => {
       const data = snapshot.val();
@@ -61,9 +62,15 @@ export function RealTimeMetrics() {
         const updatedMetrics = initialMetrics.map(metric => {
           const firebaseKey = metricKeyMap[metric.id] || metric.id;
           const metricValue = data[firebaseKey];
-          const valueWithUnit = metricValue !== undefined && metricValue !== null 
-            ? `${Number(metricValue).toFixed(2)}${metric.unit ? ` ${metric.unit}` : ''}` 
-            : 'N/A';
+
+          let valueWithUnit = 'N/A';
+          if (metricValue !== undefined && metricValue !== null) {
+            if (typeof metricValue === 'number') {
+                valueWithUnit = `${metricValue.toFixed(2)}${metric.unit ? ` ${metric.unit}` : ''}`;
+            } else {
+                valueWithUnit = `${metricValue}${metric.unit ? ` ${metric.unit}` : ''}`;
+            }
+          }
           
           return {
             ...metric,
@@ -90,7 +97,7 @@ export function RealTimeMetrics() {
 
   if (!mounted) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
         {initialMetrics.map((metric) => (
           <Card key={metric.id}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -108,7 +115,7 @@ export function RealTimeMetrics() {
 
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4">
         {initialMetrics.map((metric) => (
           <Card key={metric.id}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -125,7 +132,7 @@ export function RealTimeMetrics() {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-4">
       {metrics.map((metric) => {
         const Icon = iconMap[metric.icon as keyof typeof iconMap] || Power;
         return (
