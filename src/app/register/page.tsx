@@ -13,12 +13,50 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useState } from 'react';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
+import { useToast } from '@/hooks/use-toast';
+import { app } from '@/lib/firebase';
 
 export default function RegisterPage() {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const auth = getAuth(app);
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleRegister = async () => {
+    if (password !== confirmPassword) {
+      toast({
+        variant: 'destructive',
+        title: 'Registrasi Gagal',
+        description: 'Password dan konfirmasi password tidak cocok.',
+      });
+      return;
+    }
+    try {
+      await createUserWithEmailAndPassword(auth, email, password);
+      toast({
+        title: 'Registrasi Berhasil',
+        description: 'Akun Anda telah dibuat. Anda akan diarahkan ke dasbor.',
+      });
+      router.push('/dashboard');
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Registrasi Gagal',
+        description: error.message,
+      });
+    }
+  };
+
   return (
     <div className="relative min-h-screen w-full">
       <Image
-        src="https://images.unsplash.com/photo-1437419764061-2473afe69fc2?q=80&w=2070&auto=format&fit=crop"
+        src="https://images.pexels.com/photos/20121161/pexels-photo-20121161.jpeg"
         alt="Ocean background"
         fill
         className="object-cover object-center -z-10"
@@ -46,23 +84,23 @@ export default function RegisterPage() {
             <CardContent className="grid gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="name">Nama Lengkap</Label>
-                <Input id="name" placeholder="John Doe" />
+                <Input id="name" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="nama@contoh.com" />
+                <Input id="email" type="email" placeholder="nama@contoh.com" value={email} onChange={(e) => setEmail(e.target.value)} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" placeholder="********" />
+                <Input id="password" type="password" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} />
               </div>
                <div className="grid gap-2">
                 <Label htmlFor="confirm-password">Konfirmasi Password</Label>
-                <Input id="confirm-password" type="password" placeholder="********" />
+                <Input id="confirm-password" type="password" placeholder="********" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
               </div>
             </CardContent>
             <CardFooter className="flex flex-col gap-4">
-              <Button className="w-full">Register</Button>
+              <Button className="w-full" onClick={handleRegister}>Register</Button>
                <p className="text-center text-sm text-muted-foreground">
                 Sudah punya akun?{' '}
                 <Link
