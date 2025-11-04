@@ -134,7 +134,7 @@ export default function HomePage() {
             Tentang Kami
           </Link>
           <Button asChild>
-            <Link href="#">Hubungi Kami</Link>
+            <Link href="/login">Login</Link>
           </Button>
           <ThemeSwitcher />
         </nav>
