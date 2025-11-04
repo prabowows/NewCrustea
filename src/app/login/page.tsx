@@ -31,7 +31,7 @@ export default function LoginPage() {
               <div className="flex justify-center">
                   <Link href="/" className="flex items-center gap-2 font-semibold">
                       <Image
-                      src="https://res.cloudinary.com/dtnsf2etf/image/upload/v1760671820/logo1-removebg-preview_cyzktd.png"
+                      src="https://images.pexels.com/photos/1483780/pexels-photo-1483780.jpeg?_gl=1*1uqt79n*_ga*Njg0MDgxMDMwLjE3NjIyMzMyMDg.*_ga_8JE65Q40S6*czE3NjIyMzMyMDgkbzEkZzAkdDE3NjIyMzMyMDgkajYwJGwwJGgw"
                       alt="Crustea Logo"
                       width={120}
                       height={40}
@@ -46,7 +46,7 @@ export default function LoginPage() {
             <CardContent className="grid gap-4">
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="nama@contoh.com" />
+                <Input id="email" type="email" placeholder="nama@gmail.com" />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="password">Password</Label>

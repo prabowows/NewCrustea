@@ -63,7 +63,7 @@ export function RealTimeMetrics() {
       
       if (data) {
         const updatedMetrics = initialMetrics.map(metric => {
-          const firebaseKey = metricKeyMap[metric.id] || metric.id;
+          const firebaseKey = metric.id === 'do' ? 'DO' : metric.id === 'ph' ? 'pH' : metric.id === 'temperature' ? 'Temp' : metricKeyMap[metric.id] || metric.id;
           const metricValue = data[firebaseKey];
 
           let valueWithUnit = 'N/A';
@@ -96,14 +96,6 @@ export function RealTimeMetrics() {
 
     return () => unsubscribe();
   }, [mounted]);
-
-  const togglePump = (currentStatus: string) => {
-    const newStatus = currentStatus === 'ON' ? 'OFF' : 'ON';
-    const pumpRef = ref(database, '/device1/water_quality/Pump');
-    set(pumpRef, newStatus).catch(error => {
-      console.error("Failed to update pump status: ", error);
-    });
-  };
 
   if (!mounted || loading) {
     return (

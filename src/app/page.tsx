@@ -105,10 +105,12 @@ export default function HomePage() {
           className="flex items-center justify-center"
           prefetch={false}
         >
-          <img
+          <Image
             src="https://res.cloudinary.com/dtnsf2etf/image/upload/v1760671820/logo1-removebg-preview_cyzktd.png"
             alt="Crustea Logo"
-            className="h-8"
+            width={100}
+            height={40}
+            className="h-8 w-auto"
           />
         </Link>
         <nav className="ml-auto flex items-center gap-4 sm:gap-6">
@@ -232,7 +234,7 @@ export default function HomePage() {
               <Card>
                 <CardContent className="grid md:grid-cols-2 gap-6 items-center p-6">
                   <div className="relative w-full aspect-video rounded-lg overflow-hidden">
-                    <Image src="https://picsum.photos/seed/aerator/600/400" alt="Eco-Aerator" layout="fill" objectFit="cover" data-ai-hint="eco-aerator aquaculture"/>
+                    <Image src="https://picsum.photos/seed/aerator/600/400" alt="Eco-Aerator" fill objectFit="cover" data-ai-hint="eco-aerator aquaculture"/>
                   </div>
                   <div className="flex flex-col">
                     <CardTitle className="flex items-center gap-2 mb-4"><Wind className="w-6 h-6 text-primary" /> Eco-Aerator</CardTitle>
@@ -247,7 +249,7 @@ export default function HomePage() {
               <Card>
                 <CardContent className="grid md:grid-cols-2 gap-6 items-center p-6">
                    <div className="relative w-full aspect-video rounded-lg overflow-hidden">
-                     <Image src="https://picsum.photos/seed/sensor/600/400" alt="EBII System" layout="fill" objectFit="cover" data-ai-hint="water sensor aquaculture"/>
+                     <Image src="https://picsum.photos/seed/sensor/600/400" alt="EBII System" fill objectFit="cover" data-ai-hint="water sensor aquaculture"/>
                   </div>
                   <div className="flex flex-col">
                     <CardTitle className="flex items-center gap-2 mb-4"><Droplets className="w-6 h-6 text-primary" /> EBII System</CardTitle>
@@ -262,7 +264,7 @@ export default function HomePage() {
               <Card>
                 <CardContent className="grid md:grid-cols-2 gap-6 items-center p-6">
                    <div className="relative w-full aspect-video rounded-lg overflow-hidden">
-                      <Image src="https://picsum.photos/seed/control/600/400" alt="Smart Energy" layout="fill" objectFit="cover" data-ai-hint="smart energy control"/>
+                      <Image src="https://picsum.photos/seed/control/600/400" alt="Smart Energy" fill objectFit="cover" data-ai-hint="smart energy control"/>
                    </div>
                   <div className="flex flex-col">
                     <CardTitle className="flex items-center gap-2 mb-4"><Zap className="w-6 h-6 text-primary" /> Smart Energy & Control</CardTitle>
@@ -441,5 +443,3 @@ export default function HomePage() {
     </div>
   );
 }
-
-    
