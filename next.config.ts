@@ -2,6 +2,11 @@ import type {NextConfig} from 'next';
 
 const nextConfig: NextConfig = {
   /* config options here */
+  devIndicators: {
+    allowedDevOrigins: [
+        "https://*.cloudworkstations.dev"
+    ],
+  },
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -43,6 +48,12 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname: 'www.bluelifehub.com',
+        port: '',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.pexels.com',
         port: '',
         pathname: '/**',
       }
