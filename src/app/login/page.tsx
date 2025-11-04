@@ -26,18 +26,18 @@ export default function LoginPage() {
       />
       <div className="flex min-h-screen flex-col items-center justify-center bg-black/30">
         <div className="w-full max-w-sm">
-          <div className="flex justify-center mb-6">
-              <Link href="/" className="flex items-center gap-2 font-semibold">
-                  <Image
-                  src="https://res.cloudinary.com/dtnsf2etf/image/upload/v1760671820/logo1-removebg-preview_cyzktd.png"
-                  alt="Crustea Logo"
-                  width={120}
-                  height={40}
-                  />
-              </Link>
-          </div>
           <Card className="bg-card/80 backdrop-blur-sm">
-            <CardHeader className="space-y-1 text-center">
+            <CardHeader className="space-y-4 text-center">
+              <div className="flex justify-center">
+                  <Link href="/" className="flex items-center gap-2 font-semibold">
+                      <Image
+                      src="https://res.cloudinary.com/dtnsf2etf/image/upload/v1760671820/logo1-removebg-preview_cyzktd.png"
+                      alt="Crustea Logo"
+                      width={120}
+                      height={40}
+                      />
+                  </Link>
+              </div>
               <CardTitle className="text-2xl">Selamat Datang Kembali</CardTitle>
               <CardDescription>
                 Masukkan email dan password Anda untuk masuk ke dasbor
