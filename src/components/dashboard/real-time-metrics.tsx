@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { database } from "@/lib/firebase";
+import { database, databaseWater } from "@/lib/firebase";
 import { ref, onValue, set } from "firebase/database";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -32,16 +32,13 @@ const iconMap = {
   Wind,
 };
 
-const metricKeyMap: { [key: string]: string } = {
-    'load-power': 'Load Power',
-    'voltage': 'Voltage',
-    'current': 'Current',
-    'frequency': 'Frequency',
-    'do': 'DO',
-    'temperature': 'Temp',
-    'ph': 'pH',
-    'salinity': 'Salinity',
-    'pump': 'Pump',
+
+const formatValue = (value: any, unit: string) => {
+    if (value === undefined || value === null || value === '') return 'N/A';
+    if (typeof value === 'number') {
+        return `${value.toFixed(2)}${unit ? ` ${unit}` : ''}`;
+    }
+    return `${value}${unit ? ` ${unit}` : ''}`;
 };
 
 
@@ -57,49 +54,52 @@ export function RealTimeMetrics() {
   useEffect(() => {
     if (!mounted) return;
 
-    const dbRef = ref(database, '/device1/water_quality');
-    const unsubscribe = onValue(dbRef, (snapshot) => {
-      const data = snapshot.val();
-      
-      if (data) {
-        const updatedMetrics = initialMetrics.map(metric => {
-          const firebaseKey = metric.id === 'do' ? 'DO' : metric.id === 'ph' ? 'pH' : metric.id === 'temperature' ? 'Temp' : metricKeyMap[metric.id] || metric.id;
-          const metricValue = data[firebaseKey];
+    const listrikRef = ref(database, '/device4/listrik');
+    const waterRef = ref(databaseWater, '/device1/water_quality');
 
-          let valueWithUnit = 'N/A';
-          if (metricValue !== undefined && metricValue !== null) {
-            if (typeof metricValue === 'number') {
-                valueWithUnit = `${metricValue.toFixed(2)}${metric.unit ? ` ${metric.unit}` : ''}`;
-            } else {
-                valueWithUnit = `${metricValue}${metric.unit ? ` ${metric.unit}` : ''}`;
-            }
+    const updateMetrics = (data: any, source: 'listrik' | 'water_quality') => {
+      if (!data) return;
+
+      setMetrics(prevMetrics => {
+        return prevMetrics.map(metric => {
+          if (metric.source === source) {
+            const firebaseKey = metric.firebaseKey || metric.id;
+            const metricValue = data[firebaseKey];
+            return {
+              ...metric,
+              value: formatValue(metricValue, metric.unit),
+            };
           }
-          
-          return {
-            ...metric,
-            value: valueWithUnit.trim(),
-          };
+          return metric;
         });
-        setMetrics(updatedMetrics);
-      } else {
-         const resetMetrics = initialMetrics.map(m => ({ ...m, value: 'N/A' }));
-        setMetrics(resetMetrics);
-      }
-    
-      setLoading(false);
-    }, (error) => {
-      console.error("Firebase read failed: ", error);
-       const resetMetrics = initialMetrics.map(m => ({ ...m, value: 'N/A' }));
-      setMetrics(resetMetrics);
-      setLoading(false);
-    });    
+      });
+    };
 
-    return () => unsubscribe();
+    const unsubListrik = onValue(listrikRef, (snapshot) => {
+        updateMetrics(snapshot.val(), 'listrik');
+        setLoading(false);
+    }, (error) => {
+        console.error("Firebase 'listrik' read failed: ", error);
+        setLoading(false);
+    });
+
+    const unsubWater = onValue(waterRef, (snapshot) => {
+        updateMetrics(snapshot.val(), 'water_quality');
+        setLoading(false);
+    }, (error) => {
+        console.error("Firebase 'water_quality' read failed: ", error);
+        setLoading(false);
+    });
+
+    return () => {
+      unsubListrik();
+      unsubWater();
+    };
   }, [mounted]);
 
   if (!mounted || loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-9 gap-4">
         {initialMetrics.map((metric) => (
           <Card key={metric.id}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -116,7 +116,7 @@ export function RealTimeMetrics() {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-9 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-9 gap-4">
       {metrics.map((metric) => {
         const Icon = iconMap[metric.icon as keyof typeof iconMap] || Power;
 

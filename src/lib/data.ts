@@ -7,19 +7,39 @@ export type Metric = {
   unit: string;
   icon: string; // Now a string key for the icon map
   description: string;
+  source: 'listrik' | 'water_quality';
+  firebaseKey?: string;
 };
 
 export const initialMetrics: Metric[] = [
-    { id: 'load-power', name: 'Load Power', value: 'N/A', unit: 'W', icon: 'Power', description: 'Measures the total electrical power being consumed by the aerator system. Monitoring power helps in managing energy costs and detecting potential motor issues.' },
-    { id: 'voltage', name: 'Voltage', value: 'N/A', unit: 'V', icon: 'Zap', description: 'Monitors the incoming electrical voltage from the power supply. Stable voltage is crucial for the proper functioning and longevity of the equipment.' },
-    { id: 'current', name: 'Current', value: 'N/A', unit: 'A', icon: 'GaugeCircle', description: 'Tracks the amount of electrical current drawn by the aerator motors. Unusual spikes or drops can indicate mechanical stress or electrical faults.' },
-    { id: 'frequency', name: 'Frequency', value: 'N/A', unit: 'Hz', icon: 'Waves', description: 'Shows the frequency of the AC electrical supply. In most regions, this should be a stable 50 or 60 Hz.' },
-    { id: 'do', name: 'Dissolved Oxygen', value: 'N/A', unit: 'mg/L', icon: 'Droplets', description: 'Measures the amount of gaseous oxygen dissolved in the pond water. This is a critical parameter for shrimp health and survival.' },
-    { id: 'temperature', name: 'Temperature', value: 'N/A', unit: '°C', icon: 'Thermometer', description: 'Monitors the water temperature. Temperature affects shrimp metabolism, growth rate, and the water\'s ability to hold dissolved oxygen.' },
-    { id: 'ph', name: 'pH Level', value: 'N/A', unit: '', icon: 'FlaskConical', description: 'Measures the acidity or alkalinity of the water. Shrimp thrive within a specific pH range, and deviations can cause stress or mortality.' },
-    { id: 'salinity', name: 'Salinity', value: 'N/A', unit: 'ppt', icon: 'Scale', description: 'Measures the concentration of dissolved salts in the water, expressed in parts per thousand (ppt). Salinity is vital for the osmotic balance of shrimp.' },
-    { id: 'pump', name: 'Pump', value: 'N/A', unit: '', icon: 'Wind', description: 'Indicates the current status of the aerator pump (ON/OFF).' },
+    // Water Quality Metrics from 'water_quality' source
+    { id: 'do', name: 'Dissolved Oxygen', value: 'N/A', unit: 'mg/L', icon: 'Droplets', description: 'Measures the amount of gaseous oxygen dissolved in the pond water. This is a critical parameter for shrimp health and survival.', source: 'water_quality', firebaseKey: 'DO' },
+    { id: 'temperature', name: 'Temperature', value: 'N/A', unit: '°C', icon: 'Thermometer', description: 'Monitors the water temperature. Temperature affects shrimp metabolism, growth rate, and the water\'s ability to hold dissolved oxygen.', source: 'water_quality', firebaseKey: 'Temp' },
+    { id: 'ph', name: 'pH Level', value: 'N/A', unit: '', icon: 'FlaskConical', description: 'Measures the acidity or alkalinity of the water. Shrimp thrive within a specific pH range, and deviations can cause stress or mortality.', source: 'water_quality', firebaseKey: 'pH' },
+    { id: 'salinity', name: 'Salinity', value: 'N/A', unit: 'ppt', icon: 'Scale', description: 'Measures the concentration of dissolved salts in the water, expressed in parts per thousand (ppt). Salinity is vital for the osmotic balance of shrimp.', source: 'water_quality' },
+    { id: 'pump', name: 'Pump', value: 'N/A', unit: '', icon: 'Wind', description: 'Indicates the current status of the aerator pump (ON/OFF).', source: 'water_quality' },
+
+    // 3-Phase Power Metrics from 'listrik' source
+    { id: 'power1', name: 'Power 1', value: 'N/A', unit: 'W', icon: 'Power', description: 'Measures the electrical power for phase 1.', source: 'listrik' },
+    { id: 'power2', name: 'Power 2', value: 'N/A', unit: 'W', icon: 'Power', description: 'Measures the electrical power for phase 2.', source: 'listrik' },
+    { id: 'power3', name: 'Power 3', value: 'N/A', unit: 'W', icon: 'Power', description: 'Measures the electrical power for phase 3.', source: 'listrik' },
+    { id: 'voltage1', name: 'Voltage 1', value: 'N/A', unit: 'V', icon: 'Zap', description: 'Monitors the incoming electrical voltage for phase 1.', source: 'listrik' },
+    { id: 'voltage2', name: 'Voltage 2', value: 'N/A', unit: 'V', icon: 'Zap', description: 'Monitors the incoming electrical voltage for phase 2.', source: 'listrik' },
+    { id: 'voltage3', name: 'Voltage 3', value: 'N/A', unit: 'V', icon: 'Zap', description: 'Monitors the incoming electrical voltage for phase 3.', source: 'listrik' },
+    { id: 'current1', name: 'Current 1', value: 'N/A', unit: 'A', icon: 'GaugeCircle', description: 'Tracks the amount of electrical current drawn for phase 1.', source: 'listrik' },
+    { id: 'current2', name: 'Current 2', value: 'N/A', unit: 'A', icon: 'GaugeCircle', description: 'Tracks the amount of electrical current drawn for phase 2.', source: 'listrik' },
+    { id: 'current3', name: 'Current 3', value: 'N/A', unit: 'A', icon: 'GaugeCircle', description: 'Tracks the amount of electrical current drawn for phase 3.', source: 'listrik' },
+    { id: 'frequency1', name: 'Frequency 1', value: 'N/A', unit: 'Hz', icon: 'Waves', description: 'Shows the frequency of the AC electrical supply for phase 1.', source: 'listrik' },
+    { id: 'frequency2', name: 'Frequency 2', value: 'N/A', unit: 'Hz', icon: 'Waves', description: 'Shows the frequency of the AC electrical supply for phase 2.', source: 'listrik' },
+    { id: 'frequency3', name: 'Frequency 3', value: 'N/A', unit: 'Hz', icon: 'Waves', description: 'Shows the frequency of the AC electrical supply for phase 3.', source: 'listrik' },
+    { id: 'pf1', name: 'PF 1', value: 'N/A', unit: '', icon: 'Zap', description: 'Power factor for phase 1.', source: 'listrik' },
+    { id: 'pf2', name: 'PF 2', value: 'N/A', unit: '', icon: 'Zap', description: 'Power factor for phase 2.', source: 'listrik' },
+    { id: 'pf3', name: 'PF 3', value: 'N/A', unit: '', icon: 'Zap', description: 'Power factor for phase 3.', source: 'listrik' },
+    { id: 'energy1', name: 'Energy 1', value: 'N/A', unit: 'kWh', icon: 'Power', description: 'Energy consumption for phase 1.', source: 'listrik' },
+    { id: 'energy2', name: 'Energy 2', value: 'N/A', unit: 'kWh', icon: 'Power', description: 'Energy consumption for phase 2.', source: 'listrik' },
+    { id: 'energy3', name: 'Energy 3', value: 'N/A', unit: 'kWh', icon: 'Power', description: 'Energy consumption for phase 3.', source: 'listrik' },
 ];
+
 
 export const historicalData = [
     { time: '00:00', do: 5.2 },
