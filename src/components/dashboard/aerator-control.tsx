@@ -12,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Power, CalendarDays, Activity } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { databaseControl } from "@/lib/firebase";
+import { ref, onValue, set } from "firebase/database";
 
 type Day = 'Sun' | 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat';
 
@@ -45,12 +47,32 @@ const daysOfWeek: { key: Day; label: string }[] = [
 
 
 export function AeratorControl() {
-  const [isAeratorOn, setIsAeratorOn] = useState(true);
+  const [isAeratorOn, setIsAeratorOn] = useState(false);
   const [timeoutInput, setTimeoutInput] = useState("");
   const [countdown, setCountdown] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [schedule, setSchedule] = useState<ScheduleState>(initialScheduleState);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const aeratorControlRef = ref(databaseControl, 'aerator_control');
+    const unsubscribe = onValue(aeratorControlRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data && typeof data.is_on === 'boolean') {
+        setIsAeratorOn(data.is_on);
+      }
+    }, (error) => {
+      console.error("Firebase read failed:", error);
+      toast({
+        variant: "destructive",
+        title: "Connection Error",
+        description: "Could not fetch aerator status from the database.",
+      });
+    });
+
+    return () => unsubscribe();
+  }, [toast]);
+
 
   useEffect(() => {
     if (!isTimerRunning || countdown <= 0) {
@@ -72,6 +94,26 @@ export function AeratorControl() {
 
     return () => clearInterval(timer);
   }, [isTimerRunning, countdown, toast]);
+
+  const handleToggleAerator = () => {
+    const newStatus = !isAeratorOn;
+    const aeratorControlRef = ref(databaseControl, 'aerator_control');
+    set(aeratorControlRef, { is_on: newStatus })
+      .then(() => {
+        toast({
+          title: "Success",
+          description: `Aerator has been turned ${newStatus ? 'ON' : 'OFF'}.`,
+        });
+      })
+      .catch((error) => {
+        console.error("Firebase write failed:", error);
+        toast({
+          variant: "destructive",
+          title: "Update Failed",
+          description: "Could not update the aerator status.",
+        });
+      });
+  };
 
   const handleApplyTimeout = () => {
     const minutes = parseInt(timeoutInput, 10);
@@ -163,7 +205,7 @@ export function AeratorControl() {
             </CardHeader>
             <CardContent className="flex items-center justify-center p-4">
               <Button 
-                onClick={() => setIsAeratorOn(!isAeratorOn)} 
+                onClick={handleToggleAerator}
                 size="icon" 
                 className={cn(
                   "rounded-full w-24 h-24 text-primary-foreground transition-colors duration-300",

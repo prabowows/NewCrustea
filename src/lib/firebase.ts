@@ -25,12 +25,21 @@ const firebaseConfigWater = {
   appName: "water"
 };
 
+const firebaseConfigControl = {
+  databaseURL: "https://smartcontroltrial-default-rtdb.firebaseio.com/",
+};
+
+
 // Initialize Firebase
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
-const appWater = initializeApp(firebaseConfigWater, 'water');
+// A bit of a hack to avoid re-initializing apps, Next.js hot-reloading can cause issues.
+const app = getApps().find(app => app.name === '[DEFAULT]') || initializeApp(firebaseConfig, '[DEFAULT]');
+const appWater = getApps().find(app => app.name === 'water') || initializeApp(firebaseConfigWater, 'water');
+const appControl = getApps().find(app => app.name === 'control') || initializeApp(firebaseConfigControl, 'control');
+
 
 const database = getDatabase(app);
 const databaseWater = getDatabase(appWater);
+const databaseControl = getDatabase(appControl);
 const auth = getAuth(app);
 
-export { app, database, auth, databaseWater };
+export { app, database, auth, databaseWater, databaseControl };
