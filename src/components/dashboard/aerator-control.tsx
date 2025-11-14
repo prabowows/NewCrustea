@@ -146,6 +146,17 @@ export function AeratorControl() {
       <CardContent className="space-y-6">
         <div className="grid grid-cols-2 gap-4">
           <Card>
+            <CardHeader className="p-4 pb-2">
+                <CardTitle className="text-base">Master Control</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+                <p className="text-sm text-muted-foreground">Status</p>
+                <p className={cn("text-2xl font-bold", isAeratorOn ? "text-primary" : "text-destructive")}>
+                    {isAeratorOn ? 'ACTIVE' : 'INACTIVE'}
+                </p>
+            </CardContent>
+          </Card>
+          <Card>
             <CardContent className="p-4 flex items-center justify-center">
               <Button 
                 onClick={() => setIsAeratorOn(!isAeratorOn)} 
@@ -158,17 +169,6 @@ export function AeratorControl() {
               >
                 <Power className="h-10 w-10" />
               </Button>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="p-4 pb-2">
-                <CardTitle className="text-base">Master Control</CardTitle>
-            </CardHeader>
-            <CardContent className="p-4 pt-0">
-                <p className="text-sm text-muted-foreground">Status</p>
-                <p className={cn("text-2xl font-bold", isAeratorOn ? "text-primary" : "text-destructive")}>
-                    {isAeratorOn ? 'ACTIVE' : 'INACTIVE'}
-                </p>
             </CardContent>
           </Card>
         </div>
