@@ -151,7 +151,7 @@ export function AeratorControl() {
                 <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent className="flex flex-col items-center justify-center pt-2">
-                <p className={cn("text-5xl font-bold mt-2", isAeratorOn ? "text-primary" : "text-destructive")}>
+                <p className={cn("text-5xl font-bold mt-2 transition-colors duration-300", isAeratorOn ? "text-primary" : "text-destructive")}>
                     {isAeratorOn ? 'ON' : 'OFF'}
                 </p>
             </CardContent>
@@ -166,7 +166,7 @@ export function AeratorControl() {
                 onClick={() => setIsAeratorOn(!isAeratorOn)} 
                 size="icon" 
                 className={cn(
-                  "rounded-full w-24 h-24 text-primary-foreground",
+                  "rounded-full w-24 h-24 text-primary-foreground transition-colors duration-300",
                    isAeratorOn
                     ? "bg-destructive hover:bg-destructive/90"
                     : "bg-primary hover:bg-primary/90"
