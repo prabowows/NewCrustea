@@ -48,6 +48,7 @@ const daysOfWeek: { key: Day; label: string }[] = [
 
 export function AeratorControl() {
   const [isAeratorOn, setIsAeratorOn] = useState(false);
+  const [aeratorDisplayStatus, setAeratorDisplayStatus] = useState("OFF");
   const [timeoutInput, setTimeoutInput] = useState("");
   const [countdown, setCountdown] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
@@ -55,22 +56,43 @@ export function AeratorControl() {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Listener for control button state
     const aeratorControlRef = ref(databaseControl, 'aerator_control');
-    const unsubscribe = onValue(aeratorControlRef, (snapshot) => {
+    const unsubscribeControl = onValue(aeratorControlRef, (snapshot) => {
       const data = snapshot.val();
       if (data && typeof data.is_on === 'boolean') {
         setIsAeratorOn(data.is_on);
       }
     }, (error) => {
-      console.error("Firebase read failed:", error);
+      console.error("Firebase control read failed:", error);
       toast({
         variant: "destructive",
         title: "Connection Error",
-        description: "Could not fetch aerator status from the database.",
+        description: "Could not fetch aerator control status.",
       });
     });
 
-    return () => unsubscribe();
+    // Listener for display status card
+    const aeratorStatusRef = ref(databaseControl, 'device1/aerator/Status');
+    const unsubscribeStatus = onValue(aeratorStatusRef, (snapshot) => {
+      const status = snapshot.val();
+      if (status === 'ON' || status === 'OFF') {
+        setAeratorDisplayStatus(status);
+      }
+    }, (error) => {
+        console.error("Firebase status read failed:", error);
+        toast({
+            variant: "destructive",
+            title: "Connection Error",
+            description: "Could not fetch aerator display status.",
+        });
+    });
+
+
+    return () => {
+        unsubscribeControl();
+        unsubscribeStatus();
+    };
   }, [toast]);
 
 
@@ -81,7 +103,8 @@ export function AeratorControl() {
             title: "Timer Finished",
             description: "Aerator has been turned off.",
         });
-        setIsAeratorOn(false);
+        const aeratorControlRef = ref(databaseControl, 'aerator_control');
+        set(aeratorControlRef, { is_on: false });
       }
       setIsTimerRunning(false);
       setCountdown(0);
@@ -102,7 +125,7 @@ export function AeratorControl() {
       .then(() => {
         toast({
           title: "Success",
-          description: `Aerator has been turned ${newStatus ? 'ON' : 'OFF'}.`,
+          description: `Command sent to turn aerator ${newStatus ? 'ON' : 'OFF'}.`,
         });
       })
       .catch((error) => {
@@ -125,12 +148,25 @@ export function AeratorControl() {
       });
       return;
     }
-    setCountdown(minutes * 60);
-    setIsTimerRunning(true);
-    toast({
-      title: "Timer Set",
-      description: `Aerator will turn off automatically in ${minutes} minute(s).`,
-    });
+
+    // Turn aerator on first
+    const aeratorControlRef = ref(databaseControl, 'aerator_control');
+    set(aeratorControlRef, { is_on: true })
+      .then(() => {
+        setCountdown(minutes * 60);
+        setIsTimerRunning(true);
+        toast({
+          title: "Timer Set",
+          description: `Aerator turned ON. It will turn off automatically in ${minutes} minute(s).`,
+        });
+      })
+      .catch((error) => {
+        toast({
+          variant: "destructive",
+          title: "Failed to Start Timer",
+          description: "Could not turn the aerator on.",
+        });
+      });
   };
 
   const handleCancelTimer = () => {
@@ -193,8 +229,8 @@ export function AeratorControl() {
                 <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent className="flex flex-col items-center justify-center pt-2">
-                <p className={cn("text-5xl font-bold mt-2 transition-colors duration-300", isAeratorOn ? "text-primary" : "text-destructive")}>
-                    {isAeratorOn ? 'ON' : 'OFF'}
+                <p className={cn("text-5xl font-bold mt-2 transition-colors duration-300", aeratorDisplayStatus === "ON" ? "text-primary" : "text-destructive")}>
+                    {aeratorDisplayStatus}
                 </p>
             </CardContent>
           </Card>
@@ -210,8 +246,8 @@ export function AeratorControl() {
                 className={cn(
                   "rounded-full w-24 h-24 text-primary-foreground transition-colors duration-300",
                    isAeratorOn
-                    ? "bg-primary hover:bg-primary/90"
-                    : "bg-destructive hover:bg-destructive/90"
+                    ? "bg-green-600 hover:bg-green-600/90"
+                    : "bg-red-600 hover:bg-red-600/90"
                 )}
                 aria-label="Toggle Aerator Power"
               >
@@ -241,7 +277,7 @@ export function AeratorControl() {
                       />
                       <Button onClick={handleApplyTimeout} className="whitespace-nowrap" disabled={isTimerRunning}>Set (minutes)</Button>
                   </div>
-                  <p className="text-xs text-muted-foreground">The aerator will turn off after the timer ends.</p>
+                  <p className="text-xs text-muted-foreground">The aerator will turn on and then turn off after the timer ends.</p>
               </div>
               {isTimerRunning && (
                 <div className="space-y-2 rounded-lg border border-dashed p-4 text-center">
@@ -310,5 +346,3 @@ export function AeratorControl() {
     </Card>
   );
 }
-
-    
