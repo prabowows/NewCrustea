@@ -210,8 +210,8 @@ export function AeratorControl() {
                 className={cn(
                   "rounded-full w-24 h-24 text-primary-foreground transition-colors duration-300",
                    isAeratorOn
-                    ? "bg-destructive hover:bg-destructive/90"
-                    : "bg-primary hover:bg-primary/90"
+                    ? "bg-primary hover:bg-primary/90"
+                    : "bg-destructive hover:bg-destructive/90"
                 )}
                 aria-label="Toggle Aerator Power"
               >
