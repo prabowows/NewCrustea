@@ -151,7 +151,6 @@ export function AeratorControl() {
                 <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent className="flex flex-col items-center justify-center pt-2">
-                <p className="text-sm text-muted-foreground">Current Status</p>
                 <p className={cn("text-5xl font-bold mt-2", isAeratorOn ? "text-primary" : "text-destructive")}>
                     {isAeratorOn ? 'ON' : 'OFF'}
                 </p>
@@ -269,5 +268,3 @@ export function AeratorControl() {
     </Card>
   );
 }
-
-    
