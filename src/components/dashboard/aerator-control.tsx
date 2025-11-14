@@ -144,26 +144,33 @@ export function AeratorControl() {
         <CardDescription>Remotely manage the main aerator system.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="space-y-4 rounded-lg border p-4">
-          <div className="flex items-center justify-between">
-            <Label htmlFor="aerator-status" className="flex flex-col space-y-1">
-              <span>Master Control</span>
-              <span className={cn("text-sm font-bold", isAeratorOn ? "text-primary" : "text-muted-foreground")}>
-                {isAeratorOn ? 'ACTIVE' : 'INACTIVE'}
-              </span>
-            </Label>
-            <Button 
-              onClick={() => setIsAeratorOn(!isAeratorOn)} 
-              size="icon" 
-              className={cn(
-                "rounded-full w-14 h-14 text-primary-foreground",
-                isAeratorOn ? "bg-primary hover:bg-primary/90" : "bg-muted-foreground hover:bg-muted-foreground/90"
-              )}
-              aria-label="Toggle Aerator Power"
-            >
-              <Power className="h-6 w-6" />
-            </Button>
-          </div>
+        <div className="grid grid-cols-2 gap-4">
+          <Card>
+            <CardContent className="p-4 flex items-center justify-center">
+              <Button 
+                onClick={() => setIsAeratorOn(!isAeratorOn)} 
+                size="icon" 
+                className={cn(
+                  "rounded-full w-20 h-20 text-primary-foreground",
+                  isAeratorOn ? "bg-primary hover:bg-primary/90" : "bg-muted-foreground hover:bg-muted-foreground/90"
+                )}
+                aria-label="Toggle Aerator Power"
+              >
+                <Power className="h-10 w-10" />
+              </Button>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="p-4 pb-2">
+                <CardTitle className="text-base">Master Control</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
+                <p className="text-sm text-muted-foreground">Status</p>
+                <p className={cn("text-2xl font-bold", isAeratorOn ? "text-primary" : "text-destructive")}>
+                    {isAeratorOn ? 'ACTIVE' : 'INACTIVE'}
+                </p>
+            </CardContent>
+          </Card>
         </div>
         
         <Tabs defaultValue="timer">
