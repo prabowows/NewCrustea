@@ -9,7 +9,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Power, CalendarDays } from "lucide-react";
+import { Power, CalendarDays, Activity } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 
@@ -144,30 +144,36 @@ export function AeratorControl() {
         <CardDescription>Remotely manage the main aerator system.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card>
-            <CardHeader className="p-4 pb-2">
-                <CardTitle className="text-base">Master Control</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+                <CardTitle className="text-base font-medium">Aerator Status</CardTitle>
+                <Activity className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent className="p-4 pt-0">
-                <p className="text-sm text-muted-foreground">Status</p>
-                <p className={cn("text-2xl font-bold", isAeratorOn ? "text-primary" : "text-destructive")}>
-                    {isAeratorOn ? 'ACTIVE' : 'INACTIVE'}
+            <CardContent className="flex flex-col items-center justify-center pt-2">
+                <p className="text-sm text-muted-foreground">Current Status</p>
+                <p className={cn("text-5xl font-bold mt-2", isAeratorOn ? "text-primary" : "text-destructive")}>
+                    {isAeratorOn ? 'ON' : 'OFF'}
                 </p>
             </CardContent>
           </Card>
           <Card>
-            <CardContent className="p-4 flex items-center justify-center">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base font-medium">Master Control</CardTitle>
+            </CardHeader>
+            <CardContent className="flex items-center justify-center p-4">
               <Button 
                 onClick={() => setIsAeratorOn(!isAeratorOn)} 
                 size="icon" 
                 className={cn(
-                  "rounded-full w-20 h-20 text-primary-foreground",
-                  isAeratorOn ? "bg-primary hover:bg-primary/90" : "bg-muted-foreground hover:bg-muted-foreground/90"
+                  "rounded-full w-24 h-24 text-primary-foreground",
+                   isAeratorOn
+                    ? "bg-destructive hover:bg-destructive/90"
+                    : "bg-primary hover:bg-primary/90"
                 )}
                 aria-label="Toggle Aerator Power"
               >
-                <Power className="h-10 w-10" />
+                <Power className="h-12 w-12" />
               </Button>
             </CardContent>
           </Card>
@@ -262,3 +268,5 @@ export function AeratorControl() {
     </Card>
   );
 }
+
+    
