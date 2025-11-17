@@ -9,7 +9,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Power, CalendarDays, Activity } from "lucide-react";
+import { Power, CalendarDays, Activity, Wifi } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import { databaseControl } from "@/lib/firebase";
@@ -222,37 +222,42 @@ export function AeratorControl() {
         <CardDescription>Remotely manage the main aerator system.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-                <CardTitle className="text-base font-medium">Aerator Status</CardTitle>
-                <Activity className="h-4 w-4 text-muted-foreground" />
+            <CardHeader className="flex flex-row items-center justify-between pb-4">
+                <CardTitle className="text-base font-medium">Live Status</CardTitle>
+                <Wifi className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center pt-2">
-                <p className={cn("text-5xl font-bold mt-2 transition-colors duration-300", aeratorDisplayStatus === "ON" ? "text-primary" : "text-destructive")}>
+            <CardContent>
+                <div className={cn("text-4xl font-bold", aeratorDisplayStatus === "ON" ? "text-green-600" : "text-destructive")}>
                     {aeratorDisplayStatus}
-                </p>
+                </div>
+                <p className="text-xs text-muted-foreground pt-1">Current status reported by the device</p>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-base font-medium">Master Control</CardTitle>
-              <Power className="h-4 w-4 text-muted-foreground" />
+             <CardHeader className="flex flex-row items-center justify-between pb-4">
+                <CardTitle className="text-base font-medium">Master Control</CardTitle>
+                <Power className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
-            <CardContent className="flex items-center justify-center p-4">
-              <Button 
-                onClick={handleToggleAerator}
-                size="icon" 
-                className={cn(
-                  "rounded-full w-24 h-24 text-primary-foreground transition-colors duration-300",
-                   isAeratorOn
-                    ? "bg-green-600 hover:bg-green-600/90"
-                    : "bg-red-600 hover:bg-red-600/90"
-                )}
-                aria-label="Toggle Aerator Power"
-              >
-                <Power className="h-12 w-12" />
-              </Button>
+            <CardContent className="flex items-center justify-between">
+                <div>
+                    <p className="text-base font-medium">Send Command</p>
+                    <p className="text-xs text-muted-foreground">Command: {isAeratorOn ? 'ON' : 'OFF'}</p>
+                </div>
+                <Button 
+                    onClick={handleToggleAerator}
+                    size="icon" 
+                    className={cn(
+                    "rounded-full w-16 h-16 text-primary-foreground transition-colors duration-300",
+                    isAeratorOn
+                        ? "bg-green-100 text-green-700 hover:bg-green-200"
+                        : "bg-red-100 text-red-700 hover:bg-red-200"
+                    )}
+                    aria-label="Toggle Aerator Power"
+                >
+                    <Power className="h-8 w-8" />
+                </Button>
             </CardContent>
           </Card>
         </div>
