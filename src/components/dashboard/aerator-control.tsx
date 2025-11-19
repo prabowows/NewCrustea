@@ -54,8 +54,15 @@ export function AeratorControl() {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [schedule, setSchedule] = useState<ScheduleState>(initialScheduleState);
   const { toast } = useToast();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
     // Listener for control button state
     const aeratorControlRef = ref(databaseControl, 'aerator_control');
     const unsubscribeControl = onValue(aeratorControlRef, (snapshot) => {
@@ -93,7 +100,7 @@ export function AeratorControl() {
         unsubscribeControl();
         unsubscribeStatus();
     };
-  }, [toast]);
+  }, [mounted, toast]);
 
 
   useEffect(() => {
@@ -117,6 +124,11 @@ export function AeratorControl() {
 
     return () => clearInterval(timer);
   }, [isTimerRunning, countdown, toast]);
+  
+  if (!mounted) {
+    return null;
+  }
+
 
   const handleToggleAerator = () => {
     const newStatus = !isAeratorOn;
