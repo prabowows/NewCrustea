@@ -18,9 +18,12 @@ import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { app } from '@/lib/firebase';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
+  const [address, setAddress] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -85,6 +88,14 @@ export default function RegisterPage() {
               <div className="grid gap-2">
                 <Label htmlFor="name">Nama Lengkap</Label>
                 <Input id="name" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="address">Alamat</Label>
+                <Textarea id="address" placeholder="Masukkan alamat lengkap Anda" value={address} onChange={(e) => setAddress(e.target.value)} />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="phone">Nomor HP</Label>
+                <Input id="phone" type="tel" placeholder="081234567890" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
