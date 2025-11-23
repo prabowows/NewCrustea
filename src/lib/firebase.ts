@@ -7,8 +7,8 @@ import { getAuth } from "firebase/auth";
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-  databaseURL: "https://listriklistrik-44b64-default-rtdb.firebaseio.com/",
-  projectId: "esp32water-monitor",
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
@@ -17,16 +17,21 @@ const firebaseConfig = {
 const firebaseConfigWater = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY_WATER,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_WATER,
-  databaseURL: "https://esp32water-monitor-default-rtdb.firebaseio.com/",
-  projectId: "esp32water-monitor",
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL_WATER,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID_WATER,
   storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_WATER,
   messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID_WATER,
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID_WATER,
-  appName: "water"
 };
 
 const firebaseConfigControl = {
-  databaseURL: "https://smartcontroltrial-default-rtdb.firebaseio.com/",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY_CONTROL,
+  authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_CONTROL,
+  databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL_CONTROL,
+  projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID_CONTROL,
+  storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET_CONTROL,
+  messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID_CONTROL,
+  appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID_CONTROL,
 };
 
 
