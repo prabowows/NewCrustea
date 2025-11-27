@@ -17,7 +17,6 @@ export const initialMetrics: Metric[] = [
     { id: 'temperature', name: 'Temp', value: 'N/A', unit: '°C', icon: 'Thermometer', description: 'Monitors the water temperature. Temperature affects shrimp metabolism, growth rate, and the water\'s ability to hold dissolved oxygen.', source: 'water_quality', firebaseKey: 'Temp' },
     { id: 'ph', name: 'pH', value: 'N/A', unit: '', icon: 'FlaskConical', description: 'Measures the acidity or alkalinity of the water. Shrimp thrive within a specific pH range, and deviations can cause stress or mortality.', source: 'water_quality', firebaseKey: 'pH' },
     { id: 'salinity', name: 'TDS', value: 'N/A', unit: 'ppt', icon: 'Scale', description: 'Measures the total dissolved solids in the water, an indicator of salinity.', source: 'water_quality', firebaseKey: 'Salinity' }, // Changed Salinity to TDS, kept firebase key
-    { id: 'pump', name: 'Pump', value: 'N/A', unit: '', icon: 'Wind', description: 'Indicates the current status of the aerator pump (ON/OFF).', source: 'water_quality', firebaseKey: 'Status' }, // Assuming 'Status' is the key for pump
 
     // 3-Phase Power Metrics from 'listrik' source (Smart Energy)
     { id: 'power1', name: 'Power 1', value: 'N/A', unit: 'W', icon: 'Power', description: 'Measures the electrical power for phase 1.', source: 'listrik' },
