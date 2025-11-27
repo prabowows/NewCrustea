@@ -1,11 +1,39 @@
+
+'use client';
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Settings, User, LifeBuoy, LogOut } from "lucide-react";
 import Link from "next/link";
 import { ThemeSwitcher } from "../theme-switcher";
+import { auth } from "@/lib/firebase";
+import { signOut } from "firebase/auth";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
+
 
 export function Header() {
+  const router = useRouter();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      toast({
+        title: "Logout Berhasil",
+        description: "Anda telah keluar dari akun.",
+      });
+      router.push('/login');
+    } catch (error: any) {
+       toast({
+        variant: "destructive",
+        title: "Logout Gagal",
+        description: error.message,
+      });
+    }
+  };
+
   return (
     <header className="flex h-16 items-center justify-between border-b bg-card px-4 md:px-6 sticky top-0 z-30">
       <div className="flex items-center gap-4">
@@ -40,7 +68,7 @@ export function Header() {
             <DropdownMenuItem><Settings className="mr-2 h-4 w-4" /><span>Settings</span></DropdownMenuItem>
             <DropdownMenuItem><LifeBuoy className="mr-2 h-4 w-4" /><span>Support</span></DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem><LogOut className="mr-2 h-4 w-4" /><span>Log out</span></DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}><LogOut className="mr-2 h-4 w-4" /><span>Log out</span></DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
