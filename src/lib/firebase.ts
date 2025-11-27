@@ -1,10 +1,10 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp, getApps, getApp } from "firebase/app";
+'use client';
+
+import { initializeApp, getApps, getApp, type FirebaseApp, type FirebaseOptions } from "firebase/app";
 import { getDatabase } from "firebase/database";
 import { getAuth } from "firebase/auth";
 
-// TODO: Add your own Firebase configuration from your Firebase project settings
-const firebaseConfig = {
+const firebaseConfig: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
   databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL,
@@ -14,7 +14,7 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-const firebaseConfigWater = {
+const firebaseConfigWater: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY_WATER,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_WATER,
   databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL_WATER,
@@ -24,7 +24,7 @@ const firebaseConfigWater = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID_WATER,
 };
 
-const firebaseConfigControl = {
+const firebaseConfigControl: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY_CONTROL,
   authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN_CONTROL,
   databaseURL: process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL_CONTROL,
@@ -34,12 +34,36 @@ const firebaseConfigControl = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID_CONTROL,
 };
 
+function initializeFirebaseApp(config: FirebaseOptions, name: string): FirebaseApp {
+    const apps = getApps();
+    const existingApp = apps.find(app => app.name === name);
+    if (existingApp) {
+        return existingApp;
+    }
 
-// Initialize Firebase
-// A bit of a hack to avoid re-initializing apps, Next.js hot-reloading can cause issues.
-const app = getApps().find(app => app.name === '[DEFAULT]') || initializeApp(firebaseConfig, '[DEFAULT]');
-const appWater = getApps().find(app => app.name === 'water') || initializeApp(firebaseConfigWater, 'water');
-const appControl = getApps().find(app => app.name === 'control') || initializeApp(firebaseConfigControl, 'control');
+    if (!config.databaseURL || !config.databaseURL.startsWith('https://')) {
+        throw new Error(`Firebase FATAL ERROR: Invalid databaseURL for app "${name}". Check your .env file. It should be in the format https://<YOUR-PROJECT-ID>.firebaseio.com`);
+    }
+     if (!config.projectId) {
+        throw new Error(`Firebase FATAL ERROR: Missing projectId for app "${name}". Check your .env file.`);
+    }
+
+    return initializeApp(config, name);
+}
+
+
+let app: FirebaseApp;
+let appWater: FirebaseApp;
+let appControl: FirebaseApp;
+
+try {
+    app = initializeFirebaseApp(firebaseConfig, '[DEFAULT]');
+    appWater = initializeFirebaseApp(firebaseConfigWater, 'water');
+    appControl = initializeFirebaseApp(firebaseConfigControl, 'control');
+} catch (error) {
+    console.error(error);
+    // You can handle the error further here, maybe show a global error message to the user.
+}
 
 
 const database = getDatabase(app);
