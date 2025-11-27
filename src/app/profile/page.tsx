@@ -7,9 +7,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useUser } from "@/hooks/use-user";
 import { useEffect, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
 
 type UserProfile = {
   name: string;
@@ -20,8 +21,11 @@ type UserProfile = {
 
 export default function ProfilePage() {
   const { user, loading: authLoading } = useUser();
+  const { toast } = useToast();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [formData, setFormData] = useState<Omit<UserProfile, 'email'>>({ name: '', address: '', phoneNumber: ''});
   const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -36,7 +40,13 @@ export default function ProfilePage() {
       const docSnap = await getDoc(docRef);
 
       if (docSnap.exists()) {
-        setProfile(docSnap.data() as UserProfile);
+        const profileData = docSnap.data() as UserProfile;
+        setProfile(profileData);
+        setFormData({
+            name: profileData.name,
+            address: profileData.address,
+            phoneNumber: profileData.phoneNumber
+        });
       } else {
         console.log("No such document!");
       }
@@ -45,6 +55,46 @@ export default function ProfilePage() {
 
     fetchProfile();
   }, [user, authLoading]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setFormData(prev => ({...prev, [id]: value}));
+  }
+
+  const handleSave = async () => {
+    if (!user) return;
+    const docRef = doc(db, "users", user.uid);
+    try {
+        await updateDoc(docRef, {
+            name: formData.name,
+            address: formData.address,
+            phoneNumber: formData.phoneNumber
+        });
+        setProfile(prev => prev ? { ...prev, ...formData } : null);
+        setIsEditing(false);
+        toast({
+            title: "Profil Diperbarui",
+            description: "Informasi profil Anda telah berhasil disimpan."
+        })
+    } catch(error: any) {
+        toast({
+            variant: "destructive",
+            title: "Gagal Menyimpan",
+            description: error.message
+        })
+    }
+  };
+
+  const handleCancel = () => {
+    if (profile) {
+        setFormData({
+            name: profile.name,
+            address: profile.address,
+            phoneNumber: profile.phoneNumber,
+        });
+    }
+    setIsEditing(false);
+  }
 
   if (authLoading || loading) {
     return (
@@ -120,22 +170,29 @@ export default function ProfilePage() {
         <CardContent className="space-y-6 pt-6">
             <div className="space-y-2">
                 <Label htmlFor="name">Nama Lengkap</Label>
-                <Input id="name" value={profile.name} readOnly />
+                <Input id="name" value={formData.name} readOnly={!isEditing} onChange={handleInputChange} />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="address">Alamat</Label>
-                <Input id="address" value={profile.address} readOnly />
+                <Input id="address" value={formData.address} readOnly={!isEditing} onChange={handleInputChange} />
             </div>
             <div className="space-y-2">
-                <Label htmlFor="phone">Nomor HP</Label>
-                <Input id="phone" value={profile.phoneNumber} readOnly />
+                <Label htmlFor="phoneNumber">Nomor HP</Label>
+                <Input id="phoneNumber" value={formData.phoneNumber} readOnly={!isEditing} onChange={handleInputChange} />
             </div>
             <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" value={profile.email} readOnly />
             </div>
-            <div className="flex justify-end pt-4">
-                <Button>Edit Profile</Button>
+            <div className="flex justify-end pt-4 gap-2">
+                {isEditing ? (
+                    <>
+                        <Button variant="outline" onClick={handleCancel}>Cancel</Button>
+                        <Button onClick={handleSave}>Save Changes</Button>
+                    </>
+                ) : (
+                    <Button onClick={() => setIsEditing(true)}>Edit Profile</Button>
+                )}
             </div>
         </CardContent>
       </Card>
