@@ -17,8 +17,9 @@ import { useState } from 'react';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { app } from '@/lib/firebase';
+import { app, db } from '@/lib/firebase';
 import { Textarea } from '@/components/ui/textarea';
+import { doc, setDoc } from 'firebase/firestore';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
@@ -41,7 +42,17 @@ export default function RegisterPage() {
       return;
     }
     try {
-      await createUserWithEmailAndPassword(auth, email, password);
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Save user profile to Firestore
+      await setDoc(doc(db, "users", user.uid), {
+        name: name,
+        address: address,
+        phoneNumber: phoneNumber,
+        email: email
+      });
+
       toast({
         title: 'Registrasi Berhasil',
         description: 'Akun Anda telah dibuat. Anda akan diarahkan ke dasbor.',

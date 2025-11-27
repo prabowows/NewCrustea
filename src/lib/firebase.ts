@@ -3,6 +3,7 @@
 import { initializeApp, getApps, type FirebaseApp, type FirebaseOptions } from "firebase/app";
 import { getDatabase } from "firebase/database";
 import { getAuth } from "firebase/auth";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -70,5 +71,6 @@ const database = getDatabase(app);
 const databaseWater = getDatabase(appWater);
 const databaseControl = getDatabase(appControl);
 const auth = getAuth(app);
+const db = getFirestore(app);
 
-export { app, database, auth, databaseWater, databaseControl };
+export { app, database, auth, databaseWater, databaseControl, db };
