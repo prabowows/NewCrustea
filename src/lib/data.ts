@@ -12,14 +12,14 @@ export type Metric = {
 };
 
 export const initialMetrics: Metric[] = [
-    // Water Quality Metrics from 'water_quality' source
-    { id: 'do', name: 'Dissolved Oxygen', value: 'N/A', unit: 'mg/L', icon: 'Droplets', description: 'Measures the amount of gaseous oxygen dissolved in the pond water. This is a critical parameter for shrimp health and survival.', source: 'water_quality', firebaseKey: 'DO' },
-    { id: 'temperature', name: 'Temperature', value: 'N/A', unit: '°C', icon: 'Thermometer', description: 'Monitors the water temperature. Temperature affects shrimp metabolism, growth rate, and the water\'s ability to hold dissolved oxygen.', source: 'water_quality', firebaseKey: 'Temp' },
-    { id: 'ph', name: 'pH Level', value: 'N/A', unit: '', icon: 'FlaskConical', description: 'Measures the acidity or alkalinity of the water. Shrimp thrive within a specific pH range, and deviations can cause stress or mortality.', source: 'water_quality', firebaseKey: 'pH' },
-    { id: 'salinity', name: 'Salinity', value: 'N/A', unit: 'ppt', icon: 'Scale', description: 'Measures the concentration of dissolved salts in the water, expressed in parts per thousand (ppt). Salinity is vital for the osmotic balance of shrimp.', source: 'water_quality' },
-    { id: 'pump', name: 'Pump', value: 'N/A', unit: '', icon: 'Wind', description: 'Indicates the current status of the aerator pump (ON/OFF).', source: 'water_quality' },
+    // Water Quality Metrics from 'water_quality' source (EBII)
+    { id: 'do', name: 'DO', value: 'N/A', unit: 'mg/L', icon: 'Droplets', description: 'Measures the amount of gaseous oxygen dissolved in the pond water. This is a critical parameter for shrimp health and survival.', source: 'water_quality', firebaseKey: 'DO' },
+    { id: 'temperature', name: 'Temp', value: 'N/A', unit: '°C', icon: 'Thermometer', description: 'Monitors the water temperature. Temperature affects shrimp metabolism, growth rate, and the water\'s ability to hold dissolved oxygen.', source: 'water_quality', firebaseKey: 'Temp' },
+    { id: 'ph', name: 'pH', value: 'N/A', unit: '', icon: 'FlaskConical', description: 'Measures the acidity or alkalinity of the water. Shrimp thrive within a specific pH range, and deviations can cause stress or mortality.', source: 'water_quality', firebaseKey: 'pH' },
+    { id: 'salinity', name: 'TDS', value: 'N/A', unit: 'ppt', icon: 'Scale', description: 'Measures the total dissolved solids in the water, an indicator of salinity.', source: 'water_quality', firebaseKey: 'Salinity' }, // Changed Salinity to TDS, kept firebase key
+    { id: 'pump', name: 'Pump', value: 'N/A', unit: '', icon: 'Wind', description: 'Indicates the current status of the aerator pump (ON/OFF).', source: 'water_quality', firebaseKey: 'Status' }, // Assuming 'Status' is the key for pump
 
-    // 3-Phase Power Metrics from 'listrik' source
+    // 3-Phase Power Metrics from 'listrik' source (Smart Energy)
     { id: 'power1', name: 'Power 1', value: 'N/A', unit: 'W', icon: 'Power', description: 'Measures the electrical power for phase 1.', source: 'listrik' },
     { id: 'power2', name: 'Power 2', value: 'N/A', unit: 'W', icon: 'Power', description: 'Measures the electrical power for phase 2.', source: 'listrik' },
     { id: 'power3', name: 'Power 3', value: 'N/A', unit: 'W', icon: 'Power', description: 'Measures the electrical power for phase 3.', source: 'listrik' },
@@ -89,6 +89,6 @@ export const parameters: Parameter[] = [
     { id: '1', entityId: 'POND-A01', status: 'Online', do: '7.1 mg/L', ph: '7.3', temperature: '28.2 °C' },
     { id: '2', entityId: 'POND-A02', status: 'Online', do: '6.9 mg/L', ph: '7.2', temperature: '28.4 °C' },
     { id: '3', entityId: 'POND-B01', status: 'Warning', do: '5.2 mg/L', ph: '7.9', temperature: '29.1 °C' },
-    { id: '4', entityId: 'POND-B02', status: 'Online', do: '7.3 mg/L', ph: '7.4', temperature: '28.1 °C' },
+    { id: '4', entityId: 'POND-A02', status: 'Online', do: '7.3 mg/L', ph: '7.4', temperature: '28.1 °C' },
     { id: '5', entityId: 'POND-C01', status: 'Offline', do: 'N/A', ph: 'N/A', temperature: 'N/A' },
 ];

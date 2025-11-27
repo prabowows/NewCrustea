@@ -97,88 +97,126 @@ export function RealTimeMetrics() {
     };
   }, [mounted]);
 
+  const renderMetricCard = (metric: Metric) => {
+    const Icon = iconMap[metric.icon as keyof typeof iconMap] || Power;
+
+    if (metric.id === 'pump') {
+      const isPumpOn = metric.value === 'ON';
+      return (
+        <Card key={metric.id}>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">{metric.name}</CardTitle>
+              <Icon className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <Button 
+              disabled
+              className={cn(
+                "w-full text-lg font-bold",
+                isPumpOn ? "bg-green-500 hover:bg-green-600" : "bg-gray-400 hover:bg-gray-500",
+                "disabled:opacity-100"
+              )}
+            >
+              {metric.value}
+            </Button>
+          </CardContent>
+        </Card>
+      );
+    }
+
+    return (
+        <Dialog key={metric.id}>
+        <DialogTrigger asChild>
+            <Card className="cursor-pointer hover:bg-muted/80 transition-colors">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{metric.name}</CardTitle>
+                <Icon className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+                <div className="text-2xl font-bold">{metric.value}</div>
+            </CardContent>
+            </Card>
+        </DialogTrigger>
+        <DialogContent>
+            <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+                <Icon className="h-5 w-5 text-primary" />
+                {metric.name}
+            </DialogTitle>
+            <DialogDescription className="pt-4">
+                {metric.description}
+            </DialogDescription>
+            </DialogHeader>
+            <div className="flex items-baseline justify-end gap-2 pt-4">
+            <span className="text-sm text-muted-foreground">Current Value:</span>
+            <span className="text-3xl font-bold text-primary">{metric.value}</span>
+            </div>
+        </DialogContent>
+        </Dialog>
+    );
+  }
+
+  const ebiiMetrics = metrics.filter(m => ['do', 'salinity', 'temperature', 'ph', 'pump'].includes(m.id));
+  const smartEnergyMetrics = metrics.filter(m => !['do', 'salinity', 'temperature', 'ph', 'pump'].includes(m.id));
+
+
   if (!mounted) {
     return null;
   }
   
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-9 gap-4">
-        {initialMetrics.map((metric) => (
-          <Card key={metric.id}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{metric.name}</CardTitle>
-               <Skeleton className="h-4 w-4 rounded-full" />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className="h-8 w-24" />
-            </CardContent>
-          </Card>
-        ))}
+      <div className="space-y-6">
+        <div>
+          <h3 className="text-lg font-semibold mb-4">EBII System</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+            {Array(5).fill(0).map((_, i) => (
+              <Card key={`sk-ebii-${i}`}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <Skeleton className="h-4 w-20" />
+                   <Skeleton className="h-4 w-4 rounded-full" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-8 w-24" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+        <div>
+          <h3 className="text-lg font-semibold mb-4">Smart Energy</h3>
+           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-9 gap-4">
+            {Array(18).fill(0).map((_, i) => (
+              <Card key={`sk-energy-${i}`}>
+                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <Skeleton className="h-4 w-20" />
+                   <Skeleton className="h-4 w-4 rounded-full" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-8 w-24" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-9 gap-4">
-      {metrics.map((metric) => {
-        const Icon = iconMap[metric.icon as keyof typeof iconMap] || Power;
-
-        if (metric.id === 'pump') {
-          const isPumpOn = metric.value === 'ON';
-          return (
-            <Card key={metric.id}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">{metric.name}</CardTitle>
-                  <Icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  disabled
-                  className={cn(
-                    "w-full text-lg font-bold",
-                    isPumpOn ? "bg-green-500 hover:bg-green-600" : "bg-gray-400 hover:bg-gray-500",
-                    "disabled:opacity-100"
-                  )}
-                >
-                  {metric.value}
-                </Button>
-              </CardContent>
-            </Card>
-          );
-        }
-
-        return (
-            <Dialog key={metric.id}>
-            <DialogTrigger asChild>
-                <Card className="cursor-pointer hover:bg-muted/80 transition-colors">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">{metric.name}</CardTitle>
-                    <Icon className="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold">{metric.value}</div>
-                </CardContent>
-                </Card>
-            </DialogTrigger>
-            <DialogContent>
-                <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                    <Icon className="h-5 w-5 text-primary" />
-                    {metric.name}
-                </DialogTitle>
-                <DialogDescription className="pt-4">
-                    {metric.description}
-                </DialogDescription>
-                </DialogHeader>
-                <div className="flex items-baseline justify-end gap-2 pt-4">
-                <span className="text-sm text-muted-foreground">Current Value:</span>
-                <span className="text-3xl font-bold text-primary">{metric.value}</span>
-                </div>
-            </DialogContent>
-            </Dialog>
-        );
-      })}
+    <div className="space-y-6">
+        <div>
+            <h3 className="text-lg font-semibold mb-4">EBII System</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {ebiiMetrics.map(renderMetricCard)}
+            </div>
+        </div>
+        <div>
+            <h3 className="text-lg font-semibold mb-4">Smart Energy</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-9 gap-4">
+                {smartEnergyMetrics.map(renderMetricCard)}
+            </div>
+        </div>
     </div>
   );
 }
