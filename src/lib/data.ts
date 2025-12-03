@@ -15,8 +15,8 @@ export const initialMetrics: Metric[] = [
     // Water Quality Metrics from 'water_quality' source (EBII)
     { id: 'do', name: 'DO', value: 'N/A', unit: 'mg/L', icon: 'Droplets', description: 'Measures the amount of gaseous oxygen dissolved in the pond water. This is a critical parameter for shrimp health and survival.', source: 'water_quality', firebaseKey: 'DO' },
     { id: 'temperature', name: 'Temp', value: 'N/A', unit: '°C', icon: 'Thermometer', description: 'Monitors the water temperature. Temperature affects shrimp metabolism, growth rate, and the water\'s ability to hold dissolved oxygen.', source: 'water_quality', firebaseKey: 'Temp' },
-    { id: 'ph', name: 'pH', value: 'N/A', unit: '', icon: 'FlaskConical', description: 'Measures the acidity or alkalinity of the water. Shrimp thrive within a specific pH range, and deviations can cause stress or mortality.', source: 'water_quality', firebaseKey: 'pH' },
-    { id: 'salinity', name: 'TDS', value: 'N/A', unit: 'ppt', icon: 'Scale', description: 'Measures the total dissolved solids in the water, an indicator of salinity.', source: 'water_quality', firebaseKey: 'Salinity' }, // Changed Salinity to TDS, kept firebase key
+    { id: 'ph', name: 'pH', value: 'N/A', unit: '', icon: 'FlaskConical', description: 'Measures the acidity or alkalinity of the water. Shrimp thrive within a specific pH range, and deviations can cause stress or mortality.', source: 'water_quality', firebaseKey: 'PH' },
+    { id: 'salinity', name: 'TDS', value: 'N/A', unit: 'ppm', icon: 'Scale', description: 'Measures the total dissolved solids in the water, an indicator of salinity.', source: 'water_quality', firebaseKey: 'TDS' },
 
     // 3-Phase Power Metrics from 'listrik' source (Smart Energy)
     { id: 'power1', name: 'Power 1', value: 'N/A', unit: 'W', icon: 'Power', description: 'Measures the electrical power for phase 1.', source: 'listrik' },

@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { database, databaseWater } from "@/lib/firebase";
-import { ref, onValue, set } from "firebase/database";
+import { ref, onValue } from "firebase/database";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
@@ -13,12 +13,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { initialMetrics, type Metric } from "@/lib/data";
-import { Power, Zap, GaugeCircle, Waves, Droplets, Thermometer, FlaskConical, Scale, Wind } from 'lucide-react';
+import { Power, Zap, GaugeCircle, Waves, Droplets, Thermometer, FlaskConical, Scale } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
-
+import { useDataAveraging } from "@/hooks/use-data-averaging";
 
 const iconMap = {
   Power,
@@ -29,7 +27,6 @@ const iconMap = {
   Thermometer,
   FlaskConical,
   Scale,
-  Wind,
 };
 
 
@@ -58,6 +55,9 @@ export function RealTimeMetrics() {
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
 
+  // Activate the data averaging and logging hook
+  useDataAveraging('EBII/CC8DA20C7A88/02_data', 120); // 120 seconds = 2 minutes
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -66,11 +66,11 @@ export function RealTimeMetrics() {
     if (!mounted) return;
 
     const listrikRef = ref(database, '/device4/listrik');
-    const waterRef = ref(databaseWater, '/device1/water_quality');
+    const waterRef = ref(databaseWater, '/EBII/CC8DA20C7A88/02_data');
 
     const updateMetrics = (data: any, source: 'listrik' | 'water_quality') => {
       if (!data) return;
-
+      
       setMetrics(prevMetrics => {
         return prevMetrics.map(metric => {
           if (metric.source === source) {
