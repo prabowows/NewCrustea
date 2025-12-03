@@ -9,63 +9,12 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useState } from 'react';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { useToast } from '@/hooks/use-toast';
-import { app, db } from '@/lib/firebase';
-import { Textarea } from '@/components/ui/textarea';
-import { doc, setDoc } from 'firebase/firestore';
 
 export default function RegisterPage() {
-  const [name, setName] = useState('');
-  const [address, setAddress] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const auth = getAuth(app);
   const router = useRouter();
-  const { toast } = useToast();
-
-  const handleRegister = async () => {
-    if (password !== confirmPassword) {
-      toast({
-        variant: 'destructive',
-        title: 'Registrasi Gagal',
-        description: 'Password dan konfirmasi password tidak cocok.',
-      });
-      return;
-    }
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Save user profile to Firestore
-      await setDoc(doc(db, "users", user.uid), {
-        name: name,
-        address: address,
-        phoneNumber: phoneNumber,
-        email: email
-      });
-
-      toast({
-        title: 'Registrasi Berhasil',
-        description: 'Akun Anda telah dibuat. Anda akan diarahkan ke dasbor.',
-      });
-      router.push('/dashboard');
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Registrasi Gagal',
-        description: error.message,
-      });
-    }
-  };
 
   return (
     <div className="relative min-h-screen w-full">
@@ -90,46 +39,22 @@ export default function RegisterPage() {
                       />
                   </Link>
               </div>
-              <CardTitle className="text-2xl">Buat Akun Baru</CardTitle>
+              <CardTitle className="text-2xl">Registrasi Dinonaktifkan</CardTitle>
               <CardDescription>
-                Isi form di bawah ini untuk memulai dengan Crustea
+                Fitur registrasi pengguna dinonaktifkan sementara.
               </CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="name">Nama Lengkap</Label>
-                <Input id="name" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="address">Alamat</Label>
-                <Textarea id="address" placeholder="Masukkan alamat lengkap Anda" value={address} onChange={(e) => setAddress(e.target.value)} />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="phone">Nomor HP</Label>
-                <Input id="phone" type="tel" placeholder="081234567890" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="nama@contoh.com" value={email} onChange={(e) => setEmail(e.target.value)} />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="password">Password</Label>
-                <Input id="password" type="password" placeholder="********" value={password} onChange={(e) => setPassword(e.target.value)} />
-              </div>
-               <div className="grid gap-2">
-                <Label htmlFor="confirm-password">Konfirmasi Password</Label>
-                <Input id="confirm-password" type="password" placeholder="********" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
-              </div>
+            <CardContent>
+                <Button className="w-full" variant="outline" onClick={() => router.back()}>Kembali</Button>
             </CardContent>
-            <CardFooter className="flex flex-col gap-4">
-              <Button className="w-full" onClick={handleRegister}>Register</Button>
-               <p className="text-center text-sm text-muted-foreground">
+             <CardFooter className="flex flex-col gap-4">
+                <p className="text-center text-sm text-muted-foreground">
                 Sudah punya akun?{' '}
                 <Link
-                  href="/login"
+                  href="/dashboard"
                   className="font-semibold text-primary underline-offset-4 hover:underline"
                 >
-                  Login di sini
+                  Masuk ke Dasbor
                 </Link>
               </p>
             </CardFooter>
