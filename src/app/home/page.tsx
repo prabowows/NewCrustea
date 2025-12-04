@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -11,11 +10,13 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Droplets, Wifi, BrainCircuit, DollarSign, CheckCircle2, LineChart, Cpu, Zap, Wind } from "lucide-react";
+import { Droplets, Wifi, BrainCircuit, DollarSign, CheckCircle2, LineChart, Cpu, Zap, Wind, Menu } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
 
 const partners = [
   { name: "Aqua Dynamics", logo: "https://picsum.photos/seed/partner1/140/70" },
@@ -100,46 +101,105 @@ export default function HomePage() {
   return (
     <div className="flex flex-col min-h-screen">
       <header className="px-4 lg:px-6 h-14 flex items-center sticky top-0 bg-background/80 backdrop-blur-sm z-50">
-        <Link
-          href="#"
-          className="flex items-center justify-center"
-          prefetch={false}
-        >
-          <Image
-            src="https://res.cloudinary.com/dtnsf2etf/image/upload/v1760671820/logo1-removebg-preview_cyzktd.png"
-            alt="Crustea Logo"
-            width={100}
-            height={40}
-            className="h-8 w-auto"
-          />
-        </Link>
-        <nav className="ml-auto flex items-center gap-4 sm:gap-6">
-          <Link
+        {/* Desktop Header */}
+        <div className="hidden md:flex w-full items-center">
+            <Link
             href="#"
-            className="text-sm font-medium hover:underline underline-offset-4"
+            className="flex items-center justify-center"
             prefetch={false}
-          >
-            Solusi
-          </Link>
-          <Link
-            href="#"
-            className="text-sm font-medium hover:underline underline-offset-4"
-            prefetch={false}
-          >
-            Harga
-          </Link>
-          <Link
-            href="#"
-            className="text-sm font-medium hover:underline underline-offset-4"
-            prefetch={false}
-          >
-            Tentang Kami
-          </Link>
-          <Button asChild>
-            <Link href="/login">Login</Link>
-          </Button>
-          <ThemeSwitcher />
-        </nav>
+            >
+            <Image
+                src="https://res.cloudinary.com/dtnsf2etf/image/upload/v1760671820/logo1-removebg-preview_cyzktd.png"
+                alt="Crustea Logo"
+                width={100}
+                height={40}
+                className="h-8 w-auto"
+            />
+            </Link>
+            <nav className="ml-auto flex items-center gap-4 sm:gap-6">
+            <Link
+                href="#"
+                className="text-sm font-medium hover:underline underline-offset-4"
+                prefetch={false}
+            >
+                Solusi
+            </Link>
+            <Link
+                href="#"
+                className="text-sm font-medium hover:underline underline-offset-4"
+                prefetch={false}
+            >
+                Harga
+            </Link>
+            <Link
+                href="#"
+                className="text-sm font-medium hover:underline underline-offset-4"
+                prefetch={false}
+            >
+                Tentang Kami
+            </Link>
+            <Button asChild>
+                <Link href="/login">Login</Link>
+            </Button>
+            <ThemeSwitcher />
+            </nav>
+        </div>
+
+        {/* Mobile Header */}
+        <div className="md:hidden flex w-full items-center justify-between">
+            <Sheet>
+                <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                        <Menu className="h-6 w-6" />
+                        <span className="sr-only">Buka menu</span>
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-3/4">
+                     <div className="flex flex-col h-full p-4">
+                        <Link href="#" className="mb-8" prefetch={false}>
+                            <Image
+                                src="https://res.cloudinary.com/dtnsf2etf/image/upload/v1760671820/logo1-removebg-preview_cyzktd.png"
+                                alt="Crustea Logo"
+                                width={120}
+                                height={40}
+                                className="h-10 w-auto"
+                            />
+                        </Link>
+                        <nav className="flex flex-col gap-4 text-lg font-medium">
+                            <Link href="#" prefetch={false}>Solusi</Link>
+                            <Link href="#" prefetch={false}>Harga</Link>
+                            <Link href="#" prefetch={false}>Tentang Kami</Link>
+                        </nav>
+                        <Separator className="my-6" />
+                        <div className="flex flex-col gap-4">
+                            <Button asChild>
+                                <Link href="/login">Login</Link>
+                            </Button>
+                            <div className="self-center pt-4">
+                                <ThemeSwitcher />
+                            </div>
+                        </div>
+                    </div>
+                </SheetContent>
+            </Sheet>
+            <div className="absolute left-1/2 -translate-x-1/2">
+                <Link
+                    href="#"
+                    className="flex items-center"
+                    prefetch={false}
+                >
+                    <Image
+                        src="https://res.cloudinary.com/dtnsf2etf/image/upload/v1760671820/logo1-removebg-preview_cyzktd.png"
+                        alt="Crustea Logo"
+                        width={100}
+                        height={40}
+                        className="h-8 w-auto"
+                    />
+                </Link>
+            </div>
+             {/* Empty div for spacing to keep logo centered */}
+            <div className="w-10"></div>
+        </div>
       </header>
       <main className="flex-1">
         <section className="w-full py-8 md:py-10">
@@ -427,7 +487,5 @@ export default function HomePage() {
     </div>
   );
 }
-
-    
 
     
