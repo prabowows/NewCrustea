@@ -74,7 +74,8 @@ export const historicalAlarms: Alarm[] = [
     { id: '5', originator: 'Pond B-2 Sensor', type: 'Temp. Anomaly', severity: 'Medium', timestamp: 'Yesterday' },
 ];
 
-
+// This is no longer used by ParameterAnalysis but is kept for reference
+// in case other components use it or for future expansion.
 export type Parameter = {
     id: string;
     entityId: string;
