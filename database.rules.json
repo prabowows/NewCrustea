@@ -1,8 +1,12 @@
 {
   "rules": {
     "Device": {
-      ".read": "auth != null",
-      ".write": "auth != null"
+      // Aturan ini mengizinkan pembacaan dan penulisan pada node anak 'Tipe'
+      // jika pengguna sudah terotentikasi.
+      "Tipe": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
     },
     "Kolam": {
       ".read": "auth != null",
