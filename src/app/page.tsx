@@ -154,22 +154,6 @@ export default function HomePage() {
                     Tingkatkan produktivitas, efisiensi, dan keberlanjutan tambak udang Anda dengan teknologi monitoring dan manajemen terintegrasi dari Crustea.
                   </p>
                 </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Link
-                    href="#"
-                    className="inline-flex h-10 items-center justify-center rounded-md bg-primary px-8 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                    prefetch={false}
-                  >
-                    Jadwalkan Demo
-                  </Link>
-                  <Link
-                    href="/dashboard"
-                    className="inline-flex h-10 items-center justify-center rounded-md border border-input bg-background px-8 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50"
-                    prefetch={false}
-                  >
-                    Lihat Dashboard
-                  </Link>
-                </div>
               </div>
               <div className="mx-auto aspect-video overflow-hidden rounded-lg sm:w-full lg:order-last">
                 <iframe 
@@ -443,3 +427,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
