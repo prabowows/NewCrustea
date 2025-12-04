@@ -281,7 +281,7 @@ export default function HomePage() {
                     <Image src="https://picsum.photos/seed/aerator/600/400" alt="Eco-Aerator" fill objectFit="cover" data-ai-hint="eco-aerator aquaculture"/>
                   </div>
                   <div className="flex flex-col">
-                    <CardTitle className="flex items-center gap-2 mb-4"><Wind className="w-6 h-6 text-primary" /> Eco-Aerator</CardTitle>
+                    <CardTitle className="flex items-center gap-2 mb-4 text-primary"><Wind className="w-6 h-6 text-primary" /> Eco-Aerator</CardTitle>
                     <ul className="list-disc list-inside text-muted-foreground space-y-2 text-left">
                       <li>Meningkatkan kualitas dan ukuran udang/ikan hingga 200%.</li>
                       <li>Impeller menghasilkan gelembung lebih kecil untuk kadar oksigen lebih tinggi.</li>
@@ -296,7 +296,7 @@ export default function HomePage() {
                      <Image src="https://picsum.photos/seed/sensor/600/400" alt="EBII System" fill objectFit="cover" data-ai-hint="water sensor aquaculture"/>
                   </div>
                   <div className="flex flex-col">
-                    <CardTitle className="flex items-center gap-2 mb-4"><Droplets className="w-6 h-6 text-primary" /> EBII System</CardTitle>
+                    <CardTitle className="flex items-center gap-2 mb-4 text-primary"><Droplets className="w-6 h-6 text-primary" /> EBII System</CardTitle>
                     <ul className="list-disc list-inside text-muted-foreground space-y-2 text-left">
                       <li>Mengukur 4 parameter: pH, DO, salinitas, dan suhu.</li>
                       <li>Terhubung dengan aplikasi mobile untuk pemantauan mudah.</li>
@@ -311,7 +311,7 @@ export default function HomePage() {
                       <Image src="https://picsum.photos/seed/control/600/400" alt="Smart Energy" fill objectFit="cover" data-ai-hint="smart energy control"/>
                    </div>
                   <div className="flex flex-col">
-                    <CardTitle className="flex items-center gap-2 mb-4"><Zap className="w-6 h-6 text-primary" /> Smart Energy & Control</CardTitle>
+                    <CardTitle className="flex items-center gap-2 mb-4 text-primary"><Zap className="w-6 h-6 text-primary" /> Smart Energy & Control</CardTitle>
                     <ul className="list-disc list-inside text-muted-foreground space-y-2 text-left">
                       <li>Monitor dan kontrol penggunaan energi setiap aerator melalui ponsel.</li>
                       <li>Kontrol otomatis on/off aerator berdasarkan pengukuran EBII System.</li>

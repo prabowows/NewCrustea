@@ -18,7 +18,7 @@ export function HistoricalChart() {
     <Card>
       <CardHeader className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <CardTitle>Historical Data</CardTitle>
+            <CardTitle className="text-primary">Historical Data</CardTitle>
             <CardDescription>Dissolved Oxygen (DO) levels over time.</CardDescription>
         </div>
         <Select defaultValue="24h">

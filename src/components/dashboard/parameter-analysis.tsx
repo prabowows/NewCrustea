@@ -74,7 +74,7 @@ export function ParameterAnalysis() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Parameter Analysis</CardTitle>
+        <CardTitle className="text-primary">Parameter Analysis</CardTitle>
         <CardDescription>Monitor data and parameters for the selected entity.</CardDescription>
       </CardHeader>
       <CardContent>

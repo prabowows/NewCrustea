@@ -35,7 +35,7 @@ export function AlarmsTable() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Alarm Monitoring</CardTitle>
+        <CardTitle className="text-primary">Alarm Monitoring</CardTitle>
         <CardDescription>View real-time and historical system alarms.</CardDescription>
       </CardHeader>
       <CardContent>
@@ -74,8 +74,7 @@ export function AlarmsTable() {
                 </TableHeader>
                 <TableBody>
                   {historicalAlarms.map(renderAlarmRow)}
-                </TableBody>
-              </Table>
+                </TableBody>              </Table>
             </div>
           </TabsContent>
         </Tabs>
