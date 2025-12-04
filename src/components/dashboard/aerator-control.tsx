@@ -193,9 +193,9 @@ export function AeratorControl() {
         <div className="space-y-4">
             <Card className="border-dashed">
                 <CardHeader className="p-4">
-                    <div className="flex items-center gap-2 text-primary">
-                        <CalendarDays className="h-5 w-5" />
-                        <h3 className="font-semibold text-foreground">Set Weekly Schedule</h3>
+                    <div className="flex items-center gap-2">
+                        <CalendarDays className="h-5 w-5 text-primary" />
+                        <h3 className="font-semibold text-primary">Set Weekly Schedule</h3>
                     </div>
                 </CardHeader>
                 <CardContent className="p-4 pt-0 space-y-4">
