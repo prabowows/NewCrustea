@@ -57,7 +57,7 @@ export default function LoginPage() {
           <Card className="bg-card/80 backdrop-blur-sm">
             <CardHeader className="space-y-4 text-center">
               <div className="flex justify-center">
-                  <Link href="/" className="flex items-center gap-2 font-semibold">
+                  <Link href="/home" className="flex items-center gap-2 font-semibold">
                       <Image
                       src="https://res.cloudinary.com/dtnsf2etf/image/upload/v1760671820/logo1-removebg-preview_cyzktd.png"
                       alt="Crustea Logo"
@@ -99,3 +99,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    
