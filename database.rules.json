@@ -1,18 +1,19 @@
 {
   "rules": {
     "Device": {
-      "Tipe": {
-        ".read": "auth != null",
-        ".write": "auth != null",
-        "Aerator": {
-          ".read": "auth != null",
-          ".write": "auth != null"
-        }
+      "$deviceId": {
+        // Users can only read/write their own device data.
+        // The id_user in the data must match the logged-in user's uid.
+        ".read": "auth != null && root.child('Device/' + $deviceId + '/id_user').val() === auth.uid",
+        ".write": "auth != null && root.child('Device/' + $deviceId + '/id_user').val() === auth.uid"
       }
     },
     "Kolam": {
-      ".read": "auth != null",
-      ".write": "auth != null"
+      // Assuming similar ownership logic for "Kolam"
+      "$kolamId": {
+        ".read": "auth != null && root.child('Kolam/' + $kolamId + '/id_user').val() === auth.uid",
+        ".write": "auth != null && root.child('Kolam/' + $kolamId + '/id_user').val() === auth.uid"
+      }
     },
     "users": {
       "$uid": {
