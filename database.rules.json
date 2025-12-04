@@ -1,8 +1,6 @@
 {
   "rules": {
     "Device": {
-      // Aturan ini mengizinkan pembacaan dan penulisan pada node anak 'Tipe'
-      // jika pengguna sudah terotentikasi.
       "Tipe": {
         ".read": "auth != null",
         ".write": "auth != null",
