@@ -18,6 +18,7 @@ import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 import { app } from '@/lib/firebase';
+import { ArrowLeft } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -52,7 +53,11 @@ export default function LoginPage() {
         className="object-cover object-center -z-10"
         data-ai-hint="ocean underwater"
       />
-      <div className="flex min-h-screen flex-col items-center justify-center bg-black/30">
+      <div className="flex min-h-screen flex-col items-center justify-center bg-black/30 p-4">
+        <Link href="/home" className="absolute top-6 left-6 z-10 text-primary-foreground hover:text-primary transition-colors" prefetch={false}>
+          <ArrowLeft className="h-8 w-8" />
+          <span className="sr-only">Kembali ke Home</span>
+        </Link>
         <div className="w-full max-w-sm">
           <Card className="bg-card/80 backdrop-blur-sm">
             <CardHeader className="space-y-4 text-center">
@@ -99,5 +104,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-    
