@@ -341,7 +341,7 @@ export default function HomePage() {
                     <div className="bg-primary/10 p-3 rounded-full">
                        <feature.icon className="h-10 w-10 text-primary transition-transform duration-300 group-hover:scale-110" />
                     </div>
-                    <CardTitle className="text-xl">{feature.title}</CardTitle>
+                    <CardTitle className="text-xl text-primary">{feature.title}</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-muted-foreground">{feature.description}</p>
@@ -487,5 +487,7 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
 
     
