@@ -149,7 +149,7 @@ export default function HomePage() {
         <div className="md:hidden flex w-full items-center justify-between">
             <Sheet>
                 <SheetTrigger asChild>
-                    <Button variant="ghost" size="icon" className="text-primary hover:text-primary/90">
+                    <Button variant="outline" size="icon" className="text-primary border-transparent hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground">
                         <Menu className="h-6 w-6" />
                         <span className="sr-only">Buka menu</span>
                     </Button>
@@ -487,3 +487,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
