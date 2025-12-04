@@ -5,7 +5,11 @@
       // jika pengguna sudah terotentikasi.
       "Tipe": {
         ".read": "auth != null",
-        ".write": "auth != null"
+        ".write": "auth != null",
+        "Aerator": {
+          ".read": "auth != null",
+          ".write": "auth != null"
+        }
       }
     },
     "Kolam": {
