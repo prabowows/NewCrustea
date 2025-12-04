@@ -2,8 +2,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { database, databaseWater } from "@/lib/firebase";
-import { ref, onValue, set } from "firebase/database";
+import { database } from "@/lib/firebase";
+import { ref, onValue } from "firebase/database";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
@@ -13,12 +13,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { initialMetrics, type Metric } from "@/lib/data";
-import { Power, Zap, GaugeCircle, Waves, Droplets, Thermometer, FlaskConical, Scale, Wind } from 'lucide-react';
+import { Power, Zap, GaugeCircle, Waves, Droplets, Thermometer, FlaskConical, Scale } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
-
 
 const iconMap = {
   Power,
@@ -29,17 +26,22 @@ const iconMap = {
   Thermometer,
   FlaskConical,
   Scale,
-  Wind,
 };
 
 
 const formatValue = (value: any, unit: string) => {
     if (value === undefined || value === null || value === '') return 'N/A';
-    if (typeof value === 'number') {
-        return `${value.toFixed(2)}${unit ? ` ${unit}` : ''}`;
+    if (typeof value === 'number' || (typeof value === 'string' && !isNaN(Number(value)))) {
+        return `${Number(value).toFixed(2)}${unit ? ` ${unit}` : ''}`;
     }
     return `${value}${unit ? ` ${unit}` : ''}`;
 };
+
+// Helper to get nested property
+const getNestedValue = (obj: any, path: string) => {
+    return path.split('.').reduce((acc, part) => acc && acc[part], obj);
+};
+
 
 type GroupedMetric = {
     name: string;
@@ -65,46 +67,47 @@ export function RealTimeMetrics() {
   useEffect(() => {
     if (!mounted) return;
 
-    const listrikRef = ref(database, '/device4/listrik');
-    const waterRef = ref(databaseWater, '/device1/water_quality');
+    // A single reference to the root of the data
+    const deviceRef = ref(database, '/Device/Tipe');
 
-    const updateMetrics = (data: any, source: 'listrik' | 'water_quality') => {
-      if (!data) return;
+    const unsubscribe = onValue(deviceRef, (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+            setLoading(false);
+            return;
+        }
 
-      setMetrics(prevMetrics => {
-        return prevMetrics.map(metric => {
-          if (metric.source === source) {
-            const firebaseKey = metric.firebaseKey || metric.id;
-            const metricValue = data[firebaseKey];
-            return {
-              ...metric,
-              value: formatValue(metricValue, metric.unit),
-            };
-          }
-          return metric;
+        const { EBII, Smart_Energy } = data;
+
+        setMetrics(prevMetrics => {
+            return prevMetrics.map(metric => {
+                let sourceData;
+                if (metric.source === 'EBII') sourceData = EBII;
+                if (metric.source === 'Smart_Energy') sourceData = Smart_Energy;
+
+                if (!sourceData) return metric;
+
+                let metricValue;
+                if (metric.path) { // For nested data like "Power.Phase1"
+                    metricValue = getNestedValue(sourceData, metric.path);
+                } else if (metric.firebaseKey) { // For direct keys like "DO"
+                    metricValue = sourceData[metric.firebaseKey];
+                }
+
+                return {
+                    ...metric,
+                    value: formatValue(metricValue, metric.unit),
+                };
+            });
         });
-      });
-    };
-
-    const unsubListrik = onValue(listrikRef, (snapshot) => {
-        updateMetrics(snapshot.val(), 'listrik');
         setLoading(false);
     }, (error) => {
-        console.error("Firebase 'listrik' read failed: ", error);
-        setLoading(false);
-    });
-
-    const unsubWater = onValue(waterRef, (snapshot) => {
-        updateMetrics(snapshot.val(), 'water_quality');
-        setLoading(false);
-    }, (error) => {
-        console.error("Firebase 'water_quality' read failed: ", error);
+        console.error("Firebase read failed: ", error);
         setLoading(false);
     });
 
     return () => {
-      unsubListrik();
-      unsubWater();
+      unsubscribe();
     };
   }, [mounted]);
 
@@ -143,8 +146,8 @@ export function RealTimeMetrics() {
     );
   }
 
-  const ebiiMetrics = metrics.filter(m => ['do', 'salinity', 'temperature', 'ph'].includes(m.id));
-  const smartEnergyMetrics = metrics.filter(m => m.source === 'listrik');
+  const ebiiMetrics = metrics.filter(m => m.source === 'EBII');
+  const smartEnergyMetrics = metrics.filter(m => m.source === 'Smart_Energy');
 
   const groupedEnergyMetrics = smartEnergyMetrics.reduce((acc, metric) => {
     const baseName = metric.name.replace(/ \d+$/, ''); // Removes " 1", " 2", etc.

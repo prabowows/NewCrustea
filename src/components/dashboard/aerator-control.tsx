@@ -9,10 +9,10 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Power, CalendarDays, Activity, Wifi } from "lucide-react";
+import { Power, CalendarDays, Wifi } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { databaseControl } from "@/lib/firebase";
+import { database } from "@/lib/firebase"; // Use the main database instance
 import { ref, onValue, set } from "firebase/database";
 
 type Day = 'Sun' | 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat';
@@ -63,42 +63,29 @@ export function AeratorControl() {
   useEffect(() => {
     if (!mounted) return;
 
-    // Listener for control button state
-    const aeratorControlRef = ref(databaseControl, 'aerator_control');
-    const unsubscribeControl = onValue(aeratorControlRef, (snapshot) => {
+    // Listener for both control and display status
+    const aeratorRef = ref(database, 'Device/Tipe/Aerator');
+    const unsubscribe = onValue(aeratorRef, (snapshot) => {
       const data = snapshot.val();
-      if (data && typeof data.is_on === 'boolean') {
-        setIsAeratorOn(data.is_on);
+      if (data) {
+        if (typeof data.is_on === 'boolean') {
+          setIsAeratorOn(data.is_on);
+        }
+        if (data.status === 'on' || data.status === 'off') {
+          setAeratorDisplayStatus(data.status.toUpperCase());
+        }
       }
     }, (error) => {
-      console.error("Firebase control read failed:", error);
+      console.error("Firebase read failed:", error);
       toast({
         variant: "destructive",
         title: "Connection Error",
-        description: "Could not fetch aerator control status.",
+        description: "Could not fetch aerator status.",
       });
     });
 
-    // Listener for display status card
-    const aeratorStatusRef = ref(databaseControl, 'device1/aerator/Status');
-    const unsubscribeStatus = onValue(aeratorStatusRef, (snapshot) => {
-      const status = snapshot.val();
-      if (status === 'ON' || status === 'OFF') {
-        setAeratorDisplayStatus(status);
-      }
-    }, (error) => {
-        console.error("Firebase status read failed:", error);
-        toast({
-            variant: "destructive",
-            title: "Connection Error",
-            description: "Could not fetch aerator display status.",
-        });
-    });
-
-
     return () => {
-        unsubscribeControl();
-        unsubscribeStatus();
+        unsubscribe();
     };
   }, [mounted, toast]);
 
@@ -110,8 +97,8 @@ export function AeratorControl() {
             title: "Timer Finished",
             description: "Aerator has been turned off.",
         });
-        const aeratorControlRef = ref(databaseControl, 'aerator_control');
-        set(aeratorControlRef, { is_on: false });
+        const aeratorControlRef = ref(database, 'Device/Tipe/Aerator/is_on');
+        set(aeratorControlRef, false);
       }
       setIsTimerRunning(false);
       setCountdown(0);
@@ -132,8 +119,8 @@ export function AeratorControl() {
 
   const handleToggleAerator = () => {
     const newStatus = !isAeratorOn;
-    const aeratorControlRef = ref(databaseControl, 'aerator_control');
-    set(aeratorControlRef, { is_on: newStatus })
+    const aeratorControlRef = ref(database, 'Device/Tipe/Aerator/is_on');
+    set(aeratorControlRef, newStatus)
       .then(() => {
         toast({
           title: "Success",
@@ -162,8 +149,8 @@ export function AeratorControl() {
     }
 
     // Turn aerator on first
-    const aeratorControlRef = ref(databaseControl, 'aerator_control');
-    set(aeratorControlRef, { is_on: true })
+    const aeratorControlRef = ref(database, 'Device/Tipe/Aerator/is_on');
+    set(aeratorControlRef, true)
       .then(() => {
         setCountdown(minutes * 60);
         setIsTimerRunning(true);
@@ -212,10 +199,14 @@ export function AeratorControl() {
         return;
     }
     
+    // In a real app, you'd save this to Firebase, e.g., under a "schedules" path.
+    // const scheduleRef = ref(database, 'Device/schedules');
+    // set(scheduleRef, schedule).then(...);
+    
     console.log("Saving schedule:", schedule);
     toast({
-      title: "Schedule Saved",
-      description: "Your daily aerator schedules have been updated.",
+      title: "Schedule Saved (Simulation)",
+      description: "Your daily aerator schedules have been logged. This is a demo.",
     });
   };
 
