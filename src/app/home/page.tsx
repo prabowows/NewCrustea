@@ -354,7 +354,7 @@ export default function HomePage() {
         </section>
         <section className="w-full pb-8 md:pb-10">
           <div className="container px-4 md:px-6">
-            <Tabs defaultValue="with" className="w-full">
+            <Tabs defaultValue="with" className="w-full mt-12">
               <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto h-12">
                 <TabsTrigger value="with" className="text-base py-2.5">Dengan Crustea</TabsTrigger>
                 <TabsTrigger value="without" className="text-base py-2.5">Tanpa Crustea</TabsTrigger>
@@ -491,3 +491,4 @@ export default function HomePage() {
     
 
     
+
