@@ -1,7 +1,7 @@
 
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { useUser } from '@/hooks/use-user';
 import { database } from '@/lib/firebase';
 import { ref, onValue } from 'firebase/database';
@@ -44,15 +44,16 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
             const data = snapshot.val();
             if (data) {
                 const pondList: Pond[] = Object.keys(data)
-                    .filter(key => key.toUpperCase().startsWith('KLM')) // More flexible filter
+                    .filter(key => key.toUpperCase().startsWith('KLM'))
                     .map(key => ({
                         value: key,
-                        label: key.replace(/(\D+)(\d+)/, '$1 $2'), // "KLM01" -> "KLM 01"
+                        label: key.replace(/(\D+)(\d+)/, '$1 $2'),
                     }));
                 
                 setPonds(pondList);
 
-                if (pondList.length > 0 && (!selectedPondId || !pondList.find(p => p.value === selectedPondId))) {
+                // Set default selected pond only if it's not already set
+                if (pondList.length > 0 && !selectedPondId) {
                     setSelectedPondId(pondList[0].value);
                 } else if (pondList.length === 0) {
                     setSelectedPondId(null);
@@ -68,13 +69,18 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
         });
 
         return () => unsubscribe();
-    }, [user, userLoading, selectedPondId]);
+    }, [user, userLoading]); // Removed selectedPondId from dependency array
+
+    const handleSetSelectedPondId = useCallback((id: string) => {
+        setSelectedPondId(id);
+    }, []);
+
 
     const value = {
         userId: user?.uid || null,
         ponds,
         selectedPondId,
-        setSelectedPondId,
+        setSelectedPondId: handleSetSelectedPondId,
         loading: loading || userLoading,
     };
 
