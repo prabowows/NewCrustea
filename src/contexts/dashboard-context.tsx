@@ -7,8 +7,8 @@ import { database } from '@/lib/firebase';
 import { ref, onValue } from 'firebase/database';
 
 type Pond = {
-    value: string; // e.g., "KLM_01"
-    label: string; // e.g., "KLM_01"
+    value: string; // e.g., "KLM01"
+    label: string; // e.g., "KLM 01"
 }
 
 interface DashboardContextType {
@@ -44,15 +44,14 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
             const data = snapshot.val();
             if (data) {
                 const pondList: Pond[] = Object.keys(data)
-                    .filter(key => key.startsWith('KLM_')) // Filter out keys like 'Owner'
+                    .filter(key => key.toUpperCase().startsWith('KLM')) // More flexible filter
                     .map(key => ({
                         value: key,
-                        label: key.replace('_', ' '), // "KLM_01" -> "KLM 01"
+                        label: key.replace(/(\D+)(\d+)/, '$1 $2'), // "KLM01" -> "KLM 01"
                     }));
                 
                 setPonds(pondList);
 
-                // Set default selected pond if not already set or if it's no longer valid
                 if (pondList.length > 0 && (!selectedPondId || !pondList.find(p => p.value === selectedPondId))) {
                     setSelectedPondId(pondList[0].value);
                 } else if (pondList.length === 0) {
@@ -69,7 +68,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
         });
 
         return () => unsubscribe();
-    }, [user, userLoading]);
+    }, [user, userLoading, selectedPondId]);
 
     const value = {
         userId: user?.uid || null,

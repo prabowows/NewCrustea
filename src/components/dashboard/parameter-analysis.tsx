@@ -35,23 +35,22 @@ export function ParameterAnalysis() {
     const unsubscribe = onValue(deviceRef, (snapshot) => {
       const val = snapshot.val();
       if (val) {
-        // Find the first (and likely only) device under EBII
         const deviceId = Object.keys(val)[0];
         const deviceData = deviceId ? val[deviceId]['02_Data'] : null;
 
         if (deviceData) {
             setData({
                 entityId: selectedPondId,
-                status: 'Online', // Can be derived from data freshness in a real app
+                status: 'Online', 
                 do: `${deviceData.DO || 'N/A'} mg/L`,
-                ph: deviceData.PH || 'N/A', // Key is PH in new structure
+                ph: deviceData.PH || 'N/A',
                 temperature: `${deviceData.Temp || 'N/A'} °C`,
             });
         } else {
              setData({ entityId: selectedPondId, status: 'Offline', do: 'N/A', ph: 'N/A', temperature: 'N/A' });
         }
       } else {
-        setData(null); // Set to null if no EBII device exists for the pond
+        setData(null); 
       }
       setLoading(false);
     }, (error) => {
