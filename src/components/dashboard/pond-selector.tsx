@@ -3,16 +3,11 @@
 
 import * as React from "react";
 import { useDashboard } from "@/contexts/dashboard-context";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { Check, ChevronsUpDown } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "../ui/skeleton";
 
 export function PondSelector() {
   const { ponds, selectedPondId, setSelectedPondId, loading } = useDashboard();
-  const [open, setOpen] = React.useState(false);
 
   if (loading) {
     return <Skeleton className="h-10 w-[250px]" />;
@@ -25,51 +20,27 @@ export function PondSelector() {
       </div>
     );
   }
-  
-  const selectedPond = ponds.find((pond) => pond.value === selectedPondId);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-[250px] justify-between bg-card"
-          disabled={loading || ponds.length === 0}
-        >
-          {selectedPond ? selectedPond.label : "Pilih Kolam..."}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[250px] p-0">
-        <Command>
-          <CommandInput placeholder="Cari kolam..." />
-          <CommandList>
-            <CommandEmpty>Tidak ada kolam ditemukan.</CommandEmpty>
-            <CommandGroup>
-              {ponds.map((pond) => (
-                <CommandItem
-                  key={pond.value}
-                  value={pond.value}
-                  onSelect={(currentValue) => {
-                    setSelectedPondId(currentValue === selectedPondId ? "" : currentValue);
-                    setOpen(false);
-                  }}
-                >
-                  <Check
-                    className={cn(
-                      "mr-2 h-4 w-4",
-                      selectedPondId === pond.value ? "opacity-100" : "opacity-0"
-                    )}
-                  />
-                  {pond.label}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <Select
+      value={selectedPondId || ""}
+      onValueChange={(value) => {
+        if (value) {
+          setSelectedPondId(value);
+        }
+      }}
+      disabled={loading || ponds.length === 0}
+    >
+      <SelectTrigger className="w-[250px] bg-card">
+        <SelectValue placeholder="Pilih Kolam..." />
+      </SelectTrigger>
+      <SelectContent>
+        {ponds.map((pond) => (
+          <SelectItem key={pond.value} value={pond.value}>
+            {pond.label}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
   );
 }
