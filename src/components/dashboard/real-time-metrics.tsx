@@ -13,21 +13,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { initialMetrics, type Metric } from "@/lib/data";
+import { type Metric } from "@/lib/data"; // Keep the type definition
 import { Power, Zap, GaugeCircle, Waves, Droplets, Thermometer, FlaskConical, Scale } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
+import { useDashboard } from "@/contexts/dashboard-context";
 
 const iconMap = {
-  Power,
-  Zap,
-  GaugeCircle,
-  Waves,
-  Droplets,
-  Thermometer,
-  FlaskConical,
-  Scale,
+  Power, Zap, GaugeCircle, Waves, Droplets, Thermometer, FlaskConical, Scale,
 };
-
 
 const formatValue = (value: any, unit: string) => {
     if (value === undefined || value === null || value === '') return 'N/A';
@@ -37,79 +30,89 @@ const formatValue = (value: any, unit: string) => {
     return `${value}${unit ? ` ${unit}` : ''}`;
 };
 
-// Helper to get nested property
-const getNestedValue = (obj: any, path: string) => {
-    return path.split('.').reduce((acc, part) => acc && acc[part], obj);
-};
-
-
 type GroupedMetric = {
     name: string;
     icon: string;
-    description: string;
     unit: string;
-    phases: {
-        phase: number;
-        value: string;
-    }[];
+    phases: { phase: number; value: string; }[];
 };
 
-
 export function RealTimeMetrics() {
-  const [metrics, setMetrics] = useState<Metric[]>(initialMetrics);
+  const { userId, selectedPondId, loading: contextLoading } = useDashboard();
+  const [ebiiMetrics, setEbiiMetrics] = useState<Metric[]>([]);
+  const [smartEnergyMetrics, setSmartEnergyMetrics] = useState<GroupedMetric[]>([]);
   const [loading, setLoading] = useState(true);
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
-  
-  useEffect(() => {
-    if (!mounted) return;
-
-    // A single reference to the root of the data
-    const deviceRef = ref(database, '/Device/Tipe');
+    if (contextLoading || !userId || !selectedPondId) {
+      setLoading(true);
+      return;
+    }
+    
+    setLoading(true);
+    const devicePath = `User/${userId}/Kolam/${selectedPondId}/Device`;
+    const deviceRef = ref(database, devicePath);
 
     const unsubscribe = onValue(deviceRef, (snapshot) => {
         const data = snapshot.val();
         if (!data) {
             setLoading(false);
+            setEbiiMetrics([]);
+            setSmartEnergyMetrics([]);
             return;
         }
 
         const { EBII, Smart_Energy } = data;
 
-        setMetrics(prevMetrics => {
-            return prevMetrics.map(metric => {
-                let sourceData;
-                if (metric.source === 'EBII') sourceData = EBII;
-                if (metric.source === 'Smart_Energy') sourceData = Smart_Energy;
+        // Process EBII Metrics
+        if (EBII) {
+            const ebiiDeviceId = Object.keys(EBII)[0];
+            const ebiiData = ebiiDeviceId ? EBII[ebiiDeviceId]['02_Data'] : null;
+            const newEbiiMetrics: Metric[] = [
+                { id: 'do', name: 'DO', value: formatValue(ebiiData?.DO, 'mg/L'), unit: 'mg/L', icon: 'Droplets', description: 'Measures the amount of gaseous oxygen dissolved in the pond water.', source: 'EBII' },
+                { id: 'temperature', name: 'Temp', value: formatValue(ebiiData?.Temp, '°C'), unit: '°C', icon: 'Thermometer', description: 'Monitors the water temperature.', source: 'EBII' },
+                { id: 'ph', name: 'pH', value: formatValue(ebiiData?.PH, ''), unit: '', icon: 'FlaskConical', description: 'Measures the acidity or alkalinity of the water.', source: 'EBII' },
+                { id: 'salinity', name: 'TDS', value: formatValue(ebiiData?.TDS, 'ppt'), unit: 'ppt', icon: 'Scale', description: 'Measures the total dissolved solids, an indicator of salinity.', source: 'EBII' },
+            ];
+            setEbiiMetrics(newEbiiMetrics);
+        } else {
+            setEbiiMetrics([]);
+        }
 
-                if (!sourceData) return metric;
+        // Process Smart Energy Metrics
+        if (Smart_Energy) {
+            const energyDeviceId = Object.keys(Smart_Energy)[0];
+            const energyData = energyDeviceId ? Smart_Energy[energyDeviceId]['02_Data'] : null;
 
-                let metricValue;
-                if (metric.path) { // For nested data like "Power.Phase1"
-                    metricValue = getNestedValue(sourceData, metric.path);
-                } else if (metric.firebaseKey) { // For direct keys like "DO"
-                    metricValue = sourceData[metric.firebaseKey];
-                }
+            const metricTypes = ['Power', 'Voltage', 'Current', 'Frequency', 'PF', 'Energy'];
+            const units: Record<string, string> = { Power: 'W', Voltage: 'V', Current: 'A', Frequency: 'Hz', PF: '', Energy: 'kWh' };
+            const icons: Record<string, string> = { Power: 'Power', Voltage: 'Zap', Current: 'GaugeCircle', Frequency: 'Waves', PF: 'Zap', Energy: 'Power' };
 
-                return {
-                    ...metric,
-                    value: formatValue(metricValue, metric.unit),
+            const newEnergyMetrics = metricTypes.map(type => {
+                const metricGroup: GroupedMetric = {
+                    name: type,
+                    icon: icons[type],
+                    unit: units[type],
+                    phases: [1, 2, 3].map(p => ({
+                        phase: p,
+                        value: formatValue(energyData?.[type]?.[`P${p}`], units[type]),
+                    }))
                 };
+                return metricGroup;
             });
-        });
+            setSmartEnergyMetrics(newEnergyMetrics);
+        } else {
+            setSmartEnergyMetrics([]);
+        }
+        
         setLoading(false);
     }, (error) => {
         console.error("Firebase read failed: ", error);
         setLoading(false);
     });
 
-    return () => {
-      unsubscribe();
-    };
-  }, [mounted]);
+    return () => unsubscribe();
+  }, [userId, selectedPondId, contextLoading]);
 
   const renderMetricCard = (metric: Metric) => {
     const Icon = iconMap[metric.icon as keyof typeof iconMap] || Power;
@@ -145,41 +148,8 @@ export function RealTimeMetrics() {
         </Dialog>
     );
   }
-
-  const ebiiMetrics = metrics.filter(m => m.source === 'EBII');
-  const smartEnergyMetrics = metrics.filter(m => m.source === 'Smart_Energy');
-
-  const groupedEnergyMetrics = smartEnergyMetrics.reduce((acc, metric) => {
-    const baseName = metric.name.replace(/ \d+$/, ''); // Removes " 1", " 2", etc.
-    const phaseNumber = parseInt(metric.name.slice(-1), 10);
-
-    if (!acc[baseName]) {
-      acc[baseName] = {
-        name: baseName,
-        icon: metric.icon,
-        description: metric.description.replace(/ for phase \d/, ''), // Generic description
-        unit: metric.unit,
-        phases: [],
-      };
-    }
-
-    acc[baseName].phases.push({
-      phase: phaseNumber,
-      value: metric.value,
-    });
-    
-    // Sort phases to ensure order
-    acc[baseName].phases.sort((a, b) => a.phase - b.phase);
-    
-    return acc;
-  }, {} as Record<string, GroupedMetric>);
-
-
-  if (!mounted) {
-    return null;
-  }
   
-  if (loading) {
+  if (loading || contextLoading) {
     return (
       <div className="space-y-6">
         <div>
@@ -231,7 +201,7 @@ export function RealTimeMetrics() {
         <div>
             <h3 className="text-lg font-semibold mb-4 text-primary">Smart Energy</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
-                {Object.values(groupedEnergyMetrics).map((metric) => {
+                {smartEnergyMetrics.map((metric) => {
                     const Icon = iconMap[metric.icon as keyof typeof iconMap] || Power;
                     return (
                         <Card key={metric.name}>

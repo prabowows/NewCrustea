@@ -11,8 +11,10 @@ import { cn } from "@/lib/utils";
 import { Power, CalendarDays, Wifi } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
-import { database } from "@/lib/firebase"; // Use the main database instance
+import { database } from "@/lib/firebase"; 
 import { ref, onValue, set } from "firebase/database";
+import { useDashboard } from "@/contexts/dashboard-context";
+import { Skeleton } from "../ui/skeleton";
 
 type Day = 'Sun' | 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat';
 
@@ -35,41 +37,53 @@ const initialScheduleState: ScheduleState = {
 };
 
 const daysOfWeek: { key: Day; label: string }[] = [
-    { key: 'Sun', label: 'Sunday' },
-    { key: 'Mon', label: 'Monday' },
-    { key: 'Tue', label: 'Tuesday' },
-    { key: 'Wed', label: 'Wednesday' },
-    { key: 'Thu', label: 'Thursday' },
-    { key: 'Fri', label: 'Friday' },
-    { key: 'Sat', label: 'Saturday' },
+    { key: 'Sun', label: 'Minggu' },
+    { key: 'Mon', label: 'Senin' },
+    { key: 'Tue', label: 'Selasa' },
+    { key: 'Wed', label: 'Rabu' },
+    { key: 'Thu', label: 'Kamis' },
+    { key: 'Fri', label: 'Jumat' },
+    { key: 'Sat', label: 'Sabtu' },
 ];
 
-
 export function AeratorControl() {
+  const { userId, selectedPondId, loading: contextLoading } = useDashboard();
   const [isAeratorOn, setIsAeratorOn] = useState(false);
   const [aeratorDisplayStatus, setAeratorDisplayStatus] = useState("OFF");
   const [schedule, setSchedule] = useState<ScheduleState>(initialScheduleState);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    if (contextLoading || !userId || !selectedPondId) {
+        setLoading(true);
+        return;
+    }
 
-  useEffect(() => {
-    if (!mounted) return;
-
-    const aeratorRef = ref(database, 'Device/Tipe/Aerator');
+    setLoading(true);
+    // Path needs to be more specific now, assuming one aerator device per pond
+    const aeratorPath = `User/${userId}/Kolam/${selectedPondId}/Device/Aerator`;
+    const aeratorRef = ref(database, aeratorPath);
+    
     const unsubscribe = onValue(aeratorRef, (snapshot) => {
       const data = snapshot.val();
+      // The data is now nested under a device ID (e.g., CC8DA20C7A88) and 02_Data
       if (data) {
-        if (typeof data.is_on === 'boolean') {
-          setIsAeratorOn(data.is_on);
+        const deviceId = Object.keys(data)[0];
+        const deviceData = deviceId ? data[deviceId]['02_Data'] : null;
+
+        if (deviceData) {
+            setIsAeratorOn(deviceData.Is_On === 'true' || deviceData.Is_On === true);
+            setAeratorDisplayStatus((deviceData.Status || "off").toUpperCase());
+        } else {
+            setIsAeratorOn(false);
+            setAeratorDisplayStatus("OFF");
         }
-        if (data.status === 'on' || data.status === 'off') {
-          setAeratorDisplayStatus(data.status.toUpperCase());
-        }
+      } else {
+        setIsAeratorOn(false);
+        setAeratorDisplayStatus("OFF");
       }
+      setLoading(false);
     }, (error) => {
       console.error("Firebase read failed:", error);
       toast({
@@ -77,37 +91,45 @@ export function AeratorControl() {
         title: "Connection Error",
         description: "Could not fetch aerator status.",
       });
+      setLoading(false);
     });
 
-    return () => {
-        unsubscribe();
-    };
-  }, [mounted, toast]);
-
-
-  if (!mounted) {
-    return null;
-  }
+    return () => unsubscribe();
+  }, [userId, selectedPondId, contextLoading, toast]);
 
 
   const handleToggleAerator = () => {
+    if (contextLoading || !userId || !selectedPondId) return;
+
     const newStatus = !isAeratorOn;
-    const aeratorControlRef = ref(database, 'Device/Tipe/Aerator/is_on');
-    set(aeratorControlRef, newStatus)
-      .then(() => {
-        toast({
-          title: "Success",
-          description: `Command sent to turn aerator ${newStatus ? 'ON' : 'OFF'}.`,
-        });
-      })
-      .catch((error) => {
-        console.error("Firebase write failed:", error);
-        toast({
-          variant: "destructive",
-          title: "Update Failed",
-          description: "Could not update the aerator status.",
-        });
-      });
+    // This is tricky as we don't know the device ID upfront. We assume there's only one.
+    // A better implementation would fetch the device ID first.
+    // For now, we'll read the path, get the key, and then write.
+    const aeratorRef = ref(database, `User/${userId}/Kolam/${selectedPondId}/Device/Aerator`);
+     onValue(aeratorRef, (snapshot) => {
+        const data = snapshot.val();
+        if(data){
+            const deviceId = Object.keys(data)[0];
+            if(deviceId){
+                const controlPath = `User/${userId}/Kolam/${selectedPondId}/Device/Aerator/${deviceId}/02_Data/Is_On`;
+                set(ref(database, controlPath), newStatus)
+                .then(() => {
+                    toast({
+                    title: "Success",
+                    description: `Command sent to turn aerator ${newStatus ? 'ON' : 'OFF'}.`,
+                    });
+                })
+                .catch((error) => {
+                    console.error("Firebase write failed:", error);
+                    toast({
+                    variant: "destructive",
+                    title: "Update Failed",
+                    description: "Could not update the aerator status.",
+                    });
+                });
+            }
+        }
+     }, { onlyOnce: true });
   };
 
   const handleScheduleChange = (day: Day, field: keyof DailySchedule, value: string | boolean) => {
@@ -121,27 +143,36 @@ export function AeratorControl() {
   };
 
   const handleSaveSchedule = () => {
-    const activeSchedules = Object.entries(schedule).filter(([, details]) => details.enabled);
-
-    if (activeSchedules.length === 0) {
-        toast({
-            variant: "destructive",
-            title: "No Schedule Active",
-            description: "Please enable and configure a schedule for at least one day.",
-        });
-        return;
-    }
-    
-    // In a real app, you'd save this to Firebase, e.g., under a "schedules" path.
-    // const scheduleRef = ref(database, 'Device/schedules');
-    // set(scheduleRef, schedule).then(...);
-    
-    console.log("Saving schedule:", schedule);
+    // In a real app, save to a path like `User/${userId}/Kolam/${selectedPondId}/Schedules`
+    console.log("Saving schedule for pond " + selectedPondId + ":", schedule);
     toast({
       title: "Schedule Saved (Simulation)",
       description: "Your daily aerator schedules have been logged. This is a demo.",
     });
   };
+
+   if (loading || contextLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-primary">Aerator Control</CardTitle>
+          <CardDescription>Remotely manage the main aerator system.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader className="pb-4"><Skeleton className="h-5 w-24" /></CardHeader>
+              <CardContent><Skeleton className="h-8 w-20" /></CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="pb-4"><Skeleton className="h-5 w-24" /></CardHeader>
+              <CardContent><Skeleton className="h-16 w-16 rounded-full" /></CardContent>
+            </Card>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card>

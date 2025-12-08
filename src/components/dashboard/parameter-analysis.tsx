@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { database } from '@/lib/firebase';
 import { ref, onValue } from 'firebase/database';
 import { Skeleton } from '../ui/skeleton';
+import { useDashboard } from '@/contexts/dashboard-context';
 
 type ParameterData = {
   entityId: string;
@@ -18,45 +19,49 @@ type ParameterData = {
 }
 
 export function ParameterAnalysis() {
+  const { userId, selectedPondId, loading: contextLoading } = useDashboard();
   const [data, setData] = useState<ParameterData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const deviceRef = ref(database, 'Device');
+    if (contextLoading || !userId || !selectedPondId) {
+      setLoading(true);
+      return;
+    }
+
+    setLoading(true);
+    const deviceRef = ref(database, `User/${userId}/Kolam/${selectedPondId}/Device/EBII`);
+
     const unsubscribe = onValue(deviceRef, (snapshot) => {
       const val = snapshot.val();
       if (val) {
-        setData({
-          entityId: val.id_kolam || 'N/A',
-          status: 'Online', // Status can be derived from data freshness in a real app
-          do: `${val.Tipe?.EBII?.DO || 'N/A'} mg/L`,
-          ph: val.Tipe?.EBII?.pH || 'N/A',
-          temperature: `${val.Tipe?.EBII?.Temp || 'N/A'} °C`,
-        });
+        // Find the first (and likely only) device under EBII
+        const deviceId = Object.keys(val)[0];
+        const deviceData = deviceId ? val[deviceId]['02_Data'] : null;
+
+        if (deviceData) {
+            setData({
+                entityId: selectedPondId,
+                status: 'Online', // Can be derived from data freshness in a real app
+                do: `${deviceData.DO || 'N/A'} mg/L`,
+                ph: deviceData.PH || 'N/A', // Key is PH in new structure
+                temperature: `${deviceData.Temp || 'N/A'} °C`,
+            });
+        } else {
+             setData({ entityId: selectedPondId, status: 'Offline', do: 'N/A', ph: 'N/A', temperature: 'N/A' });
+        }
       } else {
-        setData({
-          entityId: 'N/A',
-          status: 'Offline',
-          do: 'N/A',
-          ph: 'N/A',
-          temperature: 'N/A',
-        });
+        setData({ entityId: selectedPondId, status: 'Offline', do: 'N/A', ph: 'N/A', temperature: 'N/A' });
       }
       setLoading(false);
     }, (error) => {
       console.error("Firebase read failed:", error);
-      setData({
-          entityId: 'Error',
-          status: 'Offline',
-          do: 'Error',
-          ph: 'Error',
-          temperature: 'Error',
-      });
+      setData({ entityId: selectedPondId, status: 'Offline', do: 'Error', ph: 'Error', temperature: 'Error' });
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [userId, selectedPondId, contextLoading]);
 
   const getStatusVariant = (status: ParameterData['status']) => {
     switch (status) {
@@ -90,7 +95,7 @@ export function ParameterAnalysis() {
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {loading ? (
+                {loading || contextLoading ? (
                   <TableRow>
                     <TableCell><Skeleton className="h-5 w-24" /></TableCell>
                     <TableCell><Skeleton className="h-6 w-[70px] rounded-full" /></TableCell>
@@ -113,7 +118,7 @@ export function ParameterAnalysis() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center text-muted-foreground">
-                      No data available.
+                      No data available for pond {selectedPondId}.
                     </TableCell>
                   </TableRow>
                 )}

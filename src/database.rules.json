@@ -1,0 +1,19 @@
+
+{
+  "rules": {
+    "User": {
+      "$uid": {
+        // A user can only read/write their own data.
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    // Keep the old user profile rules for login/registration to work
+    "users": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid"
+      }
+    }
+  }
+}

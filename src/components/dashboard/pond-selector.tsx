@@ -1,8 +1,8 @@
+
 "use client";
 
 import * as React from "react"
 import { Check, ChevronsUpDown } from "lucide-react"
-
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -18,17 +18,20 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover"
-
-// TODO: Fetch this list dynamically based on the logged-in user
-const ponds = [
-    { value: "klm001", label: "Kolam 1 (Area Timur)" },
-    { value: "klm002", label: "Kolam 2 (Area Barat)" },
-    { value: "klm003", label: "Kolam Pembibitan" },
-];
+import { useDashboard } from "@/contexts/dashboard-context";
 
 export function PondSelector() {
-    const [open, setOpen] = React.useState(false)
-    const [value, setValue] = React.useState("klm001")
+    const { ponds, selectedPondId, setSelectedPondId, loading } = useDashboard();
+    const [open, setOpen] = React.useState(false);
+
+    const handleSelect = (currentValue: string) => {
+        setSelectedPondId(currentValue === selectedPondId ? "" : currentValue);
+        setOpen(false);
+    }
+    
+    const selectedLabel = selectedPondId 
+        ? ponds.find((pond) => pond.value === selectedPondId)?.label
+        : "Pilih Kolam...";
 
     return (
         <Popover open={open} onOpenChange={setOpen}>
@@ -38,10 +41,11 @@ export function PondSelector() {
                     role="combobox"
                     aria-expanded={open}
                     className="w-[250px] justify-between bg-card"
+                    disabled={loading || ponds.length === 0}
                 >
-                    {value
-                        ? ponds.find((pond) => pond.value === value)?.label
-                        : "Pilih Kolam..."}
+                    <span className="truncate">
+                        {loading ? "Memuat kolam..." : selectedLabel}
+                    </span>
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
@@ -55,15 +59,12 @@ export function PondSelector() {
                                 <CommandItem
                                     key={pond.value}
                                     value={pond.value}
-                                    onSelect={(currentValue) => {
-                                        setValue(currentValue === value ? "" : currentValue)
-                                        setOpen(false)
-                                    }}
+                                    onSelect={handleSelect}
                                 >
                                     <Check
                                         className={cn(
                                             "mr-2 h-4 w-4",
-                                            value === pond.value ? "opacity-100" : "opacity-0"
+                                            selectedPondId === pond.value ? "opacity-100" : "opacity-0"
                                         )}
                                     />
                                     {pond.label}
