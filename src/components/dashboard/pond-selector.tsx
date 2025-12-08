@@ -23,9 +23,10 @@ import { useDashboard } from "@/contexts/dashboard-context";
 export function PondSelector() {
     const { ponds, selectedPondId, setSelectedPondId, loading } = useDashboard();
     const [open, setOpen] = React.useState(false);
+    const [searchValue, setSearchValue] = React.useState("");
 
     const handleSelect = (currentValue: string) => {
-        setSelectedPondId(currentValue === selectedPondId ? "" : currentValue);
+        setSelectedPondId(currentValue);
         setOpen(false);
     }
     
@@ -44,22 +45,26 @@ export function PondSelector() {
                     disabled={loading || ponds.length === 0}
                 >
                     <span className="truncate">
-                        {loading ? "Memuat kolam..." : selectedLabel}
+                        {loading ? "Memuat kolam..." : (selectedPondId ? selectedLabel : "Pilih Kolam...")}
                     </span>
                     <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-[250px] p-0">
                 <Command>
-                    <CommandInput placeholder="Cari kolam..." />
+                    <CommandInput 
+                        placeholder="Cari kolam..."
+                        value={searchValue}
+                        onValueChange={setSearchValue}
+                    />
                     <CommandList>
                         <CommandEmpty>Kolam tidak ditemukan.</CommandEmpty>
                         <CommandGroup>
                             {ponds.map((pond) => (
                                 <CommandItem
                                     key={pond.value}
-                                    value={pond.value}
-                                    onSelect={handleSelect}
+                                    value={pond.label} // Use label for filtering and display
+                                    onSelect={() => handleSelect(pond.value)}
                                 >
                                     <Check
                                         className={cn(
