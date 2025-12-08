@@ -52,10 +52,12 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
                 
                 setPonds(pondList);
 
-                // Set default selected pond only if it's not already set
-                if (pondList.length > 0 && !selectedPondId) {
-                    setSelectedPondId(pondList[0].value);
-                } else if (pondList.length === 0) {
+                // Set default selected pond only if it's not already set or not in the new list
+                if (pondList.length > 0) {
+                    if (!selectedPondId || !pondList.find(p => p.value === selectedPondId)) {
+                        setSelectedPondId(pondList[0].value);
+                    }
+                } else {
                     setSelectedPondId(null);
                 }
             } else {
@@ -69,7 +71,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
         });
 
         return () => unsubscribe();
-    }, [user, userLoading]); // Removed selectedPondId from dependency array
+    }, [user, userLoading]);
 
     const handleSetSelectedPondId = useCallback((id: string) => {
         setSelectedPondId(id);
