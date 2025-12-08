@@ -27,7 +27,7 @@ const formatValue = (value: any, unit: string) => {
     if (typeof value === 'number' || (typeof value === 'string' && !isNaN(Number(value)))) {
         return `${Number(value).toFixed(2)}${unit ? ` ${unit}` : ''}`;
     }
-    return `${value}${unit ? ` ${unit}` : ''}`;
+    return `${String(value)}${unit ? ` ${unit}` : ''}`;
 };
 
 type GroupedMetric = {
@@ -54,15 +54,18 @@ export function RealTimeMetrics() {
     const deviceRef = ref(database, devicePath);
 
     const unsubscribe = onValue(deviceRef, (snapshot) => {
-        const data = snapshot.val();
-        if (!data) {
+        const devices = snapshot.val();
+        
+        // Reset states
+        setEbiiMetrics([]);
+        setSmartEnergyMetrics([]);
+
+        if (!devices) {
             setLoading(false);
-            setEbiiMetrics([]);
-            setSmartEnergyMetrics([]);
             return;
         }
 
-        const { EBII, Smart_Energy } = data;
+        const { EBII, Smart_Energy } = devices;
 
         // Process EBII Metrics
         if (EBII) {
@@ -75,8 +78,6 @@ export function RealTimeMetrics() {
                 { id: 'salinity', name: 'TDS', value: formatValue(ebiiData?.TDS, 'ppt'), unit: 'ppt', icon: 'Scale', description: 'Measures the total dissolved solids, an indicator of salinity.', source: 'EBII' },
             ];
             setEbiiMetrics(newEbiiMetrics);
-        } else {
-            setEbiiMetrics([]);
         }
 
         // Process Smart Energy Metrics
@@ -95,14 +96,12 @@ export function RealTimeMetrics() {
                     unit: units[type],
                     phases: [1, 2, 3].map(p => ({
                         phase: p,
-                        value: formatValue(energyData?.[type]?.[`P${p}`], units[type]),
+                        value: formatValue(energyData?.[type]?.[`P${p}`], ''), // Unit is at group level
                     }))
                 };
                 return metricGroup;
             });
             setSmartEnergyMetrics(newEnergyMetrics);
-        } else {
-            setSmartEnergyMetrics([]);
         }
         
         setLoading(false);
@@ -192,12 +191,15 @@ export function RealTimeMetrics() {
 
   return (
     <div className="space-y-6">
+       {ebiiMetrics.length > 0 && (
         <div>
             <h3 className="text-lg font-semibold mb-4 text-primary">EBII System</h3>
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
                 {ebiiMetrics.map(renderMetricCard)}
             </div>
         </div>
+        )}
+       {smartEnergyMetrics.length > 0 && (
         <div>
             <h3 className="text-lg font-semibold mb-4 text-primary">Smart Energy</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
@@ -213,7 +215,7 @@ export function RealTimeMetrics() {
                                 {metric.phases.map(p => (
                                     <div key={p.phase} className="flex justify-between items-baseline">
                                         <span className="text-sm text-muted-foreground">Phase {p.phase}</span>
-                                        <span className="text-lg font-bold font-mono">{p.value}</span>
+                                        <span className="text-lg font-bold font-mono">{p.value} {p.value !== 'N/A' ? metric.unit : ''}</span>
                                     </div>
                                 ))}
                             </CardContent>
@@ -222,6 +224,14 @@ export function RealTimeMetrics() {
                 })}
             </div>
         </div>
+       )}
+        {(ebiiMetrics.length === 0 && smartEnergyMetrics.length === 0) && (
+             <Card>
+                <CardContent className="pt-6">
+                    <p className="text-center text-muted-foreground">No device data found for the selected pond.</p>
+                </CardContent>
+             </Card>
+        )}
     </div>
   );
 }

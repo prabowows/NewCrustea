@@ -42,8 +42,8 @@ const daysOfWeek: { key: Day; label: string }[] = [
     { key: 'Tue', label: 'Selasa' },
     { key: 'Wed', label: 'Rabu' },
     { key: 'Thu', label: 'Kamis' },
-    { key: 'Fri', label: 'Jumat' },
-    { key: 'Sat', label: 'Sabtu' },
+    { key: 'Fri', 'label': 'Jumat' },
+    { key: 'Sat', 'label': 'Sabtu' },
 ];
 
 export function AeratorControl() {
@@ -61,20 +61,19 @@ export function AeratorControl() {
     }
 
     setLoading(true);
-    // Path needs to be more specific now, assuming one aerator device per pond
     const aeratorPath = `User/${userId}/Kolam/${selectedPondId}/Device/Aerator`;
     const aeratorRef = ref(database, aeratorPath);
     
     const unsubscribe = onValue(aeratorRef, (snapshot) => {
       const data = snapshot.val();
-      // The data is now nested under a device ID (e.g., CC8DA20C7A88) and 02_Data
       if (data) {
         const deviceId = Object.keys(data)[0];
         const deviceData = deviceId ? data[deviceId]['02_Data'] : null;
 
         if (deviceData) {
-            setIsAeratorOn(deviceData.Is_On === 'true' || deviceData.Is_On === true);
-            setAeratorDisplayStatus((deviceData.Status || "off").toUpperCase());
+            const isOn = deviceData.Is_On === 'true' || deviceData.Is_On === true;
+            setIsAeratorOn(isOn);
+            setAeratorDisplayStatus(deviceData.Status ? String(deviceData.Status).toUpperCase() : (isOn ? "ON" : "OFF"));
         } else {
             setIsAeratorOn(false);
             setAeratorDisplayStatus("OFF");
@@ -102,11 +101,9 @@ export function AeratorControl() {
     if (contextLoading || !userId || !selectedPondId) return;
 
     const newStatus = !isAeratorOn;
-    // This is tricky as we don't know the device ID upfront. We assume there's only one.
-    // A better implementation would fetch the device ID first.
-    // For now, we'll read the path, get the key, and then write.
-    const aeratorRef = ref(database, `User/${userId}/Kolam/${selectedPondId}/Device/Aerator`);
-     onValue(aeratorRef, (snapshot) => {
+    const aeratorDeviceRef = ref(database, `User/${userId}/Kolam/${selectedPondId}/Device/Aerator`);
+    
+    onValue(aeratorDeviceRef, (snapshot) => {
         const data = snapshot.val();
         if(data){
             const deviceId = Object.keys(data)[0];
@@ -127,7 +124,11 @@ export function AeratorControl() {
                     description: "Could not update the aerator status.",
                     });
                 });
+            } else {
+                 toast({ variant: "destructive", title: "Action Failed", description: "No aerator device found for this pond." });
             }
+        } else {
+            toast({ variant: "destructive", title: "Action Failed", description: "No aerator device configured for this pond." });
         }
      }, { onlyOnce: true });
   };
@@ -202,7 +203,7 @@ export function AeratorControl() {
             <CardContent className="flex items-center justify-between">
                 <div>
                     <p className="text-base font-medium">Send Command</p>
-                    <p className="text-xs text-muted-foreground">Command: {isAeratorOn ? 'ON' : 'OFF'}</p>
+                    <p className="text-xs text-muted-foreground">Command: {isAeratorOn ? 'OFF' : 'ON'}</p>
                 </div>
                 <Button 
                     onClick={handleToggleAerator}
@@ -210,8 +211,8 @@ export function AeratorControl() {
                     className={cn(
                     "rounded-full w-16 h-16 text-primary-foreground transition-colors duration-300",
                     isAeratorOn
-                        ? "bg-green-100 text-green-700 hover:bg-green-200"
-                        : "bg-red-100 text-red-700 hover:bg-red-200"
+                        ? "bg-red-100 text-red-700 hover:bg-red-200"
+                        : "bg-green-100 text-green-700 hover:bg-green-200"
                     )}
                     aria-label="Toggle Aerator Power"
                 >
@@ -224,7 +225,7 @@ export function AeratorControl() {
         <div className="space-y-4">
             <Card className="border-dashed">
                 <CardHeader>
-                  <CardTitle className="text-primary flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-primary">
                     <CalendarDays className="h-6 w-6" />
                     Set Weekly Schedule
                   </CardTitle>

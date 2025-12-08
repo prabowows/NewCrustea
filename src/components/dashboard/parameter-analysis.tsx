@@ -51,7 +51,7 @@ export function ParameterAnalysis() {
              setData({ entityId: selectedPondId, status: 'Offline', do: 'N/A', ph: 'N/A', temperature: 'N/A' });
         }
       } else {
-        setData({ entityId: selectedPondId, status: 'Offline', do: 'N/A', ph: 'N/A', temperature: 'N/A' });
+        setData(null); // Set to null if no EBII device exists for the pond
       }
       setLoading(false);
     }, (error) => {
@@ -118,7 +118,7 @@ export function ParameterAnalysis() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center text-muted-foreground">
-                      No data available for pond {selectedPondId}.
+                      No EBII device data available for pond {selectedPondId}.
                     </TableCell>
                   </TableRow>
                 )}
