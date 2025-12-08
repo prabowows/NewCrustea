@@ -40,26 +40,35 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
         setLoading(true);
         const pondsRef = ref(database, `User/${user.uid}/Kolam`);
 
+        // This listener will only fetch the list of ponds and set the initial state.
         const unsubscribe = onValue(pondsRef, (snapshot) => {
             const data = snapshot.val();
+            const pondList: Pond[] = [];
             if (data) {
-                const pondList: Pond[] = Object.keys(data)
-                    .filter(key => key.toUpperCase().startsWith('KLM'))
-                    .map(key => ({
-                        value: key,
-                        label: key.replace(/(\D+)(\d+)/, '$1 $2'),
-                    }));
-                
-                setPonds(pondList);
+                Object.keys(data).forEach(key => {
+                    if (key.toUpperCase().startsWith('KLM')) {
+                        pondList.push({
+                            value: key,
+                            label: key.replace(/(\D+)(\d+)/, '$1 $2'),
+                        });
+                    }
+                });
+            }
 
-                // Set default selected pond only if it's not already set
-                if (pondList.length > 0 && !selectedPondId) {
-                    setSelectedPondId(pondList[0].value);
-                } else if (pondList.length === 0) {
-                    setSelectedPondId(null);
-                }
+            setPonds(pondList);
+
+            // Set default selected pond only if it's not already set by the user.
+            // This prevents resetting the selection on data updates.
+            if (pondList.length > 0) {
+                setSelectedPondId(currentId => {
+                    // If there's no current selection or the selected one is no longer valid, default to the first.
+                    if (!currentId || !pondList.some(p => p.value === currentId)) {
+                        return pondList[0].value;
+                    }
+                    // Otherwise, keep the current selection.
+                    return currentId;
+                });
             } else {
-                setPonds([]);
                 setSelectedPondId(null);
             }
             setLoading(false);
