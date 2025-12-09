@@ -17,9 +17,10 @@ import { useState } from 'react';
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
-import { app, db } from '@/lib/firebase';
+import { app, db, database } from '@/lib/firebase';
 import { Textarea } from '@/components/ui/textarea';
 import { doc, setDoc } from 'firebase/firestore';
+import { ref, set } from 'firebase/database';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
@@ -53,11 +54,18 @@ export default function RegisterPage() {
         email: email
       });
 
+      // Create an initial entry in Realtime Database
+      const userRef = ref(database, `User/${user.uid}`);
+      await set(userRef, {
+        Owner: name,
+        lokasi: address
+      });
+
       toast({
         title: 'Registrasi Berhasil',
-        description: 'Akun Anda telah dibuat. Anda akan diarahkan ke dasbor.',
+        description: 'Akun Anda telah dibuat. Silakan tambahkan kolam pertama Anda.',
       });
-      router.push('/dashboard');
+      router.push('/add-pond'); // Redirect to add-pond page
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -139,5 +147,3 @@ export default function RegisterPage() {
     </div>
   );
 }
-
-    

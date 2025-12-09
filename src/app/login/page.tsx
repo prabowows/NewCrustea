@@ -32,9 +32,9 @@ export default function LoginPage() {
       await signInWithEmailAndPassword(auth, email, password);
       toast({
         title: 'Login Berhasil',
-        description: 'Anda akan diarahkan ke dasbor.',
+        description: 'Anda akan diarahkan ke halaman pemilihan kolam.',
       });
-      router.push('/dashboard');
+      router.push('/select-pond'); // Redirect to select-pond page
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -73,7 +73,7 @@ export default function LoginPage() {
               </div>
               <CardTitle className="text-2xl">Selamat Datang Kembali</CardTitle>
               <CardDescription>
-                Masukkan email dan password Anda untuk masuk ke dasbor
+                Masukkan email dan password Anda untuk masuk
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-4">

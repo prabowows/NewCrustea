@@ -5,10 +5,11 @@ import { createContext, useContext, useState, useEffect, ReactNode, useCallback 
 import { useUser } from '@/hooks/use-user';
 import { database } from '@/lib/firebase';
 import { ref, onValue } from 'firebase/database';
+import { useRouter } from 'next/navigation';
 
 type Pond = {
-    value: string; // e.g., "KLM01"
-    label: string; // e.g., "Kolam Dekat Rumah"
+    value: string;
+    label: string; 
 }
 
 interface DashboardContextType {
@@ -23,9 +24,16 @@ const DashboardContext = createContext<DashboardContextType | undefined>(undefin
 
 export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     const { user, loading: userLoading } = useUser();
+    const router = useRouter();
     const [ponds, setPonds] = useState<Pond[]>([]);
     const [selectedPondId, setSelectedPondId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+
+    // Function to set selectedPondId, also saves to localStorage
+    const handleSetSelectedPondId = useCallback((id: string) => {
+        localStorage.setItem('selectedPondId', id);
+        setSelectedPondId(id);
+    }, []);
 
     useEffect(() => {
         if (userLoading) {
@@ -33,7 +41,17 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
             return;
         }
         if (!user) {
-            setLoading(false);
+            router.push('/login');
+            return;
+        }
+
+        // Try to get the last selected pond from local storage
+        const lastSelectedId = localStorage.getItem('selectedPondId');
+        if (lastSelectedId) {
+            setSelectedPondId(lastSelectedId);
+        } else {
+            // If no pond is in local storage, user must select one
+            router.push('/select-pond');
             return;
         }
 
@@ -43,23 +61,31 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
         const unsubscribe = onValue(pondsRef, (snapshot) => {
             const data = snapshot.val();
             const pondList: Pond[] = [];
+            let foundLastSelected = false;
+
             if (data) {
                 Object.keys(data).forEach(key => {
                     const pondData = data[key];
-                    // Check if it's a valid pond object with a 'Nama_kolam' property
                     if (pondData && typeof pondData === 'object' && pondData.Nama_kolam) {
                         pondList.push({
                             value: key,
-                            label: pondData.Nama_kolam, // Use the 'Nama_kolam' field for the label
+                            label: pondData.Nama_kolam,
                         });
+                        if(key === lastSelectedId) {
+                            foundLastSelected = true;
+                        }
                     }
                 });
             }
 
             setPonds(pondList);
             
-            if (pondList.length > 0 && !selectedPondId) {
-                setSelectedPondId(pondList[0].value);
+            // If the last selected pond doesn't exist anymore, redirect
+            if (lastSelectedId && !foundLastSelected && pondList.length > 0) {
+                handleSetSelectedPondId(pondList[0].value);
+            } else if (pondList.length === 0) {
+                 // If user has no ponds, redirect them to add one
+                router.push('/add-pond');
             }
 
             setLoading(false);
@@ -69,11 +95,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
         });
 
         return () => unsubscribe();
-    }, [user, userLoading, selectedPondId]); // Keep selectedPondId here to set initial value correctly
-
-    const handleSetSelectedPondId = useCallback((id: string) => {
-        setSelectedPondId(id);
-    }, []);
+    }, [user, userLoading, router, handleSetSelectedPondId]);
 
     const value = {
         userId: user?.uid || null,
