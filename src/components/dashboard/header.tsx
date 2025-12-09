@@ -4,7 +4,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Settings, User, LifeBuoy, LogOut, LayoutDashboard, List } from "lucide-react";
+import { Settings, User, LifeBuoy, LogOut, LayoutDashboard } from "lucide-react";
 import Link from "next/link";
 import { ThemeSwitcher } from "../theme-switcher";
 import { auth } from "@/lib/firebase";
@@ -57,10 +57,10 @@ export function Header() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <Link href="/select-pond">
+            <Link href="/dashboard">
               <DropdownMenuItem>
-                <List className="mr-2 h-4 w-4" />
-                <span>Pilih Kolam</span>
+                <LayoutDashboard className="mr-2 h-4 w-4" />
+                <span>Dashboard</span>
               </DropdownMenuItem>
             </Link>
             <Link href="/profile">
