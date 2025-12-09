@@ -24,7 +24,6 @@ import { ref, set } from 'firebase/database';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
-  const [address, setAddress] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -49,16 +48,17 @@ export default function RegisterPage() {
       // Save user profile to Firestore
       await setDoc(doc(db, "users", user.uid), {
         name: name,
-        address: address,
+        // The address is no longer collected here
+        address: '', 
         phoneNumber: phoneNumber,
         email: email
       });
 
-      // Create an initial entry in Realtime Database
+      // Create an initial entry in Realtime Database with just the owner name
       const userRef = ref(database, `User/${user.uid}`);
       await set(userRef, {
         Owner: name,
-        lokasi: address
+        // The 'lokasi' field is removed from here
       });
 
       toast({
@@ -107,10 +107,6 @@ export default function RegisterPage() {
               <div className="grid gap-2">
                 <Label htmlFor="name">Nama Lengkap</Label>
                 <Input id="name" placeholder="John Doe" value={name} onChange={(e) => setName(e.target.value)} />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="address">Alamat</Label>
-                <Textarea id="address" placeholder="Masukkan alamat lengkap Anda" value={address} onChange={(e) => setAddress(e.target.value)} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="phone">Nomor HP</Label>
