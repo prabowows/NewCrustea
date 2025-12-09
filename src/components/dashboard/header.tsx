@@ -4,7 +4,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Settings, User, LifeBuoy, LogOut, LayoutDashboard } from "lucide-react";
+import { Settings, User, LifeBuoy, LogOut, LayoutDashboard, LineChart, Wind, ClipboardList } from "lucide-react";
 import Link from "next/link";
 import { ThemeSwitcher } from "../theme-switcher";
 import { auth } from "@/lib/firebase";
@@ -71,10 +71,11 @@ export function Header() {
                 <span>Profile</span>
               </DropdownMenuItem>
             </Link>
-            <DropdownMenuItem><Settings className="mr-2 h-4 w-4" /><span>Settings</span></DropdownMenuItem>
-            <DropdownMenuItem><LifeBuoy className="mr-2 h-4 w-4" /><span>Support</span></DropdownMenuItem>
+            <DropdownMenuItem><ClipboardList className="mr-2 h-4 w-4" /><span>Kelola Tambak</span></DropdownMenuItem>
+            <DropdownMenuItem><LineChart className="mr-2 h-4 w-4" /><span>Monitoring</span></DropdownMenuItem>
+            <DropdownMenuItem><Wind className="mr-2 h-4 w-4" /><span>Kontrol Aerator</span></DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}><LogOut className="mr-2 h-4 w-4" /><span>Log out</span></DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push('/login')}><LogOut className="mr-2 h-4 w-4" /><span>Log out</span></DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
