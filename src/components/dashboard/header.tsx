@@ -87,10 +87,12 @@ export function Header() {
                   <span>Profile</span>
                 </DropdownMenuItem>
               </Link>
-              <DropdownMenuItem>
-                  <List className="mr-2 h-4 w-4" />
-                  <span>Kelola Tambak</span>
-              </DropdownMenuItem>
+              <Link href="/manage-ponds">
+                <DropdownMenuItem>
+                    <List className="mr-2 h-4 w-4" />
+                    <span>Kelola Tambak</span>
+                </DropdownMenuItem>
+              </Link>
               <DropdownMenuItem>
                   <Activity className="mr-2 h-4 w-4" />
                   <span>Monitoring</span>
