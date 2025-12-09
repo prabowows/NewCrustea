@@ -29,7 +29,6 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     const [selectedPondId, setSelectedPondId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
-    // Function to set selectedPondId, also saves to localStorage
     const handleSetSelectedPondId = useCallback((id: string) => {
         localStorage.setItem('selectedPondId', id);
         setSelectedPondId(id);
@@ -45,12 +44,13 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
             return;
         }
 
-        // Try to get the last selected pond from local storage
+        // Always get selected pond from localStorage. 
+        // The /select-pond page is now responsible for setting it initially.
         const lastSelectedId = localStorage.getItem('selectedPondId');
         if (lastSelectedId) {
             setSelectedPondId(lastSelectedId);
         } else {
-            // If no pond is in local storage, user must select one
+            // If for any reason it's not set, go back to the decider page.
             router.push('/select-pond');
             return;
         }
@@ -61,7 +61,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
         const unsubscribe = onValue(pondsRef, (snapshot) => {
             const data = snapshot.val();
             const pondList: Pond[] = [];
-            let foundLastSelected = false;
+            let isSelectedIdValid = false;
 
             if (data) {
                 Object.keys(data).forEach(key => {
@@ -71,8 +71,8 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
                             value: key,
                             label: pondData.Nama_kolam,
                         });
-                        if(key === lastSelectedId) {
-                            foundLastSelected = true;
+                        if (key === lastSelectedId) {
+                            isSelectedIdValid = true;
                         }
                     }
                 });
@@ -80,12 +80,9 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
 
             setPonds(pondList);
             
-            // If the last selected pond doesn't exist anymore, redirect
-            if (lastSelectedId && !foundLastSelected && pondList.length > 0) {
-                handleSetSelectedPondId(pondList[0].value);
-            } else if (pondList.length === 0) {
-                 // If user has no ponds, redirect them to add one
-                router.push('/add-pond');
+            // If the selected pond from storage is no longer valid, redirect to let the user select a new one.
+            if (!isSelectedIdValid) {
+                router.push('/select-pond');
             }
 
             setLoading(false);

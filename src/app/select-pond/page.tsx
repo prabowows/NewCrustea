@@ -9,8 +9,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlusCircle, Droplets } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+import { PlusCircle } from 'lucide-react';
 import { Header } from '@/components/dashboard/header';
 
 type Pond = {
@@ -19,15 +18,17 @@ type Pond = {
   location: string;
 };
 
+// This page now acts as a router.
+// 1. If user has ponds, select the first one and redirect to /dashboard.
+// 2. If user has no ponds, show the UI to add a new pond.
 export default function SelectPondPage() {
   const { user, loading: userLoading } = useUser();
   const router = useRouter();
-  const [ponds, setPonds] = useState<Pond[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [hasPonds, setHasPonds] = useState<boolean | null>(null);
 
   useEffect(() => {
     if (userLoading) {
-      return;
+      return; // Wait until user status is known
     }
     if (!user) {
       router.push('/login');
@@ -40,7 +41,6 @@ export default function SelectPondPage() {
       const pondList: Pond[] = [];
       if (data) {
         Object.keys(data).forEach((key) => {
-          // A valid pond is an object and has Nama_kolam
           if (typeof data[key] === 'object' && data[key] !== null && data[key].Nama_kolam) {
             pondList.push({
               id: key,
@@ -50,72 +50,42 @@ export default function SelectPondPage() {
           }
         });
       }
-      setPonds(pondList);
-      setLoading(false);
+
+      if (pondList.length > 0) {
+        // User has ponds. Set the first one as selected and redirect.
+        localStorage.setItem('selectedPondId', pondList[0].id);
+        router.push('/dashboard');
+      } else {
+        // User has no ponds. Show the "add pond" UI.
+        setHasPonds(false);
+      }
+    }, {
+      onlyOnce: true // We only need to check this once to decide the redirect.
     });
 
     return () => unsubscribe();
   }, [user, userLoading, router]);
 
-  const handlePondSelect = (pondId: string) => {
-    // Save to local storage to be picked up by the dashboard
-    localStorage.setItem('selectedPondId', pondId);
-    router.push('/dashboard');
-  };
-
-  if (userLoading || loading) {
-    return (
-        <div className="flex min-h-screen w-full flex-col bg-muted/40">
-        <Header />
-            <main className="flex-1 p-4 sm:px-6 sm:py-4">
-                <div className="max-w-4xl mx-auto">
-                <Card>
-                    <CardHeader>
-                    <Skeleton className="h-8 w-48" />
-                    <Skeleton className="h-4 w-64 mt-2" />
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                    <Skeleton className="h-20 w-full" />
-                    <Skeleton className="h-20 w-full" />
-                    <Skeleton className="h-10 w-full" />
-                    </CardContent>
-                </Card>
-                </div>
-            </main>
-        </div>
-    );
+  // While checking for ponds, show a loading state.
+  if (userLoading || hasPonds === null) {
+    return <div className="flex justify-center items-center h-screen">Mengarahkan...</div>;
   }
 
-  return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      <Header />
-      <main className="flex-1 p-4 sm:px-6 sm:py-4">
-        <div className="max-w-4xl mx-auto">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl text-primary">Pilih Kolam</CardTitle>
-              <CardDescription>Pilih kolam yang ingin Anda pantau atau tambahkan kolam baru.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {ponds.length > 0 ? (
-                ponds.map((pond) => (
-                  <button
-                    key={pond.id}
-                    onClick={() => handlePondSelect(pond.id)}
-                    className="w-full text-left p-4 rounded-lg border bg-card hover:bg-muted transition-colors flex items-center justify-between"
-                  >
-                    <div className="flex items-center gap-4">
-                        <Droplets className="h-6 w-6 text-primary" />
-                        <div>
-                            <p className="font-semibold text-lg">{pond.name}</p>
-                            <p className="text-sm text-muted-foreground">{pond.location}</p>
-                        </div>
-                    </div>
-                  </button>
-                ))
-              ) : (
-                <div className="text-center py-8 px-4 border-2 border-dashed rounded-lg">
-                  <p className="text-muted-foreground mb-4">Anda belum memiliki kolam.</p>
+  // If user has no ponds, render the page to add one.
+  if (hasPonds === false) {
+    return (
+      <div className="flex min-h-screen w-full flex-col bg-muted/40">
+        <Header />
+        <main className="flex-1 p-4 sm:px-6 sm:py-4">
+          <div className="max-w-4xl mx-auto">
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-2xl text-primary">Mulai Dengan Kolam Pertama Anda</CardTitle>
+                <CardDescription>Anda belum memiliki kolam. Silakan buat satu untuk memulai pemantauan.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                 <div className="text-center py-8 px-4 border-2 border-dashed rounded-lg">
+                  <p className="text-muted-foreground mb-4">Anda belum memiliki kolam terdaftar.</p>
                   <Button asChild>
                     <Link href="/add-pond">
                       <PlusCircle className="mr-2 h-4 w-4" />
@@ -123,19 +93,14 @@ export default function SelectPondPage() {
                     </Link>
                   </Button>
                 </div>
-              )}
-              {ponds.length > 0 && (
-                 <Button asChild className="w-full">
-                    <Link href="/add-pond">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Tambah Kolam Baru
-                    </Link>
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </main>
-    </div>
-  );
+              </CardContent>
+            </Card>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
+  // This return is just a fallback, user should be redirected by the useEffect.
+  return <div className="flex justify-center items-center h-screen">Mengarahkan...</div>;
 }

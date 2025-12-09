@@ -32,9 +32,10 @@ export default function LoginPage() {
       await signInWithEmailAndPassword(auth, email, password);
       toast({
         title: 'Login Berhasil',
-        description: 'Anda akan diarahkan ke halaman pemilihan kolam.',
+        description: 'Anda akan diarahkan...',
       });
-      router.push('/select-pond'); // Redirect to select-pond page
+      // Always redirect to select-pond, which will act as a router.
+      router.push('/select-pond'); 
     } catch (error: any) {
       toast({
         variant: 'destructive',
