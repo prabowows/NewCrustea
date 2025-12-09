@@ -160,8 +160,9 @@ export function HistoricalChart() {
                     cursor={false}
                     content={<ChartTooltipContent 
                         indicator="dot" 
-                        formatter={(value, name) => {
-                            const config = chartConfig[name as ParameterKey];
+                        formatter={(value) => {
+                            const config = chartConfig[selectedParameter];
+                            if (!config) return null;
                             const unit = config.label.split(' ')[1] || '';
                             return (
                                 <div className="flex flex-col">
