@@ -8,7 +8,7 @@ import { ref, onValue } from 'firebase/database';
 
 type Pond = {
     value: string; // e.g., "KLM01"
-    label: string; // e.g., "KLM 01"
+    label: string; // e.g., "Kolam Dekat Rumah"
 }
 
 interface DashboardContextType {
@@ -40,37 +40,28 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
         setLoading(true);
         const pondsRef = ref(database, `User/${user.uid}/Kolam`);
 
-        // This listener will only fetch the list of ponds and set the initial state.
         const unsubscribe = onValue(pondsRef, (snapshot) => {
             const data = snapshot.val();
             const pondList: Pond[] = [];
             if (data) {
                 Object.keys(data).forEach(key => {
-                    if (key.toUpperCase().startsWith('KLM')) {
+                    const pondData = data[key];
+                    // Check if it's a valid pond object with a 'Nama_kolam' property
+                    if (pondData && typeof pondData === 'object' && pondData.Nama_kolam) {
                         pondList.push({
                             value: key,
-                            label: key.replace(/(\D+)(\d+)/, '$1 $2'),
+                            label: pondData.Nama_kolam, // Use the 'Nama_kolam' field for the label
                         });
                     }
                 });
             }
 
             setPonds(pondList);
-
-            // Set default selected pond only if it's not already set by the user.
-            // This prevents resetting the selection on data updates.
-            if (pondList.length > 0) {
-                setSelectedPondId(currentId => {
-                    // If there's no current selection or the selected one is no longer valid, default to the first.
-                    if (!currentId || !pondList.some(p => p.value === currentId)) {
-                        return pondList[0].value;
-                    }
-                    // Otherwise, keep the current selection.
-                    return currentId;
-                });
-            } else {
-                setSelectedPondId(null);
+            
+            if (pondList.length > 0 && !selectedPondId) {
+                setSelectedPondId(pondList[0].value);
             }
+
             setLoading(false);
         }, (error) => {
             console.error("Failed to fetch ponds:", error);
@@ -78,7 +69,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
         });
 
         return () => unsubscribe();
-    }, [user, userLoading]);
+    }, [user, userLoading, selectedPondId]); // Keep selectedPondId here to set initial value correctly
 
     const handleSetSelectedPondId = useCallback((id: string) => {
         setSelectedPondId(id);
