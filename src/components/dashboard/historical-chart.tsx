@@ -160,11 +160,20 @@ export function HistoricalChart() {
                     cursor={false}
                     content={<ChartTooltipContent 
                         indicator="dot" 
-                        labelKey={selectedParameter}
-                        formatter={(value, name) => ({
-                            value: `${(value as number).toFixed(2)} ${chartConfig[name as ParameterKey].label.split(' ')[1] || ''}`,
-                            name: chartConfig[name as ParameterKey].label.split(' ')[0]
-                        })}
+                        formatter={(value, name) => {
+                            const config = chartConfig[name as ParameterKey];
+                            const unit = config.label.split(' ')[1] || '';
+                            return (
+                                <div className="flex flex-col">
+                                    <span className="font-semibold text-foreground">
+                                        {`${(value as number).toFixed(2)} ${unit}`}
+                                    </span>
+                                    <span className="text-sm text-muted-foreground">
+                                        {config.label.split(' ')[0]}
+                                    </span>
+                                </div>
+                            );
+                        }}
                     />}
                 />
                 <Line
@@ -173,6 +182,7 @@ export function HistoricalChart() {
                     stroke={chartConfig[selectedParameter].color}
                     strokeWidth={2}
                     dot={true}
+                    name={chartConfig[selectedParameter].label}
                 />
                 </LineChart>
             </ResponsiveContainer>
