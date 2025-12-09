@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Button } from "@/components/ui/button";
@@ -10,13 +11,29 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Droplets, Wifi, BrainCircuit, DollarSign, CheckCircle2, LineChart, Cpu, Zap, Wind, Menu } from "lucide-react";
+import { Droplets, Wifi, BrainCircuit, DollarSign, CheckCircle2, LineChart, Cpu, Zap, Wind, Menu, LogOut, LayoutDashboard } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useEffect, useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import { useUser } from "@/hooks/use-user";
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { signOut } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { useRouter } from "next/navigation";
+import { useToast } from "@/hooks/use-toast";
 
 const partners = [
   { name: "Aqua Dynamics", logo: "https://picsum.photos/seed/partner1/140/70" },
@@ -89,6 +106,26 @@ const testimonials = [
 
 export default function HomePage() {
     const [mounted, setMounted] = useState(false);
+    const { user } = useUser();
+    const router = useRouter();
+    const { toast } = useToast();
+
+    const handleLogout = async () => {
+        try {
+        await signOut(auth);
+        toast({
+            title: "Logout Berhasil",
+            description: "Anda telah keluar dari akun.",
+        });
+        router.push('/login');
+        } catch (error: any) {
+        toast({
+            variant: "destructive",
+            title: "Logout Gagal",
+            description: error.message,
+        });
+        }
+    };
 
     useEffect(() => {
         setMounted(true);
@@ -99,6 +136,7 @@ export default function HomePage() {
     }
 
   return (
+    <AlertDialog>
     <div className="flex flex-col min-h-screen">
       <header className="px-4 lg:px-6 h-14 flex items-center sticky top-0 bg-background/80 backdrop-blur-sm z-50">
         {/* Desktop Header */}
@@ -138,9 +176,15 @@ export default function HomePage() {
             >
                 Tentang Kami
             </Link>
-            <Button asChild>
-                <Link href="/login">Login</Link>
-            </Button>
+            {user ? (
+                <Button asChild>
+                    <Link href="/select-pond">Dashboard</Link>
+                </Button>
+            ) : (
+                <Button asChild>
+                    <Link href="/login">Login</Link>
+                </Button>
+            )}
             <ThemeSwitcher />
             </nav>
         </div>
@@ -172,9 +216,27 @@ export default function HomePage() {
                         </nav>
                         <Separator className="my-6" />
                         <div className="flex flex-col gap-4">
-                            <Button asChild>
-                                <Link href="/login">Login</Link>
-                            </Button>
+                            {user ? (
+                                <>
+                                    <Button asChild>
+                                        <Link href="/select-pond">
+                                            <LayoutDashboard className="mr-2 h-5 w-5" />
+                                            Dashboard
+                                        </Link>
+                                    </Button>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="outline">
+                                            <LogOut className="mr-2 h-5 w-5" />
+                                            Logout
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                </>
+                            ) : (
+                                <Button asChild>
+                                    <Link href="/login">Login</Link>
+                                </Button>
+                            )}
+
                             <div className="self-center pt-4">
                                 <ThemeSwitcher />
                             </div>
@@ -484,11 +546,19 @@ export default function HomePage() {
             </div>
         </div>
       </footer>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+            <AlertDialogTitle>Konfirmasi Logout</AlertDialogTitle>
+            <AlertDialogDescription>
+            Apakah Anda yakin ingin keluar dari akun Anda?
+            </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+            <AlertDialogCancel>Tidak</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLogout}>Iya</AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
     </div>
+    </AlertDialog>
   );
 }
-
-    
-
-    
-
