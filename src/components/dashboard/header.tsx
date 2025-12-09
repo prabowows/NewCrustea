@@ -21,7 +21,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Settings, User, LifeBuoy, LogOut, LayoutDashboard } from "lucide-react";
+import { User, LogOut, LayoutDashboard, List, Activity, Wind } from "lucide-react";
 import Link from "next/link";
 import { ThemeSwitcher } from "../theme-switcher";
 import { auth } from "@/lib/firebase";
@@ -87,8 +87,18 @@ export function Header() {
                   <span>Profile</span>
                 </DropdownMenuItem>
               </Link>
-              <DropdownMenuItem><Settings className="mr-2 h-4 w-4" /><span>Settings</span></DropdownMenuItem>
-              <DropdownMenuItem><LifeBuoy className="mr-2 h-4 w-4" /><span>Support</span></DropdownMenuItem>
+              <DropdownMenuItem>
+                  <List className="mr-2 h-4 w-4" />
+                  <span>Kelola Tambak</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                  <Activity className="mr-2 h-4 w-4" />
+                  <span>Monitoring</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                  <Wind className="mr-2 h-4 w-4" />
+                  <span>Kontrol Aerator</span>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
                 <AlertDialogTrigger asChild>
                   <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
