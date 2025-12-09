@@ -66,7 +66,7 @@ export default function RegisterPage() {
         title: 'Registrasi Berhasil',
         description: 'Akun Anda telah dibuat. Silakan tambahkan kolam pertama Anda.',
       });
-      router.push('/add-pond'); // Redirect to add-pond page
+      router.push('/select-pond'); // Redirect to select-pond page
     } catch (error: any) {
       toast({
         variant: 'destructive',
