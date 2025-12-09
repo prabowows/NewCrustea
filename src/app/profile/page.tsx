@@ -11,6 +11,8 @@ import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
+import { errorEmitter } from "@/lib/error-emitter";
+import { FirestorePermissionError } from "@/lib/errors";
 
 type UserProfile = {
   name: string;
@@ -37,20 +39,28 @@ export default function ProfilePage() {
     const fetchProfile = async () => {
       setLoading(true);
       const docRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(docRef);
-
-      if (docSnap.exists()) {
-        const profileData = docSnap.data() as UserProfile;
-        setProfile(profileData);
-        setFormData({
-            name: profileData.name,
-            address: profileData.address,
-            phoneNumber: profileData.phoneNumber
+      
+      getDoc(docRef).then(docSnap => {
+        if (docSnap.exists()) {
+          const profileData = docSnap.data() as UserProfile;
+          setProfile(profileData);
+          setFormData({
+              name: profileData.name,
+              address: profileData.address,
+              phoneNumber: profileData.phoneNumber
+          });
+        } else {
+          console.log("No such document!");
+        }
+        setLoading(false);
+      }).catch(serverError => {
+        const permissionError = new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'get'
         });
-      } else {
-        console.log("No such document!");
-      }
-      setLoading(false);
+        errorEmitter.emit('permission-error', permissionError);
+        setLoading(false);
+      });
     };
 
     fetchProfile();
@@ -64,25 +74,29 @@ export default function ProfilePage() {
   const handleSave = async () => {
     if (!user) return;
     const docRef = doc(db, "users", user.uid);
-    try {
-        await updateDoc(docRef, {
-            name: formData.name,
-            address: formData.address,
-            phoneNumber: formData.phoneNumber
-        });
-        setProfile(prev => prev ? { ...prev, ...formData } : null);
-        setIsEditing(false);
-        toast({
-            title: "Profil Diperbarui",
-            description: "Informasi profil Anda telah berhasil disimpan."
-        })
-    } catch(error: any) {
-        toast({
-            variant: "destructive",
-            title: "Gagal Menyimpan",
-            description: error.message
-        })
-    }
+    const updatedData = {
+        name: formData.name,
+        address: formData.address,
+        phoneNumber: formData.phoneNumber
+    };
+
+    updateDoc(docRef, updatedData)
+      .then(() => {
+          setProfile(prev => prev ? { ...prev, ...formData } : null);
+          setIsEditing(false);
+          toast({
+              title: "Profil Diperbarui",
+              description: "Informasi profil Anda telah berhasil disimpan."
+          });
+      })
+      .catch((serverError) => {
+          const permissionError = new FirestorePermissionError({
+            path: docRef.path,
+            operation: 'update',
+            requestResourceData: updatedData,
+          });
+          errorEmitter.emit('permission-error', permissionError);
+      });
   };
 
   const handleCancel = () => {
