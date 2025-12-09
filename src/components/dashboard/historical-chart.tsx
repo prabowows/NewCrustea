@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { CartesianGrid, Line, LineChart, XAxis, YAxis, ResponsiveContainer, Area } from "recharts";
+import { CartesianGrid, Area, AreaChart, XAxis, YAxis, ResponsiveContainer } from "recharts";
 import { collection, query, onSnapshot, orderBy, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { format } from 'date-fns';
@@ -133,7 +133,7 @@ export function HistoricalChart() {
         ) : (
             <ChartContainer config={activeChartConfig} className="h-[250px] w-full">
             <ResponsiveContainer>
-                <LineChart
+                <AreaChart
                 data={data}
                 margin={{
                     top: 5,
@@ -188,18 +188,14 @@ export function HistoricalChart() {
                 <Area
                     type="monotone"
                     dataKey={selectedParameter}
-                    stroke="none"
-                    fill={`url(#${uniqueGradientId})`}
-                />
-                <Line
-                    dataKey={selectedParameter}
-                    type="monotone"
                     stroke={chartConfig[selectedParameter].color}
                     strokeWidth={2}
-                    dot={true}
+                    fillOpacity={1}
+                    fill={`url(#${uniqueGradientId})`}
                     name={chartConfig[selectedParameter].label}
+                    dot={true}
                 />
-                </LineChart>
+                </AreaChart>
             </ResponsiveContainer>
             </ChartContainer>
         )}
