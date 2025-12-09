@@ -105,7 +105,7 @@ export default function ManagePondsPage() {
   
   if (userLoading || loading) {
      return (
-        <div className="max-w-4xl mx-auto">
+        <div>
             <Card>
                 <CardHeader>
                     <CardTitle>Daftar Kolam</CardTitle>
@@ -142,7 +142,7 @@ export default function ManagePondsPage() {
 
   return (
     <AlertDialog>
-      <div className="max-w-4xl mx-auto">
+      <div>
         <Card>
           <CardHeader>
             <CardTitle>Daftar Kolam</CardTitle>
