@@ -44,7 +44,7 @@ const chartConfig: ChartConfig = {
   },
   tds: {
     label: "TDS (ppm)",
-    color: "hsl(var(--chart-4))",
+    color: "hsl(var(--destructive))",
   },
 };
 
