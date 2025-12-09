@@ -56,7 +56,7 @@ export function RealTimeMetrics() {
   const [mounted, setMounted] = useState(false);
 
   // Activate the data averaging and logging hook
-  useDataAveraging('EBII/CC8DA20C7A88/02_data', 120); // 120 seconds = 2 minutes
+  useDataAveraging('EBII/CC8DA20C7A88/02_data', 60); // 60 seconds = 1 minute
 
   useEffect(() => {
     setMounted(true);
@@ -198,7 +198,7 @@ export function RealTimeMetrics() {
         <div>
           <h3 className="text-lg font-semibold mb-4">Smart Energy</h3>
            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
-            {Array(6).fill(0).map((_, i) => (
+            {Object.keys(groupedEnergyMetrics).map((_, i) => (
               <Card key={`sk-energy-${i}`}>
                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <Skeleton className="h-4 w-20" />
