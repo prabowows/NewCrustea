@@ -24,6 +24,10 @@ import { Skeleton } from "../ui/skeleton";
 export function PondSelector() {
   const { ponds, selectedPondId, setSelectedPondId, loading } = useDashboard();
   const [open, setOpen] = React.useState(false);
+  
+  // The local 'value' state is not strictly necessary if the context updates fast enough,
+  // but it can make the component feel more responsive, especially if context logic were complex.
+  // For now, we will directly use `selectedPondId` from the context to simplify.
 
   if (loading) {
     return <Skeleton className="h-10 w-[250px]" />;
@@ -36,12 +40,7 @@ export function PondSelector() {
       </div>
     );
   }
-
-  const handleSelect = (currentValue: string) => {
-    setSelectedPondId(currentValue);
-    setOpen(false);
-  };
-
+  
   const selectedLabel = ponds.find((pond) => pond.value === selectedPondId)?.label || "Pilih Kolam...";
 
   return (
@@ -52,7 +51,6 @@ export function PondSelector() {
           role="combobox"
           aria-expanded={open}
           className="w-[250px] justify-between bg-card"
-          disabled={loading || ponds.length === 0}
         >
           {selectedLabel}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -68,7 +66,13 @@ export function PondSelector() {
                 <CommandItem
                   key={pond.value}
                   value={pond.value}
-                  onSelect={handleSelect}
+                  onSelect={(currentValue) => {
+                    // Check if the value is already selected to avoid unnecessary updates
+                    if (currentValue !== selectedPondId) {
+                       setSelectedPondId(currentValue);
+                    }
+                    setOpen(false);
+                  }}
                 >
                   <Check
                     className={cn(
