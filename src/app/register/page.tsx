@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ import { ref, set } from 'firebase/database';
 export default function RegisterPage() {
   const [name, setName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [address, setAddress] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -48,17 +50,16 @@ export default function RegisterPage() {
       // Save user profile to Firestore
       await setDoc(doc(db, "users", user.uid), {
         name: name,
-        // The address is no longer collected here
-        address: '', 
+        address: address, 
         phoneNumber: phoneNumber,
         email: email
       });
 
-      // Create an initial entry in Realtime Database with just the owner name
+      // Create an initial entry in Realtime Database with owner and location
       const userRef = ref(database, `User/${user.uid}`);
       await set(userRef, {
         Owner: name,
-        // The 'lokasi' field is removed from here
+        lokasi: address,
       });
 
       toast({
@@ -111,6 +112,10 @@ export default function RegisterPage() {
               <div className="grid gap-2">
                 <Label htmlFor="phone">Nomor HP</Label>
                 <Input id="phone" type="tel" placeholder="081234567890" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
+              </div>
+               <div className="grid gap-2">
+                <Label htmlFor="address">Alamat</Label>
+                <Textarea id="address" placeholder="Masukkan alamat lengkap Anda" value={address} onChange={(e) => setAddress(e.target.value)} />
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>

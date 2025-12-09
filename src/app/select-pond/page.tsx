@@ -45,7 +45,7 @@ export default function SelectPondPage() {
             pondList.push({
               id: key,
               name: data[key].Nama_kolam,
-              location: data[key].Lokasi || 'Lokasi tidak diketahui',
+              location: 'Lokasi tidak di dalam kolam', // Location is now at user level
             });
           }
         });

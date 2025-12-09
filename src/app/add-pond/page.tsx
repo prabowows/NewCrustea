@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/hooks/use-user';
 import { database } from '@/lib/firebase';
-import { ref, push, set } from 'firebase/database';
+import { ref, push, set, update } from 'firebase/database';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -43,14 +43,20 @@ export default function AddPondPage() {
 
     setIsSubmitting(true);
     try {
+      // Path to the user's root
+      const userRef = ref(database, `User/${user.uid}`);
+      // Path to the user's ponds
       const pondsRef = ref(database, `User/${user.uid}/Kolam`);
       const newPondRef = push(pondsRef);
       
+      // 1. Set the new pond data (without location)
       await set(newPondRef, {
         Nama_kolam: pondName,
-        Lokasi: pondLocation,
-        // You can add empty device placeholders if needed
-        Device: {} 
+      });
+
+      // 2. Update the user-level location
+      await update(userRef, {
+        lokasi: pondLocation,
       });
 
       toast({
