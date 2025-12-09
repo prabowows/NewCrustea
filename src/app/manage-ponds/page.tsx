@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -25,6 +26,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Search, PlusCircle, Edit, Trash2, Info, MoreHorizontal } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useDashboard } from '@/contexts/dashboard-context';
 
 type Pond = {
   id: string;
@@ -35,6 +37,7 @@ export default function ManagePondsPage() {
   const { user, loading: userLoading } = useUser();
   const router = useRouter();
   const { toast } = useToast();
+  const { setSelectedPondId } = useDashboard();
 
   const [ponds, setPonds] = useState<Pond[]>([]);
   const [loading, setLoading] = useState(true);
@@ -76,6 +79,11 @@ export default function ManagePondsPage() {
 
     return () => unsubscribe();
   }, [user, userLoading, router, toast]);
+
+  const handleGoToDetail = (pondId: string) => {
+    setSelectedPondId(pondId);
+    router.push('/dashboard');
+  };
 
   const handleDeletePond = async () => {
     if (!user || !pondToDelete) return;
@@ -188,7 +196,7 @@ export default function ManagePondsPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onSelect={() => router.push('/dashboard')}>
+                              <DropdownMenuItem onSelect={() => handleGoToDetail(pond.id)}>
                                 <Info className="mr-2 h-4 w-4" />
                                 Detail
                               </DropdownMenuItem>
