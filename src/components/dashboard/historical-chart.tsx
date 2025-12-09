@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { CartesianGrid, Line, LineChart, XAxis, YAxis, ResponsiveContainer } from "recharts";
+import { CartesianGrid, Line, LineChart, XAxis, YAxis, ResponsiveContainer, Area } from "recharts";
 import { collection, query, onSnapshot, orderBy, limit } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { format } from 'date-fns';
@@ -93,6 +93,8 @@ export function HistoricalChart() {
     [selectedParameter]: chartConfig[selectedParameter],
   };
 
+  const uniqueGradientId = `color-${selectedParameter}`;
+
   return (
     <Card>
       <CardHeader className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -176,6 +178,18 @@ export function HistoricalChart() {
                             );
                         }}
                     />}
+                />
+                <defs>
+                    <linearGradient id={uniqueGradientId} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={chartConfig[selectedParameter].color} stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor={chartConfig[selectedParameter].color} stopOpacity={0}/>
+                    </linearGradient>
+                </defs>
+                <Area
+                    type="monotone"
+                    dataKey={selectedParameter}
+                    stroke="none"
+                    fill={`url(#${uniqueGradientId})`}
                 />
                 <Line
                     dataKey={selectedParameter}
