@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -100,7 +99,6 @@ export function HistoricalChart() {
       <CardHeader className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <CardTitle>Historical Data</CardTitle>
-            <CardDescription>Sensor data logs from Firestore.</CardDescription>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
             <Select value={selectedParameter} onValueChange={(value) => setSelectedParameter(value as ParameterKey)}>
