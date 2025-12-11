@@ -16,7 +16,6 @@ import {
 import { initialMetrics, type Metric } from "@/lib/data";
 import { Power, Zap, GaugeCircle, Waves, Droplets, Thermometer, FlaskConical, Scale } from 'lucide-react';
 import { Skeleton } from "@/components/ui/skeleton";
-import { useDataAveraging } from "@/hooks/use-data-averaging";
 
 const iconMap = {
   Power,
@@ -55,9 +54,6 @@ export function RealTimeMetrics() {
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
 
-  // Activate the data averaging and logging hook
-  useDataAveraging('EBII/CC8DA20C7A88/02_data', 60); // 60 seconds = 1 minute
-
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -65,7 +61,7 @@ export function RealTimeMetrics() {
   useEffect(() => {
     if (!mounted) return;
 
-    const listrikRef = ref(database, '/device4/listrik');
+    const listrikRef = ref(database, '/SmartEnergy/CC8DA20C7A88/02_data');
     const waterRef = ref(databaseWater, '/EBII/CC8DA20C7A88/02_data');
 
     const updateMetrics = (data: any, source: 'listrik' | 'water_quality') => {
