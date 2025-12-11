@@ -20,7 +20,7 @@ export function ParameterAnalysis() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Parameter Analysis</CardTitle>
+        <CardTitle className="text-primary">Parameter Analysis</CardTitle>
         <CardDescription>Monitor data and parameters from all entities.</CardDescription>
       </CardHeader>
       <CardContent>

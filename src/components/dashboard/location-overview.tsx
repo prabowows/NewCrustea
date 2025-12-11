@@ -10,7 +10,7 @@ export function LocationOverview() {
         <div className="flex items-center gap-4">
           <MapPin className="h-8 w-8 text-primary" />
           <div>
-            <CardTitle className="dark:text-primary">Pond Location</CardTitle>
+            <CardTitle className="text-primary">Pond Location</CardTitle>
             <CardDescription>BINUS University @Semarang</CardDescription>
           </div>
         </div>

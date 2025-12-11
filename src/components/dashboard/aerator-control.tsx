@@ -230,7 +230,7 @@ export function AeratorControl() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Aerator Control</CardTitle>
+        <CardTitle className="text-primary">Aerator Control</CardTitle>
         <CardDescription>Remotely manage the main aerator system.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
