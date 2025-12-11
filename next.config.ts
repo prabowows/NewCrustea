@@ -5,6 +5,12 @@ require('dotenv').config({ path: './.env.local' });
 
 const nextConfig: NextConfig = {
   /* config options here */
+  experimental: {
+    // Explicitly set the project root for Turbopack
+    turbopack: {
+      rootDir: __dirname,
+    },
+  },
   devIndicators: {
     allowedDevOrigins: [
         "https://*.cloudworkstations.dev"
