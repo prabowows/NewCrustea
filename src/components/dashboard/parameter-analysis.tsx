@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +19,7 @@ export function ParameterAnalysis() {
   };
 
   return (
-    <Card>
+    <Card className="border-primary">
       <CardHeader>
         <CardTitle className="text-primary">Parameter Analysis</CardTitle>
         <CardDescription>Monitor data and parameters from all entities.</CardDescription>

@@ -179,7 +179,7 @@ export function RealTimeMetrics() {
           <h3 className="text-lg font-semibold mb-4 text-primary">EBII System</h3>
           <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
             {Array(4).fill(0).map((_, i) => (
-              <Card key={`sk-ebii-${i}`}>
+              <Card key={`sk-ebii-${i}`} className="border-primary">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <Skeleton className="h-4 w-20" />
                    <Skeleton className="h-4 w-4 rounded-full" />
@@ -195,7 +195,7 @@ export function RealTimeMetrics() {
           <h3 className="text-lg font-semibold mb-4 text-primary">Smart Energy</h3>
            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
             {Object.keys(groupedEnergyMetrics).map((_, i) => (
-              <Card key={`sk-energy-${i}`}>
+              <Card key={`sk-energy-${i}`} className="border-primary">
                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <Skeleton className="h-4 w-20" />
                    <Skeleton className="h-4 w-4 rounded-full" />
@@ -227,7 +227,7 @@ export function RealTimeMetrics() {
                 {Object.values(groupedEnergyMetrics).map((metric) => {
                     const Icon = iconMap[metric.icon as keyof typeof iconMap] || Power;
                     return (
-                        <Card key={metric.name}>
+                        <Card key={metric.name} className="border-primary">
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                                 <CardTitle className="text-base font-medium">{metric.name}</CardTitle>
                                 <Icon className="h-5 w-5 text-muted-foreground" />

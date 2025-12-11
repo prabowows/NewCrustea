@@ -1,3 +1,4 @@
+
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -5,10 +6,10 @@ import { MapPin } from "lucide-react";
 
 export function LocationOverview() {
   return (
-    <Card>
+    <Card className="border-primary">
       <CardHeader>
         <div className="flex items-center gap-4">
-          <MapPin className="h-8 w-8 text-primary" />
+          <MapPin className="h-8 w-8 text-primary dark:text-green-400" />
           <div>
             <CardTitle className="text-primary">Pond Location</CardTitle>
             <CardDescription>BINUS University @Semarang</CardDescription>

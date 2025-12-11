@@ -96,7 +96,7 @@ export function HistoricalChart() {
   const uniqueGradientId = `color-${selectedParameter}`;
 
   return (
-    <Card>
+    <Card className="border-primary">
       <CardHeader className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <CardTitle className="text-primary">Historical Data</CardTitle>

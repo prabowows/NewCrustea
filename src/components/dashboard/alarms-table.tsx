@@ -1,3 +1,4 @@
+
 "use client"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,7 +34,7 @@ export function AlarmsTable() {
   );
 
   return (
-    <Card>
+    <Card className="border-primary">
       <CardHeader>
         <CardTitle className="text-primary">Alarm Monitoring</CardTitle>
         <CardDescription>View real-time and historical system alarms.</CardDescription>
