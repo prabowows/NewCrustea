@@ -44,13 +44,10 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
             return;
         }
 
-        // Always get selected pond from localStorage. 
-        // The /select-pond page is now responsible for setting it initially.
         const lastSelectedId = localStorage.getItem('selectedPondId');
         if (lastSelectedId) {
             setSelectedPondId(lastSelectedId);
         } else {
-            // If for any reason it's not set, go back to the decider page.
             router.push('/select-pond');
             return;
         }
@@ -80,8 +77,11 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
 
             setPonds(pondList);
             
-            // If the selected pond from storage is no longer valid, redirect to let the user select a new one.
-            if (!isSelectedIdValid) {
+            if (!isSelectedIdValid && pondList.length > 0) {
+                // If the stored ID is invalid but there are other ponds, select the first one.
+                handleSetSelectedPondId(pondList[0].value);
+            } else if (!isSelectedIdValid && pondList.length === 0) {
+                 // If the stored ID is invalid and there are no ponds, go to select page.
                 router.push('/select-pond');
             }
 
@@ -89,9 +89,11 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
         }, (error) => {
             console.error("Failed to fetch ponds:", error);
             setLoading(false);
-        });
+        }, { onlyOnce: true }); // Fetch data only once
 
-        return () => unsubscribe();
+        // The onValue with onlyOnce: true doesn't need an unsubscribe function.
+        // The return is kept for consistency in case the option is removed later.
+        return () => {};
     }, [user, userLoading, router, handleSetSelectedPondId]);
 
     const value = {
@@ -105,7 +107,7 @@ export const DashboardProvider = ({ children }: { children: ReactNode }) => {
     return (
         <DashboardContext.Provider value={value}>
             {children}
-        </DashboardContext.Provider>
+        </Dashboard.Provider>
     );
 };
 
