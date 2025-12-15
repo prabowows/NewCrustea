@@ -12,7 +12,6 @@ import { useUser } from "@/hooks/use-user";
 import { database, db } from "@/lib/firebase";
 import { ref, onValue, off } from "firebase/database";
 import { collection, query, orderBy, limit, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
-import { useToast } from "@/hooks/use-toast";
 import { errorEmitter } from "@/lib/error-emitter";
 import { FirestorePermissionError } from "@/lib/errors";
 
@@ -27,10 +26,10 @@ type ChartData = {
 };
 
 type RealtimeReading = {
-  DO: number;
-  PH: number;
-  TDS: number;
-  Temp: number;
+  do: number;
+  ph: number;
+  tds: number;
+  temp: number;
   timestamp: number;
 };
 
@@ -42,7 +41,7 @@ type ChartConfig = {
 };
 
 const chartConfig: ChartConfig = {
-  do: { label: "DO (mg/L)", color: "hsl(var(--primary))" },
+  do: { label: "DO (mg/L)", color: "hsl(var(--chart-1))" },
   ph: { label: "pH", color: "hsl(var(--chart-2))" },
   temp: { label: "Temp (°C)", color: "hsl(var(--chart-3))" },
   tds: { label: "TDS (ppm)", color: "hsl(var(--destructive))" },
@@ -58,7 +57,6 @@ const parameterOptions: { value: ParameterKey, label: string }[] = [
 
 export function HistoricalChart() {
   const { user } = useUser();
-  const { toast } = useToast();
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedParameter, setSelectedParameter] = useState<ParameterKey>('do');
@@ -88,60 +86,72 @@ export function HistoricalChart() {
 
   // 2. Setup listeners and intervals once user and device ID are available
    useEffect(() => {
-    if (!user || !ebiiDeviceIdRef.current) return;
+    if (!user) return;
+    // This effect needs to wait for the device ID to be found.
+    // A bit of delay to ensure ebiiDeviceIdRef.current is set.
+    const setupTimeout = setTimeout(() => {
+        if (!ebiiDeviceIdRef.current) {
+            console.log("HistoricalChart: EBII device ID not found for user. Aborting data listeners.");
+            setLoading(false);
+            return;
+        }
 
-    // Listener for real-time data
-    const deviceValueRef = ref(database, `/User/${user.uid}/${ebiiDeviceIdRef.current}/value`);
-    const rt_listener = onValue(deviceValueRef, (snapshot) => {
-      const value = snapshot.val();
-      if (value && typeof value.DO === 'number') {
-        readingsBufferRef.current.push({ ...value, timestamp: Date.now() });
-      }
-    });
-
-    // Interval to process and save data
-    dataListenerIntervalRef.current = setInterval(() => {
-      const readings = [...readingsBufferRef.current];
-      if (readings.length === 0) return;
-
-      readingsBufferRef.current = [];
-
-      const avg = readings.reduce((acc, curr) => {
-        acc.DO += curr.DO;
-        acc.PH += curr.PH;
-        acc.TDS += curr.TDS;
-        acc.Temp += curr.Temp;
-        return acc;
-      }, { DO: 0, PH: 0, TDS: 0, Temp: 0 });
-
-      const count = readings.length;
-      const newLogData = {
-          avg_DO: avg.DO / count,
-          avg_PH: avg.PH / count,
-          avg_TDS: avg.TDS / count,
-          avg_Temp: avg.Temp / count,
-          timestamp: serverTimestamp()
-      };
-      
-      const logsCollectionRef = collection(db, "water_quality_logs");
-      addDoc(logsCollectionRef, newLogData)
-        .catch((serverError) => {
-            const permissionError = new FirestorePermissionError({
-                path: logsCollectionRef.path,
-                operation: 'create',
-                requestResourceData: newLogData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
+        // Listener for real-time data
+        const deviceValueRef = ref(database, `/User/${user.uid}/${ebiiDeviceIdRef.current}/value`);
+        const rt_listener = onValue(deviceValueRef, (snapshot) => {
+          const value = snapshot.val();
+          if (value && typeof value.do === 'number') { 
+            readingsBufferRef.current.push({ ...value, timestamp: Date.now() });
+          }
         });
 
-    }, 60000); // 60 seconds
+        // Interval to process and save data
+        dataListenerIntervalRef.current = setInterval(() => {
+          const readings = [...readingsBufferRef.current];
+          if (readings.length === 0) return;
 
-    return () => {
-      off(deviceValueRef, 'value', rt_listener);
-      if (dataListenerIntervalRef.current) {
-        clearInterval(dataListenerIntervalRef.current);
-      }
-    };
+          readingsBufferRef.current = [];
+
+          const avg = readings.reduce((acc, curr) => {
+            acc.do += curr.do;
+            acc.ph += curr.ph;
+            acc.tds += curr.tds;
+            acc.temp += curr.temp;
+            return acc;
+          }, { do: 0, ph: 0, tds: 0, temp: 0 });
+
+          const count = readings.length;
+          const newLogData = {
+              avg_do: avg.do / count,
+              avg_ph: avg.ph / count,
+              avg_tds: avg.tds / count,
+              avg_temp: avg.temp / count,
+              timestamp: serverTimestamp()
+          };
+          
+          const logsCollectionRef = collection(db, "water_quality_logs");
+          addDoc(logsCollectionRef, newLogData)
+            .catch((serverError) => {
+                const permissionError = new FirestorePermissionError({
+                    path: logsCollectionRef.path,
+                    operation: 'create',
+                    requestResourceData: newLogData,
+                });
+                errorEmitter.emit('permission-error', permissionError);
+            });
+
+        }, 60000); // 60 seconds
+
+        return () => {
+          off(deviceValueRef, 'value', rt_listener);
+          if (dataListenerIntervalRef.current) {
+            clearInterval(dataListenerIntervalRef.current);
+          }
+        };
+    }, 1000); // Wait 1s to ensure device ID is fetched
+
+    return () => clearTimeout(setupTimeout);
+
   }, [user]);
 
   // 3. Listen to Firestore for historical data to display in the chart
@@ -157,10 +167,10 @@ export function HistoricalChart() {
                 const date = docData.timestamp.toDate();
                 fetchedData.push({
                     time: format(date, 'HH:mm'),
-                    do: docData.avg_DO || 0,
-                    ph: docData.avg_PH || 0,
-                    temp: docData.avg_Temp || 0,
-                    tds: docData.avg_TDS || 0,
+                    do: docData.avg_do || 0,
+                    ph: docData.avg_ph || 0,
+                    temp: docData.avg_temp || 0,
+                    tds: docData.avg_tds || 0,
                 });
             }
         });
@@ -270,18 +280,18 @@ export function HistoricalChart() {
                 <defs>
                     <linearGradient id={uniqueGradientId} x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor={chartConfig[selectedParameter].color} stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor={chartConfig[selectedParameter].color} stopOpacity={0.1}/>
+                        <stop offset="95%" stopColor={chartConfig[selectedParameter].color} stopOpacity={0}/>
                     </linearGradient>
                 </defs>
                 <Area
                     type="monotone"
                     dataKey={selectedParameter}
                     stroke={chartConfig[selectedParameter].color}
-                    strokeWidth={2}
                     fillOpacity={1}
                     fill={`url(#${uniqueGradientId})`}
-                    name={chartConfig[selectedParameter].label}
-                    dot={true}
+                    strokeWidth={2}
+                    dot={{ r: 4, fill: chartConfig[selectedParameter].color }}
+                    activeDot={{ r: 6 }}
                 />
                 </AreaChart>
             </ResponsiveContainer>
