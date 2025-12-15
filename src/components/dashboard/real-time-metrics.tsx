@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { database } from '@/lib/firebase';
-import { ref, onValue } from 'firebase/database';
+import { ref, onValue, off } from 'firebase/database';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUser } from '@/hooks/use-user';
+import { useToast } from '@/hooks/use-toast';
 
 const iconMap = {
   Power,
@@ -58,6 +59,7 @@ type GroupedMetric = {
 
 export function RealTimeMetrics() {
   const { user } = useUser();
+  const { toast } = useToast();
   const [metrics, setMetrics] = useState<Metric[]>(initialMetrics);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
@@ -98,6 +100,8 @@ export function RealTimeMetrics() {
     };
 
     const userDevicesRef = ref(database, `/User/${user.uid}`);
+    
+    // Set up a single listener for all devices under the user
     const unsubscribeDevices = onValue(
       userDevicesRef,
       (snapshot) => {
@@ -107,36 +111,41 @@ export function RealTimeMetrics() {
           return;
         }
 
-        const unsubscribers: (() => void)[] = [];
+        let ebiiDataFound = false;
+        let seDataFound = false;
 
         Object.keys(devices).forEach((deviceId) => {
           const device = devices[deviceId];
-          if (device.tipe === 'EBII' || device.tipe === 'SE') {
-            const deviceValueRef = ref(database, `/User/${user.uid}/${deviceId}/value`);
-            const unsub = onValue(deviceValueRef, (valueSnap) => {
-              updateMetrics(valueSnap.val(), device.tipe);
-            },
-            (error) => {
-                // Throw a more specific error for debugging security rules
-                throw new Error(`Realtime Database permission denied for path: /User/${user.uid}/${deviceId}/value. Check your security rules.`);
-            });
-            unsubscribers.push(unsub);
+          if (device.tipe === 'EBII' && device.value) {
+            updateMetrics(device.value, 'EBII');
+            ebiiDataFound = true;
+          }
+          if (device.tipe === 'SE' && device.value) {
+            updateMetrics(device.value, 'SE');
+            seDataFound = true;
           }
         });
         
-        return () => unsubscribers.forEach(unsub => unsub());
+        if (ebiiDataFound || seDataFound) {
+            setLoading(false);
+        }
       },
       (error) => {
         setLoading(false);
-        // Throw a more specific error for debugging security rules
-        throw new Error(`Realtime Database permission denied for path: /User/${user.uid}. Check your security rules.`);
+        console.error("Firebase Read Error:", error);
+        toast({
+            variant: "destructive",
+            title: "Error Reading Data",
+            description: `Permission denied. Could not read from /User/${user.uid}. Please check your Realtime Database security rules.`
+        });
       }
     );
 
     return () => {
-      unsubscribeDevices();
+      // Detach the listener
+      off(userDevicesRef);
     };
-  }, [mounted, user]);
+  }, [mounted, user, toast]);
 
   const renderMetricCard = (metric: Metric) => {
     const Icon = iconMap[metric.icon as keyof typeof iconMap] || Power;

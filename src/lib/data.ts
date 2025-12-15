@@ -13,10 +13,10 @@ export type Metric = {
 
 export const initialMetrics: Metric[] = [
     // Water Quality Metrics from 'water_quality' source (EBII)
-    { id: 'do', name: 'DO', value: 'N/A', unit: 'mg/L', icon: 'Droplets', description: 'Measures the amount of gaseous oxygen dissolved in the pond water. This is a critical parameter for shrimp health and survival.', source: 'water_quality', firebaseKey: 'DO' },
-    { id: 'temperature', name: 'Temp', value: 'N/A', unit: '°C', icon: 'Thermometer', description: 'Monitors the water temperature. Temperature affects shrimp metabolism, growth rate, and the water\'s ability to hold dissolved oxygen.', source: 'water_quality', firebaseKey: 'Temp' },
-    { id: 'ph', name: 'pH', value: 'N/A', unit: '', icon: 'FlaskConical', description: 'Measures the acidity or alkalinity of the water. Shrimp thrive within a specific pH range, and deviations can cause stress or mortality.', source: 'water_quality', firebaseKey: 'PH' },
-    { id: 'salinity', name: 'TDS', value: 'N/A', unit: 'ppm', icon: 'Scale', description: 'Measures the total dissolved solids in the water, an indicator of salinity.', source: 'water_quality', firebaseKey: 'TDS' },
+    { id: 'do', name: 'DO', value: 'N/A', unit: 'mg/L', icon: 'Droplets', description: 'Measures the amount of gaseous oxygen dissolved in the pond water. This is a critical parameter for shrimp health and survival.', source: 'water_quality', firebaseKey: 'do' },
+    { id: 'temperature', name: 'Temp', value: 'N/A', unit: '°C', icon: 'Thermometer', description: 'Monitors the water temperature. Temperature affects shrimp metabolism, growth rate, and the water\'s ability to hold dissolved oxygen.', source: 'water_quality', firebaseKey: 'temp' },
+    { id: 'ph', name: 'pH', value: 'N/A', unit: '', icon: 'FlaskConical', description: 'Measures the acidity or alkalinity of the water. Shrimp thrive within a specific pH range, and deviations can cause stress or mortality.', source: 'water_quality', firebaseKey: 'ph' },
+    { id: 'salinity', name: 'TDS', value: 'N/A', unit: 'ppm', icon: 'Scale', description: 'Measures the total dissolved solids in the water, an indicator of salinity.', source: 'water_quality', firebaseKey: 'tds' },
 
     // 3-Phase Power Metrics from 'listrik' source (Smart Energy)
     { id: 'power1', name: 'Power 1', value: 'N/A', unit: 'W', icon: 'Power', description: 'Measures the electrical power for phase 1.', source: 'listrik' },
@@ -41,18 +41,18 @@ export const initialMetrics: Metric[] = [
 
 
 export const historicalData = [
-    { time: '00:00', do: 5.2 },
-    { time: '02:00', do: 5.1 },
-    { time: '04:00', do: 5.0 },
-    { time: '06:00', do: 5.3 },
-    { time: '08:00', do: 5.8 },
-    { time: '10:00', do: 6.5 },
-    { time: '12:00', do: 7.1 },
-    { time: '14:00', do: 7.4 },
-    { time: '16:00', do: 7.2 },
-    { time: '18:00', do: 6.8 },
-    { time: '20:00', do: 6.2 },
-    { time: '22:00', do: 5.5 },
+    { time: '00:00', do: 5.2, ph: 7.8, temp: 28.1, tds: 15.5 },
+    { time: '02:00', do: 5.1, ph: 7.8, temp: 28.0, tds: 15.5 },
+    { time: '04:00', do: 5.0, ph: 7.7, temp: 27.9, tds: 15.4 },
+    { time: '06:00', do: 5.3, ph: 7.8, temp: 28.0, tds: 15.6 },
+    { time: '08:00', do: 5.8, ph: 7.9, temp: 28.5, tds: 15.7 },
+    { time: '10:00', do: 6.5, ph: 8.0, temp: 29.1, tds: 15.8 },
+    { time: '12:00', do: 7.1, ph: 8.1, temp: 29.5, tds: 15.9 },
+    { time: '14:00', do: 7.4, ph: 8.2, temp: 29.8, tds: 16.0 },
+    { time: '16:00', do: 7.2, ph: 8.1, temp: 29.6, tds: 16.0 },
+    { time: '18:00', do: 6.8, ph: 8.0, temp: 29.2, tds: 15.8 },
+    { time: '20:00', do: 6.2, ph: 7.9, temp: 28.8, tds: 15.7 },
+    { time: '22:00', do: 5.5, ph: 7.8, temp: 28.3, tds: 15.6 },
 ];
 
 export type Alarm = {
