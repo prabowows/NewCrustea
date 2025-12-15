@@ -1,13 +1,18 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { CartesianGrid, Area, AreaChart, XAxis, YAxis, ResponsiveContainer } from "recharts";
-import { format, subMinutes } from 'date-fns';
+import { format } from 'date-fns';
 import { Skeleton } from "@/components/ui/skeleton";
+import { useUser } from "@/hooks/use-user";
+import { database, db } from "@/lib/firebase";
+import { ref, onValue, off } from "firebase/database";
+import { collection, query, orderBy, limit, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
+import { useToast } from "@/hooks/use-toast";
 
 type ParameterKey = 'do' | 'ph' | 'temp' | 'tds';
 
@@ -19,6 +24,14 @@ type ChartData = {
     tds: number;
 };
 
+type RealtimeReading = {
+  DO: number;
+  PH: number;
+  TDS: number;
+  Temp: number;
+  timestamp: number;
+};
+
 type ChartConfig = {
   [key in ParameterKey]: {
     label: string;
@@ -27,22 +40,10 @@ type ChartConfig = {
 };
 
 const chartConfig: ChartConfig = {
-  do: {
-    label: "DO (mg/L)",
-    color: "hsl(var(--primary))",
-  },
-  ph: {
-    label: "pH",
-    color: "hsl(var(--chart-2))",
-  },
-  temp: {
-    label: "Temp (°C)",
-    color: "hsl(var(--chart-3))",
-  },
-  tds: {
-    label: "TDS (ppm)",
-    color: "hsl(var(--destructive))",
-  },
+  do: { label: "DO (mg/L)", color: "hsl(var(--primary))" },
+  ph: { label: "pH", color: "hsl(var(--chart-2))" },
+  temp: { label: "Temp (°C)", color: "hsl(var(--chart-3))" },
+  tds: { label: "TDS (ppm)", color: "hsl(var(--destructive))" },
 };
 
 const parameterOptions: { value: ParameterKey, label: string }[] = [
@@ -52,40 +53,102 @@ const parameterOptions: { value: ParameterKey, label: string }[] = [
     { value: 'tds', label: 'Total Dissolved Solids (TDS)' },
 ];
 
-// --- FAKE DATA GENERATION (for development purposes) ---
-const generateDummyData = (): ChartData[] => {
-  const data: ChartData[] = [];
-  const now = new Date();
-  for (let i = 20; i >= 0; i--) {
-    const time = subMinutes(now, i);
-    data.push({
-      time: format(time, 'HH:mm'),
-      do: parseFloat((Math.random() * (7.5 - 5.0) + 5.0).toFixed(2)),
-      ph: parseFloat((Math.random() * (8.0 - 7.0) + 7.0).toFixed(2)),
-      temp: parseFloat((Math.random() * (30.0 - 28.0) + 28.0).toFixed(2)),
-      tds: Math.floor(Math.random() * (500 - 300) + 300),
-    });
-  }
-  return data;
-};
-// --- END FAKE DATA GENERATION ---
 
 export function HistoricalChart() {
-  const [data, setData] = useState<ChartData[]>([]);
+  const { user } = useUser();
+  const { toast } = useToast();
+  const [chartData, setChartData] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedParameter, setSelectedParameter] = useState<ParameterKey>('do');
+  
+  // Ref to store EBII device ID
+  const ebiiDeviceIdRef = useRef<string | null>(null);
+  // Ref to store readings over a minute
+  const readingsBufferRef = useRef<RealtimeReading[]>([]);
 
+  // 1. Find the EBII device ID for the logged-in user
   useEffect(() => {
-    // For now, we'll use dummy data.
-    // When you have a backend process (like a Cloud Function) populating
-    // the 'water_quality_logs' collection in Firestore, you can switch back
-    // to fetching real data.
-    setLoading(true);
-    setData(generateDummyData());
-    setLoading(false);
+    if (!user) return;
 
-    /*
-    // --- REAL DATA FETCHING LOGIC (Keep for future use) ---
+    const userDevicesRef = ref(database, `/User/${user.uid}`);
+    const unsubscribe = onValue(userDevicesRef, (snapshot) => {
+      const devices = snapshot.val();
+      if (devices) {
+        const ebiiDevice = Object.keys(devices).find(key => devices[key].tipe === 'EBII');
+        if (ebiiDevice) {
+          ebiiDeviceIdRef.current = ebiiDevice;
+        }
+      }
+    }, { onlyOnce: true });
+
+    return () => unsubscribe();
+
+  }, [user]);
+
+  // 2. Listen to real-time data and collect it in a buffer
+   useEffect(() => {
+    if (!user || !ebiiDeviceIdRef.current) return;
+
+    const deviceValueRef = ref(database, `/User/${user.uid}/${ebiiDeviceIdRef.current}/value`);
+    
+    const listener = onValue(deviceValueRef, (snapshot) => {
+      const value = snapshot.val();
+      if (value && typeof value.DO === 'number') {
+        readingsBufferRef.current.push({ ...value, timestamp: Date.now() });
+      }
+    });
+
+    return () => off(deviceValueRef, 'value', listener);
+
+  }, [user]);
+
+  // 3. Every 1 minute, average the buffer and save to Firestore
+  useEffect(() => {
+    const interval = setInterval(async () => {
+      const readings = readingsBufferRef.current;
+      if (readings.length === 0) return;
+
+      // Clear buffer for next interval
+      readingsBufferRef.current = [];
+
+      const avg = readings.reduce((acc, curr) => {
+        acc.DO += curr.DO;
+        acc.PH += curr.PH;
+        acc.TDS += curr.TDS;
+        acc.Temp += curr.Temp;
+        return acc;
+      }, { DO: 0, PH: 0, TDS: 0, Temp: 0 });
+
+      const count = readings.length;
+      const avg_DO = avg.DO / count;
+      const avg_PH = avg.PH / count;
+      const avg_TDS = avg.TDS / count;
+      const avg_Temp = avg.Temp / count;
+      
+      try {
+        await addDoc(collection(db, "water_quality_logs"), {
+          avg_DO,
+          avg_PH,
+          avg_TDS,
+          avg_Temp,
+          timestamp: serverTimestamp()
+        });
+      } catch (error) {
+        console.error("Error writing to Firestore: ", error);
+        toast({
+            variant: "destructive",
+            title: "Firestore Write Error",
+            description: "Could not save historical data. Check security rules.",
+        });
+      }
+
+    }, 60000); // 60 seconds
+
+    return () => clearInterval(interval);
+  }, [toast]);
+
+  // 4. Listen to Firestore for historical data to display in the chart
+  useEffect(() => {
     setLoading(true);
     const q = query(collection(db, "water_quality_logs"), orderBy("timestamp", "desc"), limit(20));
 
@@ -104,16 +167,22 @@ export function HistoricalChart() {
                 });
             }
         });
-        setData(fetchedData.reverse());
+        if (fetchedData.length > 0) {
+            setChartData(fetchedData.reverse());
+        }
         setLoading(false);
     }, (error) => {
         console.error("Error fetching historical chart data:", error);
+        toast({
+            variant: "destructive",
+            title: "Firestore Read Error",
+            description: "Could not fetch historical data. Check security rules.",
+        });
         setLoading(false);
     });
 
     return () => unsubscribe();
-    */
-  }, []);
+  }, [toast]);
 
   const activeChartConfig = {
     [selectedParameter]: chartConfig[selectedParameter],
@@ -126,7 +195,7 @@ export function HistoricalChart() {
       <CardHeader className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <CardTitle className="text-primary">Historical Data</CardTitle>
-            <CardDescription>Showing simulated data for development.</CardDescription>
+            <CardDescription>Displaying average readings from the last 20 minutes.</CardDescription>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
             <Select value={selectedParameter} onValueChange={(value) => setSelectedParameter(value as ParameterKey)}>
@@ -137,16 +206,6 @@ export function HistoricalChart() {
                     {parameterOptions.map(option => (
                          <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
                     ))}
-                </SelectContent>
-            </Select>
-            <Select defaultValue="live">
-                <SelectTrigger className="w-full sm:w-[180px]">
-                    <SelectValue placeholder="Select range" />
-                </SelectTrigger>
-                <SelectContent>
-                    <SelectItem value="live">Live (Simulated)</SelectItem>
-                    <SelectItem value="24h" disabled>Last 24 hours</SelectItem>
-                    <SelectItem value="7d" disabled>Last 7 days</SelectItem>
                 </SelectContent>
             </Select>
         </div>
@@ -160,7 +219,7 @@ export function HistoricalChart() {
             <ChartContainer config={activeChartConfig} className="h-[250px] w-full">
             <ResponsiveContainer>
                 <AreaChart
-                data={data}
+                data={chartData}
                 margin={{
                     top: 5,
                     right: 10,
