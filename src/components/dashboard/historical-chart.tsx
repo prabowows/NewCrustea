@@ -6,11 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { CartesianGrid, Area, AreaChart, XAxis, YAxis, ResponsiveContainer } from "recharts";
-import { collection, query, onSnapshot, orderBy, limit } from "firebase/firestore";
-import { db } from "@/lib/firebase";
-import { format } from 'date-fns';
+import { format, subMinutes } from 'date-fns';
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
 
 type ParameterKey = 'do' | 'ph' | 'temp' | 'tds';
 
@@ -55,12 +52,40 @@ const parameterOptions: { value: ParameterKey, label: string }[] = [
     { value: 'tds', label: 'Total Dissolved Solids (TDS)' },
 ];
 
+// --- FAKE DATA GENERATION (for development purposes) ---
+const generateDummyData = (): ChartData[] => {
+  const data: ChartData[] = [];
+  const now = new Date();
+  for (let i = 20; i >= 0; i--) {
+    const time = subMinutes(now, i);
+    data.push({
+      time: format(time, 'HH:mm'),
+      do: parseFloat((Math.random() * (7.5 - 5.0) + 5.0).toFixed(2)),
+      ph: parseFloat((Math.random() * (8.0 - 7.0) + 7.0).toFixed(2)),
+      temp: parseFloat((Math.random() * (30.0 - 28.0) + 28.0).toFixed(2)),
+      tds: Math.floor(Math.random() * (500 - 300) + 300),
+    });
+  }
+  return data;
+};
+// --- END FAKE DATA GENERATION ---
+
 export function HistoricalChart() {
   const [data, setData] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedParameter, setSelectedParameter] = useState<ParameterKey>('do');
 
   useEffect(() => {
+    // For now, we'll use dummy data.
+    // When you have a backend process (like a Cloud Function) populating
+    // the 'water_quality_logs' collection in Firestore, you can switch back
+    // to fetching real data.
+    setLoading(true);
+    setData(generateDummyData());
+    setLoading(false);
+
+    /*
+    // --- REAL DATA FETCHING LOGIC (Keep for future use) ---
     setLoading(true);
     const q = query(collection(db, "water_quality_logs"), orderBy("timestamp", "desc"), limit(20));
 
@@ -87,6 +112,7 @@ export function HistoricalChart() {
     });
 
     return () => unsubscribe();
+    */
   }, []);
 
   const activeChartConfig = {
@@ -100,6 +126,7 @@ export function HistoricalChart() {
       <CardHeader className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <CardTitle className="text-primary">Historical Data</CardTitle>
+            <CardDescription>Showing simulated data for development.</CardDescription>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
             <Select value={selectedParameter} onValueChange={(value) => setSelectedParameter(value as ParameterKey)}>
@@ -117,7 +144,7 @@ export function HistoricalChart() {
                     <SelectValue placeholder="Select range" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="live">Live (Last 20 entries)</SelectItem>
+                    <SelectItem value="live">Live (Simulated)</SelectItem>
                     <SelectItem value="24h" disabled>Last 24 hours</SelectItem>
                     <SelectItem value="7d" disabled>Last 7 days</SelectItem>
                 </SelectContent>
@@ -161,17 +188,18 @@ export function HistoricalChart() {
                     cursor={false}
                     content={<ChartTooltipContent 
                         indicator="dot" 
-                        formatter={(value) => {
+                        formatter={(value, name, item) => {
                             const config = chartConfig[selectedParameter];
                             if (!config) return null;
-                            const unit = config.label.split(' ')[1] || '';
+                            const unitLabel = config.label.match(/\(([^)]+)\)/);
+                            const unit = unitLabel ? unitLabel[1] : '';
                             return (
                                 <div className="flex flex-col">
                                     <span className="font-semibold text-foreground">
                                         {`${(value as number).toFixed(2)} ${unit}`}
                                     </span>
                                     <span className="text-sm text-muted-foreground">
-                                        {config.label.split(' ')[0]}
+                                        {item.payload.time}
                                     </span>
                                 </div>
                             );
