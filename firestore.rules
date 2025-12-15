@@ -1,0 +1,19 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Pengguna hanya dapat membaca/menulis data profil mereka sendiri.
+    match /users/{uid} {
+      allow read, update, delete: if request.auth != null && request.auth.uid == uid;
+      allow create: if request.auth != null;
+    }
+
+    // Siapa pun yang terotentikasi dapat membaca log kualitas air.
+    // Hanya sistem backend (tidak melalui klien) yang seharusnya diizinkan untuk menulis log ini.
+    // Untuk saat ini, kita izinkan read untuk client.
+    match /water_quality_logs/{logId} {
+      allow read: if request.auth != null;
+      allow write: if false; // Mencegah klien menulis data baru secara langsung
+    }
+  }
+}
