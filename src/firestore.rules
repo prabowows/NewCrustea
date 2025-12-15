@@ -10,10 +10,11 @@ service cloud.firestore {
     }
 
     // Siapa pun yang terotentikasi dapat membaca log kualitas air.
-    // Hanya sistem backend (tidak melalui klien) yang seharusnya diizinkan untuk menulis log ini.
-    // Untuk sementara, kita izinkan write untuk client.
+    // Izin 'create' diperlukan agar klien dapat menambahkan data historis baru.
     match /water_quality_logs/{logId} {
-      allow read, write: if request.auth != null;
+      allow read: if request.auth != null;
+      allow create: if request.auth != null; // Izinkan pembuatan dokumen baru
+      allow write: if false; // Mencegah pembaruan atau penghapusan dari klien
     }
   }
 }

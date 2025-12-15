@@ -13,6 +13,8 @@ import { database, db } from "@/lib/firebase";
 import { ref, onValue, off } from "firebase/database";
 import { collection, query, orderBy, limit, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
 import { useToast } from "@/hooks/use-toast";
+import { errorEmitter } from "@/lib/error-emitter";
+import { FirestorePermissionError } from "@/lib/errors";
 
 type ParameterKey = 'do' | 'ph' | 'temp' | 'tds';
 
@@ -98,7 +100,7 @@ export function HistoricalChart() {
     });
 
     // Interval to process and save data
-    dataListenerIntervalRef.current = setInterval(async () => {
+    dataListenerIntervalRef.current = setInterval(() => {
       const readings = [...readingsBufferRef.current];
       if (readings.length === 0) return;
 
@@ -113,27 +115,24 @@ export function HistoricalChart() {
       }, { DO: 0, PH: 0, TDS: 0, Temp: 0 });
 
       const count = readings.length;
-      const avg_DO = avg.DO / count;
-      const avg_PH = avg.PH / count;
-      const avg_TDS = avg.TDS / count;
-      const avg_Temp = avg.Temp / count;
-      
-      try {
-        await addDoc(collection(db, "water_quality_logs"), {
-          avg_DO,
-          avg_PH,
-          avg_TDS,
-          avg_Temp,
+      const newLogData = {
+          avg_DO: avg.DO / count,
+          avg_PH: avg.PH / count,
+          avg_TDS: avg.TDS / count,
+          avg_Temp: avg.Temp / count,
           timestamp: serverTimestamp()
+      };
+      
+      const logsCollectionRef = collection(db, "water_quality_logs");
+      addDoc(logsCollectionRef, newLogData)
+        .catch((serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: logsCollectionRef.path,
+                operation: 'create',
+                requestResourceData: newLogData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
         });
-      } catch (error) {
-        console.error("Error writing to Firestore: ", error);
-        toast({
-            variant: "destructive",
-            title: "Firestore Write Error",
-            description: "Could not save historical data. Check security rules.",
-        });
-      }
 
     }, 60000); // 60 seconds
 
@@ -143,7 +142,7 @@ export function HistoricalChart() {
         clearInterval(dataListenerIntervalRef.current);
       }
     };
-  }, [user, toast]);
+  }, [user]);
 
   // 3. Listen to Firestore for historical data to display in the chart
   useEffect(() => {
@@ -171,17 +170,16 @@ export function HistoricalChart() {
         setChartData(sortedData);
         setLoading(false);
     }, (error) => {
-        console.error("Error fetching historical chart data:", error);
-        toast({
-            variant: "destructive",
-            title: "Firestore Read Error",
-            description: "Could not fetch historical data. Check security rules.",
+        const permissionError = new FirestorePermissionError({
+          path: collection(db, "water_quality_logs").path,
+          operation: 'list',
         });
+        errorEmitter.emit('permission-error', permissionError);
         setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [toast]);
+  }, []);
 
   const activeChartConfig = {
     [selectedParameter]: chartConfig[selectedParameter],
