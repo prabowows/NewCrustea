@@ -15,7 +15,7 @@ import { Droplets, Wifi, BrainCircuit, DollarSign, CheckCircle2, LineChart, Cpu,
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useEffect, useState } from "react";
 import { Separator } from "@/components/ui/separator";
 
@@ -113,6 +113,9 @@ export default function HomePage() {
                 </Button>
               </SheetTrigger>
               <SheetContent side="left">
+                <SheetHeader>
+                  <SheetTitle className="sr-only">Menu</SheetTitle>
+                </SheetHeader>
                 <nav className="grid gap-6 text-lg font-medium mt-8">
                   <Link
                     href="#"
@@ -138,13 +141,13 @@ export default function HomePage() {
                   >
                     Tentang Kami
                   </Link>
+                  <div className="pl-0 pt-4">
+                     <ThemeSwitcher />
+                   </div>
                   <Separator />
                   <Button asChild onClick={() => setMenuOpen(false)}>
                     <Link href="/dashboard">Login</Link>
                   </Button>
-                   <div className="absolute bottom-4 left-4">
-                     <ThemeSwitcher />
-                   </div>
                 </nav>
               </SheetContent>
             </Sheet>
