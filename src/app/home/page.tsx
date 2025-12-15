@@ -17,6 +17,7 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useEffect, useState } from "react";
+import { Separator } from "@/components/ui/separator";
 
 const partners = [
   { name: "Aqua Dynamics", logo: "https://picsum.photos/seed/partner1/140/70" },
