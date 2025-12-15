@@ -21,6 +21,8 @@ import { useToast } from '@/hooks/use-toast';
 import { auth, db } from '@/lib/firebase';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
+import { errorEmitter } from '@/lib/error-emitter';
+import { FirestorePermissionError } from '@/lib/errors';
 
 const registerSchema = z.object({
   name: z.string().min(1, { message: 'Nama tidak boleh kosong.' }),
@@ -49,22 +51,36 @@ export default function RegisterPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
 
-      await setDoc(doc(db, 'users', user.uid), {
+      const userDocRef = doc(db, 'users', user.uid);
+      const newUserProfile = {
         name: data.name,
         email: data.email,
         address: '',
         phoneNumber: '',
         createdAt: new Date(),
-      });
+      };
 
-      toast({
-        title: 'Registrasi Berhasil',
-        description: 'Akun Anda telah dibuat. Silakan login.',
-      });
-      router.push('/login');
+      setDoc(userDocRef, newUserProfile)
+        .then(() => {
+            toast({
+              title: 'Registrasi Berhasil',
+              description: 'Akun Anda telah dibuat. Silakan login.',
+            });
+            router.push('/login');
+        })
+        .catch((serverError) => {
+            // This is the new error handling part
+            const permissionError = new FirestorePermissionError({
+                path: userDocRef.path,
+                operation: 'create',
+                requestResourceData: newUserProfile,
+            });
+            errorEmitter.emit('permission-error', permissionError);
+        });
 
     } catch (error: any) {
-      console.error('Registration error:', error.code, error.message);
+      // This catch block handles auth errors, not Firestore errors.
+      console.error('Registration auth error:', error.code, error.message);
       let description = 'Terjadi kesalahan. Silakan coba lagi.';
       if (error.code === 'auth/email-already-in-use') {
         description = 'Alamat email ini sudah terdaftar. Silakan gunakan email lain atau login.';
