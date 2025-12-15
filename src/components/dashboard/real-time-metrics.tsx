@@ -67,7 +67,12 @@ export function RealTimeMetrics() {
   }, []);
 
   useEffect(() => {
-    if (!mounted || !user) return;
+    if (!mounted || !user) {
+        if (!user && mounted) {
+            setLoading(false);
+        }
+        return;
+    }
 
     const updateMetrics = (data: any, deviceType: 'EBII' | 'SE') => {
       if (!data) return;
@@ -110,17 +115,21 @@ export function RealTimeMetrics() {
             const deviceValueRef = ref(database, `/User/${user.uid}/${deviceId}/value`);
             const unsub = onValue(deviceValueRef, (valueSnap) => {
               updateMetrics(valueSnap.val(), device.tipe);
+            },
+            (error) => {
+                // Throw a more specific error for debugging security rules
+                throw new Error(`Realtime Database permission denied for path: /User/${user.uid}/${deviceId}/value. Check your security rules.`);
             });
             unsubscribers.push(unsub);
           }
         });
         
-        // Cleanup previous listeners when devices change
         return () => unsubscribers.forEach(unsub => unsub());
       },
       (error) => {
-        console.error("Firebase device list read failed: ", error);
         setLoading(false);
+        // Throw a more specific error for debugging security rules
+        throw new Error(`Realtime Database permission denied for path: /User/${user.uid}. Check your security rules.`);
       }
     );
 
