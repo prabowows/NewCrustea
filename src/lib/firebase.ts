@@ -1,3 +1,4 @@
+
 'use client';
 
 import { initializeApp, getApps, type FirebaseApp, type FirebaseOptions } from "firebase/app";
@@ -16,35 +17,34 @@ const firebaseConfig: FirebaseOptions = {
 };
 
 
-function initializeFirebaseApp(config: FirebaseOptions, name: string): FirebaseApp {
+function initializeFirebaseApp(config: FirebaseOptions): FirebaseApp {
     const apps = getApps();
-    const existingApp = apps.find(app => app.name === name);
-    if (existingApp) {
-        return existingApp;
+    if (apps.length > 0) {
+        return apps[0];
     }
-
+    
     if (!config.projectId) {
-        throw new Error(`Firebase FATAL ERROR: Missing projectId for app "${name}". Check your .env file.`);
+        throw new Error("Firebase FATAL ERROR: Missing projectId. Check your .env.local file.");
     }
 
-    return initializeApp(config, name);
+    return initializeApp(config);
 }
 
 
 let app: FirebaseApp;
-let database: any, databaseWater: any, databaseControl: any;
+let database: any;
 
 try {
-    app = initializeFirebaseApp(firebaseConfig, '[DEFAULT]');
+    app = initializeFirebaseApp(firebaseConfig);
     database = getDatabase(app);
-    databaseWater = getDatabase(app);
-    databaseControl = getDatabase(app);
 } catch (error) {
-    console.error(error);
+    console.error("Firebase initialization error:", error);
 }
 
 
+// @ts-ignore
 const auth = getAuth(app);
+// @ts-ignore
 const db = getFirestore(app);
 
-export { app, database, auth, databaseWater, databaseControl, db };
+export { app, database, auth, db };
