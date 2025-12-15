@@ -12,9 +12,70 @@ import {
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
+import { auth, db } from '@/lib/firebase';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+
+const registerSchema = z.object({
+  name: z.string().min(1, { message: 'Nama tidak boleh kosong.' }),
+  email: z.string().email({ message: 'Alamat email tidak valid.' }),
+  password: z.string().min(6, { message: 'Kata sandi minimal 6 karakter.' }),
+});
+
+type RegisterFormValues = z.infer<typeof registerSchema>;
+
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { toast } = useToast();
+
+  const form = useForm<RegisterFormValues>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+    },
+  });
+
+  const onSubmit = async (data: RegisterFormValues) => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      const user = userCredential.user;
+
+      await setDoc(doc(db, 'users', user.uid), {
+        name: data.name,
+        email: data.email,
+        address: '',
+        phoneNumber: '',
+        createdAt: new Date(),
+      });
+
+      toast({
+        title: 'Registrasi Berhasil',
+        description: 'Akun Anda telah dibuat. Silakan login.',
+      });
+      router.push('/login');
+
+    } catch (error: any) {
+      console.error('Registration error:', error.code, error.message);
+      let description = 'Terjadi kesalahan. Silakan coba lagi.';
+      if (error.code === 'auth/email-already-in-use') {
+        description = 'Alamat email ini sudah terdaftar. Silakan gunakan email lain atau login.';
+      }
+      toast({
+        variant: 'destructive',
+        title: 'Registrasi Gagal',
+        description,
+      });
+    }
+  };
 
   return (
     <div className="relative min-h-screen w-full">
@@ -39,22 +100,67 @@ export default function RegisterPage() {
                       />
                   </Link>
               </div>
-              <CardTitle className="text-2xl">Registrasi Dinonaktifkan</CardTitle>
+              <CardTitle className="text-2xl">Buat Akun Baru</CardTitle>
               <CardDescription>
-                Fitur registrasi pengguna dinonaktifkan sementara.
+                Isi form untuk mendaftar dan mulai revolusi digital tambak Anda.
               </CardDescription>
             </CardHeader>
             <CardContent>
-                <Button className="w-full" variant="outline" onClick={() => router.back()}>Kembali</Button>
+              <Form {...form}>
+                  <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                    <FormField
+                      control={form.control}
+                      name="name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Nama Lengkap</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Nama Anda" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="email"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Email</FormLabel>
+                          <FormControl>
+                            <Input placeholder="email@contoh.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Kata Sandi</FormLabel>
+                          <FormControl>
+                            <Input type="password" placeholder="••••••••" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                      {form.formState.isSubmitting ? 'Memproses...' : 'Daftar'}
+                    </Button>
+                  </form>
+                </Form>
             </CardContent>
              <CardFooter className="flex flex-col gap-4">
                 <p className="text-center text-sm text-muted-foreground">
                 Sudah punya akun?{' '}
                 <Link
-                  href="/dashboard"
+                  href="/login"
                   className="font-semibold text-primary underline-offset-4 hover:underline"
                 >
-                  Masuk ke Dasbor
+                  Masuk di sini
                 </Link>
               </p>
             </CardFooter>
