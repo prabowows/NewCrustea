@@ -69,13 +69,13 @@ export function RealTimeMetrics() {
   useEffect(() => {
     if (!mounted || !user) return;
 
-    const updateMetrics = (data: any, deviceType: 'EBI' | 'SE') => {
+    const updateMetrics = (data: any, deviceType: 'EBII' | 'SE') => {
       if (!data) return;
 
       setMetrics((prevMetrics) => {
         return prevMetrics.map((metric) => {
           const sourceMatch =
-            (deviceType === 'EBI' && metric.source === 'water_quality') ||
+            (deviceType === 'EBII' && metric.source === 'water_quality') ||
             (deviceType === 'SE' && metric.source === 'listrik');
 
           if (sourceMatch) {
@@ -106,7 +106,7 @@ export function RealTimeMetrics() {
 
         Object.keys(devices).forEach((deviceId) => {
           const device = devices[deviceId];
-          if (device.tipe === 'EBI' || device.tipe === 'SE') {
+          if (device.tipe === 'EBII' || device.tipe === 'SE') {
             const deviceValueRef = ref(database, `/User/${user.uid}/${deviceId}/value`);
             const unsub = onValue(deviceValueRef, (valueSnap) => {
               updateMetrics(valueSnap.val(), device.tipe);
