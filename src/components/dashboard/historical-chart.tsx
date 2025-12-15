@@ -61,10 +61,9 @@ export function HistoricalChart() {
   const [loading, setLoading] = useState(true);
   const [selectedParameter, setSelectedParameter] = useState<ParameterKey>('do');
   
-  // Ref to store EBII device ID
   const ebiiDeviceIdRef = useRef<string | null>(null);
-  // Ref to store readings over a minute
   const readingsBufferRef = useRef<RealtimeReading[]>([]);
+  const dataListenerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // 1. Find the EBII device ID for the logged-in user
   useEffect(() => {
@@ -85,30 +84,24 @@ export function HistoricalChart() {
 
   }, [user]);
 
-  // 2. Listen to real-time data and collect it in a buffer
+  // 2. Setup listeners and intervals once user and device ID are available
    useEffect(() => {
     if (!user || !ebiiDeviceIdRef.current) return;
 
+    // Listener for real-time data
     const deviceValueRef = ref(database, `/User/${user.uid}/${ebiiDeviceIdRef.current}/value`);
-    
-    const listener = onValue(deviceValueRef, (snapshot) => {
+    const rt_listener = onValue(deviceValueRef, (snapshot) => {
       const value = snapshot.val();
       if (value && typeof value.DO === 'number') {
         readingsBufferRef.current.push({ ...value, timestamp: Date.now() });
       }
     });
 
-    return () => off(deviceValueRef, 'value', listener);
-
-  }, [user]);
-
-  // 3. Every 1 minute, average the buffer and save to Firestore
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      const readings = readingsBufferRef.current;
+    // Interval to process and save data
+    dataListenerIntervalRef.current = setInterval(async () => {
+      const readings = [...readingsBufferRef.current];
       if (readings.length === 0) return;
 
-      // Clear buffer for next interval
       readingsBufferRef.current = [];
 
       const avg = readings.reduce((acc, curr) => {
@@ -144,10 +137,15 @@ export function HistoricalChart() {
 
     }, 60000); // 60 seconds
 
-    return () => clearInterval(interval);
-  }, [toast]);
+    return () => {
+      off(deviceValueRef, 'value', rt_listener);
+      if (dataListenerIntervalRef.current) {
+        clearInterval(dataListenerIntervalRef.current);
+      }
+    };
+  }, [user, toast]);
 
-  // 4. Listen to Firestore for historical data to display in the chart
+  // 3. Listen to Firestore for historical data to display in the chart
   useEffect(() => {
     setLoading(true);
     const q = query(collection(db, "water_quality_logs"), orderBy("timestamp", "desc"), limit(20));
@@ -167,9 +165,10 @@ export function HistoricalChart() {
                 });
             }
         });
-        if (fetchedData.length > 0) {
-            setChartData(fetchedData.reverse());
-        }
+
+        // Ensure data is sorted by time ascending for the chart
+        const sortedData = fetchedData.sort((a, b) => a.time.localeCompare(b.time));
+        setChartData(sortedData);
         setLoading(false);
     }, (error) => {
         console.error("Error fetching historical chart data:", error);
@@ -214,6 +213,11 @@ export function HistoricalChart() {
         {loading ? (
             <div className="h-[250px] w-full flex items-center justify-center">
                 <Skeleton className="h-full w-full" />
+            </div>
+        ) : chartData.length === 0 ? (
+            <div className="h-[250px] w-full flex flex-col items-center justify-center text-center">
+                <p className="font-medium">No Historical Data</p>
+                <p className="text-sm text-muted-foreground">Waiting for the first data point to be saved...</p>
             </div>
         ) : (
             <ChartContainer config={activeChartConfig} className="h-[250px] w-full">
