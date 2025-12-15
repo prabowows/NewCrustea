@@ -8,7 +8,7 @@ import FirebaseErrorListener from "@/components/FirebaseErrorListener";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "AquaControl Dashboard",
+  title: "Crustea - Revolusi Digital Budidaya Udang",
   description: "Real-time monitoring and control for modern aquaculture.",
 };
 
