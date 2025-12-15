@@ -112,7 +112,7 @@ export default function HomePage() {
                   <Menu className="h-6 w-6" />
                 </Button>
               </SheetTrigger>
-              <SheetContent side="left">
+              <SheetContent side="left" className="w-[280px]">
                 <SheetHeader>
                   <SheetTitle className="sr-only">Menu</SheetTitle>
                 </SheetHeader>
