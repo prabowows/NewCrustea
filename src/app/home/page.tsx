@@ -11,10 +11,11 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Droplets, Wifi, BrainCircuit, DollarSign, CheckCircle2, LineChart, Cpu, Zap, Wind } from "lucide-react";
+import { Droplets, Wifi, BrainCircuit, DollarSign, CheckCircle2, LineChart, Cpu, Zap, Wind, Menu } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useEffect, useState } from "react";
 
 const partners = [
@@ -88,6 +89,7 @@ const testimonials = [
 
 export default function HomePage() {
     const [mounted, setMounted] = useState(false);
+    const [isMenuOpen, setMenuOpen] = useState(false);
 
     useEffect(() => {
         setMounted(true);
@@ -99,47 +101,103 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      <header className="px-4 lg:px-6 h-14 flex items-center sticky top-0 bg-background/80 backdrop-blur-sm z-50">
-        <Link
-          href="#"
-          className="flex items-center justify-center"
-          prefetch={false}
-        >
-          <Image
-            src="https://res.cloudinary.com/dtnsf2etf/image/upload/v1760671820/logo1-removebg-preview_cyzktd.png"
-            alt="Crustea Logo"
-            width={100}
-            height={40}
-            className="h-8 w-auto"
-          />
-        </Link>
-        <nav className="ml-auto flex items-center gap-4 sm:gap-6">
-          <Link
-            href="#"
-            className="text-sm font-medium hover:underline underline-offset-4"
-            prefetch={false}
-          >
-            Solusi
-          </Link>
-          <Link
-            href="#"
-            className="text-sm font-medium hover:underline underline-offset-4"
-            prefetch={false}
-          >
-            Harga
-          </Link>
-          <Link
-            href="#"
-            className="text-sm font-medium hover:underline underline-offset-4"
-            prefetch={false}
-          >
-            Tentang Kami
-          </Link>
-          <Button asChild>
-            <Link href="/dashboard">Login</Link>
-          </Button>
-          <ThemeSwitcher />
-        </nav>
+       <header className="px-4 lg:px-6 h-14 flex items-center sticky top-0 bg-background/80 backdrop-blur-sm z-50">
+        <div className="flex items-center justify-between w-full">
+          {/* Hamburger Menu - Mobile only, on the left */}
+          <div className="md:hidden">
+            <Sheet open={isMenuOpen} onOpenChange={setMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="left">
+                <nav className="grid gap-6 text-lg font-medium mt-8">
+                  <Link
+                    href="#"
+                    className="text-muted-foreground hover:text-foreground"
+                    onClick={() => setMenuOpen(false)}
+                    prefetch={false}
+                  >
+                    Solusi
+                  </Link>
+                  <Link
+                    href="#"
+                    className="text-muted-foreground hover:text-foreground"
+                    onClick={() => setMenuOpen(false)}
+                    prefetch={false}
+                  >
+                    Harga
+                  </Link>
+                  <Link
+                    href="#"
+                    className="text-muted-foreground hover:text-foreground"
+                    onClick={() => setMenuOpen(false)}
+                    prefetch={false}
+                  >
+                    Tentang Kami
+                  </Link>
+                  <Separator />
+                  <Button asChild onClick={() => setMenuOpen(false)}>
+                    <Link href="/dashboard">Login</Link>
+                  </Button>
+                   <div className="absolute bottom-4 left-4">
+                     <ThemeSwitcher />
+                   </div>
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
+
+          {/* Logo - Centered on mobile, left on desktop */}
+          <div className="flex-1 flex justify-center md:justify-start">
+             <Link
+              href="#"
+              className="flex items-center"
+              prefetch={false}
+            >
+              <Image
+                src="https://res.cloudinary.com/dtnsf2etf/image/upload/v1760671820/logo1-removebg-preview_cyzktd.png"
+                alt="Crustea Logo"
+                width={100}
+                height={40}
+                className="h-8 w-auto"
+              />
+            </Link>
+          </div>
+
+          {/* Desktop Navigation - Hidden on mobile */}
+          <nav className="hidden md:flex items-center gap-4 sm:gap-6 ml-auto">
+            <Link
+              href="#"
+              className="text-sm font-medium hover:underline underline-offset-4"
+              prefetch={false}
+            >
+              Solusi
+            </Link>
+            <Link
+              href="#"
+              className="text-sm font-medium hover:underline underline-offset-4"
+              prefetch={false}
+            >
+              Harga
+            </Link>
+            <Link
+              href="#"
+              className="text-sm font-medium hover:underline underline-offset-4"
+              prefetch={false}
+            >
+              Tentang Kami
+            </Link>
+            <Button asChild>
+              <Link href="/dashboard">Login</Link>
+            </Button>
+            <ThemeSwitcher />
+          </nav>
+
+           {/* Spacer for mobile view to balance the hamburger icon */}
+           <div className="md:hidden w-10 h-10"></div>
+        </div>
       </header>
       <main className="flex-1">
         <section className="w-full py-8 md:py-10">
@@ -443,3 +501,5 @@ export default function HomePage() {
     </div>
   );
 }
+
+    
