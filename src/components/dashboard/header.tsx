@@ -60,22 +60,22 @@ export function Header() {
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <Link href="/dashboard">
-              <DropdownMenuItem>
+              <DropdownMenuItem className="text-primary">
                 <LayoutDashboard className="mr-2 h-4 w-4" />
                 <span>Dashboard</span>
               </DropdownMenuItem>
             </Link>
             <Link href="/profile">
-              <DropdownMenuItem>
+              <DropdownMenuItem className="text-primary">
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
               </DropdownMenuItem>
             </Link>
-            <DropdownMenuItem><ClipboardList className="mr-2 h-4 w-4" /><span>Kelola Tambak</span></DropdownMenuItem>
-            <DropdownMenuItem><LineChart className="mr-2 h-4 w-4" /><span>Monitoring</span></DropdownMenuItem>
-            <DropdownMenuItem><Wind className="mr-2 h-4 w-4" /><span>Kontrol Aerator</span></DropdownMenuItem>
+            <DropdownMenuItem className="text-primary"><ClipboardList className="mr-2 h-4 w-4" /><span>Kelola Tambak</span></DropdownMenuItem>
+            <DropdownMenuItem className="text-primary"><LineChart className="mr-2 h-4 w-4" /><span>Monitoring</span></DropdownMenuItem>
+            <DropdownMenuItem className="text-primary"><Wind className="mr-2 h-4 w-4" /><span>Kontrol Aerator</span></DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => router.push('/login')}><LogOut className="mr-2 h-4 w-4" /><span>Log out</span></DropdownMenuItem>
+            <DropdownMenuItem onClick={() => router.push('/login')} className="text-primary"><LogOut className="mr-2 h-4 w-4" /><span>Log out</span></DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
