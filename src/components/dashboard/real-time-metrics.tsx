@@ -75,7 +75,6 @@ export function RealTimeMetrics() {
     if (!mounted) return;
 
     setLoading(true);
-    // Reset metrics to initial state when devices change
     setMetrics(initialMetrics);
 
     if (!user) {
@@ -90,14 +89,24 @@ export function RealTimeMetrics() {
     }
 
     const listeners: any[] = [];
+    let initialLoadsPending = deviceIds.length;
+
+    const checkDoneLoading = () => {
+        initialLoadsPending--;
+        if (initialLoadsPending <= 0) {
+            setLoading(false);
+        }
+    };
 
     const setupListener = (deviceId: string, deviceType: 'EBII' | 'SE') => {
       const deviceRef = ref(database, `/User/${user.uid}/${deviceId}/value`);
+      
       const listener = onValue(deviceRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
           updateMetrics(data, deviceType);
         }
+        checkDoneLoading(); // Mark this listener as having received its first data (or confirmed no data)
       }, (error) => {
         console.error(`Firebase Read Error for ${deviceId}:`, error);
         toast({
@@ -105,6 +114,7 @@ export function RealTimeMetrics() {
           title: "Error Reading Data",
           description: `Could not read from device ${deviceId}. Check permissions.`
         });
+        checkDoneLoading(); // Also counts as a completed load attempt, even if it fails
       });
       listeners.push({ ref: deviceRef, listener });
     };
@@ -112,11 +122,7 @@ export function RealTimeMetrics() {
     if (devices.ebii) setupListener(devices.ebii, 'EBII');
     if (devices.se) setupListener(devices.se, 'SE');
     
-    // Give a small delay for data to potentially load
-    const loadingTimeout = setTimeout(() => setLoading(false), 1500);
-
     return () => {
-      clearTimeout(loadingTimeout);
       listeners.forEach(({ ref, listener }) => off(ref, 'value', listener));
     };
   }, [mounted, user, devices, toast]);
