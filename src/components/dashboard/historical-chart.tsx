@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
@@ -58,8 +58,14 @@ const parameterOptions: { value: ParameterKey, label: string }[] = [
 
 export function HistoricalChart() {
   const { user } = useUser();
-  const { devices, selectedPond } = usePond();
-  const ebiiDeviceId = devices.ebii;
+  const { selectedPond, selectedPondId, allDevices } = usePond();
+
+  const ebiiDeviceId = useMemo(() => {
+    if (!selectedPondId || !allDevices) return null;
+    return Object.keys(allDevices).find(key => 
+        allDevices[key].tipe === 'EBII' && allDevices[key].id_kolam === selectedPondId
+    ) || null;
+  }, [selectedPondId, allDevices]);
 
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
