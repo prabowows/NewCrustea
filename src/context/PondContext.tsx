@@ -1,9 +1,8 @@
-
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { database } from '@/lib/firebase';
-import { ref, onValue, off, get } from 'firebase/database';
+import { ref, get } from 'firebase/database';
 import { useUser } from '@/hooks/use-user';
 
 type Pond = {
@@ -69,7 +68,6 @@ export function PondProvider({ children }: { children: ReactNode }) {
             setPonds(loadedPonds);
             setAllDevices(loadedDevices);
 
-            // Set initial selected pond only if it hasn't been set
             if (loadedPonds.length > 0 && !selectedPondId) {
                 setSelectedPondId(loadedPonds[0].id);
             }
@@ -80,39 +78,43 @@ export function PondProvider({ children }: { children: ReactNode }) {
             setLoading(false);
         });
 
-    }, [user, selectedPondId]); // Dependency on user is correct. selectedPondId is to help initial set.
+    }, [user]);
+
+    const findDeviceKeyForPond = useCallback((type: string, pondId: string): string | null => {
+        if (Object.keys(allDevices).length === 0 || !pondId) return null;
+        
+        const deviceKey = Object.keys(allDevices).find(key => 
+            allDevices[key].tipe === type && allDevices[key].id_kolam === pondId
+        );
+        return deviceKey || null;
+    }, [allDevices]);
+    
+    const findAeratorDeviceKey = useCallback((pondId: string): string | null => {
+        if (Object.keys(allDevices).length === 0 || !pondId) return null;
+        
+        const scDeviceKey = findDeviceKeyForPond('SC', pondId);
+        if (!scDeviceKey) return null;
+
+        return Object.keys(allDevices).find(key => 
+            allDevices[key].tipe === 'AERATOR' && allDevices[key].id_sc === scDeviceKey
+        ) || null;
+    }, [allDevices, findDeviceKeyForPond]);
+
 
     // Effect to calculate devices for the selected pond
     useEffect(() => {
-        const selectedPond = ponds.find(p => p.id === selectedPondId);
-        if (!selectedPond || Object.keys(allDevices).length === 0) {
+        if (!selectedPondId) {
             setDevices({ ebii: null, se: null, aerator: null });
             return;
         }
 
-        const findDeviceKeyForPond = (type: string): string | null => {
-            const deviceKey = Object.keys(allDevices).find(key => 
-                allDevices[key].tipe === type && allDevices[key].id_kolam === selectedPond.id
-            );
-            return deviceKey || null;
-        };
-
-        const findAeratorDeviceKey = (): string | null => {
-            const scDeviceKey = findDeviceKeyForPond('SC');
-            if (!scDeviceKey) return null;
-
-            return Object.keys(allDevices).find(key => 
-                allDevices[key].tipe === 'AERATOR' && allDevices[key].id_sc === scDeviceKey
-            ) || null;
-        }
-
         setDevices({
-            ebii: findDeviceKeyForPond('EBII'),
-            se: findDeviceKeyForPond('SE'),
-            aerator: findAeratorDeviceKey()
+            ebii: findDeviceKeyForPond('EBII', selectedPondId),
+            se: findDeviceKeyForPond('SE', selectedPondId),
+            aerator: findAeratorDeviceKey(selectedPondId)
         });
 
-    }, [selectedPondId, ponds, allDevices]);
+    }, [selectedPondId, findDeviceKeyForPond, findAeratorDeviceKey]);
 
     const handleSetSelectedPondId = (id: string) => {
         setSelectedPondId(id);
