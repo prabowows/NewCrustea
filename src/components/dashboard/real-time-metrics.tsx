@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
@@ -64,75 +65,82 @@ export function RealTimeMetrics() {
   const { devices, loading: isPondContextLoading } = usePond();
   
   const [metrics, setMetrics] = useState<Metric[]>(initialMetrics);
-  const [initialLoad, setInitialLoad] = useState(true);
-  const listenersRef = useRef<Unsubscribe[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // Effect to handle setting up and tearing down Firebase listeners
   useEffect(() => {
-    // If pond context is loading or user isn't available, do nothing.
+    // Show loading skeleton while context is loading or user is not available
     if (isPondContextLoading || !user) {
-        return;
+      setLoading(true);
+      return;
     }
-    
-    // Cleanup previous listeners before setting up new ones
-    listenersRef.current.forEach(unsubscribe => unsubscribe());
-    listenersRef.current = [];
-
-    // Reset metrics to initial state only when devices are not available
+  
     const deviceIds = Object.values(devices).filter(Boolean) as string[];
+  
+    // If no devices are found for the selected pond, reset to N/A and stop loading.
     if (deviceIds.length === 0) {
-        setMetrics(initialMetrics);
-        if (initialLoad) setInitialLoad(false);
-        return;
+      setMetrics(initialMetrics);
+      setLoading(false);
+      return;
     }
-
-    const newListeners: Unsubscribe[] = [];
-
-    const setupListener = (deviceId: string) => {
-        const deviceRef = ref(database, `/User/${user.uid}/${deviceId}/value`);
-        const listener = onValue(deviceRef, (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                setMetrics(prevMetrics => {
-                    return prevMetrics.map(metric => {
-                        const deviceType = (devices.ebii === deviceId) ? 'water_quality' : 'listrik';
-                        const sourceMatch = metric.source === deviceType;
-
-                        if (sourceMatch) {
-                            const firebaseKey = metric.firebaseKey || metric.id;
-                            const metricValue = data[firebaseKey];
-                            if (metricValue !== undefined) {
-                                return { ...metric, value: formatValue(metricValue, metric.unit) };
-                            }
-                        }
-                        return metric;
-                    });
-                });
-            }
-            if (initialLoad) setInitialLoad(false);
-        }, (error) => {
-            console.error(`Firebase Read Error for ${deviceId}:`, error);
-            toast({
-                variant: "destructive",
-                title: "Error Reading Data",
-                description: `Could not read from device ${deviceId}.`,
-            });
-            if (initialLoad) setInitialLoad(false);
+  
+    const listeners: Unsubscribe[] = [];
+  
+    // A flag to ensure we only stop the initial loading once.
+    let initialLoadsPending = deviceIds.length;
+    const checkDoneLoading = () => {
+      initialLoadsPending--;
+      if (initialLoadsPending <= 0) {
+        setLoading(false);
+      }
+    };
+    
+    // Set loading to true when we start fetching new device data
+    setLoading(true);
+  
+    deviceIds.forEach(deviceId => {
+      const deviceRef = ref(database, `/User/${user.uid}/${deviceId}/value`);
+      
+      const listener = onValue(deviceRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          setMetrics(prevMetrics => 
+            prevMetrics.map(metric => {
+              const deviceType = (devices.ebii === deviceId) ? 'water_quality' : 'listrik';
+              const sourceMatch = metric.source === deviceType;
+  
+              if (sourceMatch) {
+                const firebaseKey = metric.firebaseKey || metric.id;
+                const metricValue = data[firebaseKey];
+                if (metricValue !== undefined) {
+                  return { ...metric, value: formatValue(metricValue, metric.unit) };
+                }
+              }
+              return metric;
+            })
+          );
+        }
+        checkDoneLoading();
+      }, (error) => {
+        console.error(`Firebase Read Error for ${deviceId}:`, error);
+        toast({
+            variant: "destructive",
+            title: "Error Reading Data",
+            description: `Could not read from device ${deviceId}.`,
         });
-
-        newListeners.push(() => off(deviceRef, 'value', listener));
-    };
-
-    if (devices.ebii) setupListener(devices.ebii);
-    if (devices.se) setupListener(devices.se);
-
-    listenersRef.current = newListeners;
-
-    // Cleanup function on component unmount
+        checkDoneLoading();
+      });
+  
+      listeners.push(() => off(deviceRef, 'value', listener));
+    });
+  
+    // Cleanup function: This is crucial.
+    // It runs when the component unmounts OR when dependencies change.
     return () => {
-        listenersRef.current.forEach(unsubscribe => unsubscribe());
+      listeners.forEach(unsubscribe => unsubscribe());
     };
-  }, [user, devices, isPondContextLoading, toast]); // Rerun when user or devices change
+    
+  }, [user, devices, isPondContextLoading, toast]);
 
 
   const renderMetricCard = (metric: Metric) => {
@@ -201,7 +209,7 @@ export function RealTimeMetrics() {
   );
 
   
-  if (initialLoad) {
+  if (loading) {
     return (
       <div className="space-y-6">
         <div>
