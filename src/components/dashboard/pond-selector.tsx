@@ -10,44 +10,34 @@ export function PondSelector() {
 
     if (loading) {
         return (
-             <Card>
-                <CardContent className="pt-6">
-                    <Skeleton className="h-10 w-full" />
-                </CardContent>
-            </Card>
+            <Skeleton className="h-10 w-full" />
         );
     }
 
     if (!ponds || ponds.length === 0) {
         return (
-            <Card>
-                <CardContent className="pt-6 text-center text-muted-foreground">
-                    Tidak ada kolam yang ditemukan untuk akun Anda.
-                </CardContent>
-            </Card>
+            <div className="p-4 rounded-md border text-center text-muted-foreground">
+                Tidak ada kolam yang ditemukan untuk akun Anda.
+            </div>
         );
     }
     
     return (
-        <Card>
-            <CardContent className="pt-6">
-                 <Select
-                    value={selectedPond?.id}
-                    onValueChange={(value) => setSelectedPondId(value)}
-                    disabled={ponds.length === 0}
-                 >
-                    <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Pilih Kolam..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {ponds.map(pond => (
-                            <SelectItem key={pond.id} value={pond.id}>
-                                {pond.nama}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </CardContent>
-        </Card>
+        <Select
+            value={selectedPond?.id}
+            onValueChange={(value) => setSelectedPondId(value)}
+            disabled={ponds.length === 0}
+            >
+            <SelectTrigger className="w-full">
+                <SelectValue placeholder="Pilih Kolam..." />
+            </SelectTrigger>
+            <SelectContent>
+                {ponds.map(pond => (
+                    <SelectItem key={pond.id} value={pond.id}>
+                        {pond.nama}
+                    </SelectItem>
+                ))}
+            </SelectContent>
+        </Select>
     );
 }
