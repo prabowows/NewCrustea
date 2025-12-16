@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { database } from '@/lib/firebase';
-import { ref, onValue, off } from 'firebase/database';
+import { ref, onValue, off, Unsubscribe } from 'firebase/database';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
@@ -61,100 +61,79 @@ type GroupedMetric = {
 export function RealTimeMetrics() {
   const { user } = useUser();
   const { toast } = useToast();
-  const { devices } = usePond();
+  const { devices, loading: isPondContextLoading } = usePond();
   
   const [metrics, setMetrics] = useState<Metric[]>(initialMetrics);
-  const [loading, setLoading] = useState(true);
-  const [mounted, setMounted] = useState(false);
+  const [initialLoad, setInitialLoad] = useState(true);
+  const listenersRef = useRef<Unsubscribe[]>([]);
 
+  // Effect to handle setting up and tearing down Firebase listeners
   useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (!mounted) return;
-
-    setLoading(true);
-    setMetrics(initialMetrics);
-
-    if (!user) {
-      setLoading(false);
-      return;
+    // If pond context is loading or user isn't available, do nothing.
+    if (isPondContextLoading || !user) {
+        return;
     }
+    
+    // Cleanup previous listeners before setting up new ones
+    listenersRef.current.forEach(unsubscribe => unsubscribe());
+    listenersRef.current = [];
 
+    // Reset metrics to initial state only when devices are not available
     const deviceIds = Object.values(devices).filter(Boolean) as string[];
-    
     if (deviceIds.length === 0) {
-      setMetrics(initialMetrics); // Ensure values are N/A
-      setLoading(false);
-      return;
+        setMetrics(initialMetrics);
+        if (initialLoad) setInitialLoad(false);
+        return;
     }
 
-    const listeners: any[] = [];
-    let initialLoadsPending = deviceIds.length;
+    const newListeners: Unsubscribe[] = [];
 
-    const checkDoneLoading = () => {
-        initialLoadsPending--;
-        if (initialLoadsPending <= 0) {
-            setLoading(false);
-        }
-    };
-    
-    // This is the key fix: If there are no devices, we must stop loading immediately.
-    if (initialLoadsPending === 0) {
-      setLoading(false);
-      return;
-    }
+    const setupListener = (deviceId: string) => {
+        const deviceRef = ref(database, `/User/${user.uid}/${deviceId}/value`);
+        const listener = onValue(deviceRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                setMetrics(prevMetrics => {
+                    return prevMetrics.map(metric => {
+                        const deviceType = (devices.ebii === deviceId) ? 'water_quality' : 'listrik';
+                        const sourceMatch = metric.source === deviceType;
 
-    const setupListener = (deviceId: string, deviceType: 'EBII' | 'SE') => {
-      const deviceRef = ref(database, `/User/${user.uid}/${deviceId}/value`);
-      
-      const listener = onValue(deviceRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          updateMetrics(data, deviceType);
-        }
-        checkDoneLoading();
-      }, (error) => {
-        console.error(`Firebase Read Error for ${deviceId}:`, error);
-        toast({
-          variant: "destructive",
-          title: "Error Reading Data",
-          description: `Could not read from device ${deviceId}. Check permissions.`
+                        if (sourceMatch) {
+                            const firebaseKey = metric.firebaseKey || metric.id;
+                            const metricValue = data[firebaseKey];
+                            if (metricValue !== undefined) {
+                                return { ...metric, value: formatValue(metricValue, metric.unit) };
+                            }
+                        }
+                        return metric;
+                    });
+                });
+            }
+            if (initialLoad) setInitialLoad(false);
+        }, (error) => {
+            console.error(`Firebase Read Error for ${deviceId}:`, error);
+            toast({
+                variant: "destructive",
+                title: "Error Reading Data",
+                description: `Could not read from device ${deviceId}.`,
+            });
+            if (initialLoad) setInitialLoad(false);
         });
-        checkDoneLoading();
-      });
-      listeners.push({ ref: deviceRef, listener });
+
+        newListeners.push(() => off(deviceRef, 'value', listener));
     };
 
-    if (devices.ebii) setupListener(devices.ebii, 'EBII');
-    if (devices.se) setupListener(devices.se, 'SE');
-    
+    if (devices.ebii) setupListener(devices.ebii);
+    if (devices.se) setupListener(devices.se);
+
+    listenersRef.current = newListeners;
+
+    // Cleanup function on component unmount
     return () => {
-      listeners.forEach(({ ref, listener }) => off(ref, 'value', listener));
+        listenersRef.current.forEach(unsubscribe => unsubscribe());
     };
-  }, [mounted, user, devices, toast]);
+  }, [user, devices, isPondContextLoading, toast]); // Rerun when user or devices change
 
-
-  const updateMetrics = (data: any, deviceType: 'EBII' | 'SE') => {
-      setMetrics((prevMetrics) => {
-        return prevMetrics.map((metric) => {
-          const sourceMatch =
-            (deviceType === 'EBII' && metric.source === 'water_quality') ||
-            (deviceType === 'SE' && metric.source === 'listrik');
-
-          if (sourceMatch) {
-            const firebaseKey = metric.firebaseKey || metric.id;
-            const metricValue = data[firebaseKey];
-            return {
-              ...metric,
-              value: formatValue(metricValue, metric.unit),
-            };
-          }
-          return metric;
-        });
-      });
-  };
 
   const renderMetricCard = (metric: Metric) => {
     const Icon = iconMap[metric.icon as keyof typeof iconMap] || Power;
@@ -221,11 +200,8 @@ export function RealTimeMetrics() {
     {} as Record<string, GroupedMetric>
   );
 
-  if (!mounted) {
-    return null;
-  }
   
-  if (loading) {
+  if (initialLoad) {
     return (
       <div className="space-y-6">
         <div>
