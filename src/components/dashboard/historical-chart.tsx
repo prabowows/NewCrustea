@@ -11,9 +11,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/hooks/use-user";
 import { database, db } from "@/lib/firebase";
 import { ref, onValue, off } from "firebase/database";
-import { collection, query, orderBy, limit, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, query, where, orderBy, limit, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
 import { errorEmitter } from "@/lib/error-emitter";
 import { FirestorePermissionError } from "@/lib/errors";
+import { usePond } from "@/context/PondContext";
 
 type ParameterKey = 'do' | 'ph' | 'temp' | 'tds';
 
@@ -57,107 +58,94 @@ const parameterOptions: { value: ParameterKey, label: string }[] = [
 
 export function HistoricalChart() {
   const { user } = useUser();
+  const { devices, selectedPond } = usePond();
+  const ebiiDeviceId = devices.ebii;
+
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedParameter, setSelectedParameter] = useState<ParameterKey>('do');
   
-  const ebiiDeviceIdRef = useRef<string | null>(null);
   const readingsBufferRef = useRef<RealtimeReading[]>([]);
   const dataListenerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 1. Find the EBII device ID for the logged-in user
-  useEffect(() => {
-    if (!user) return;
-
-    const userDevicesRef = ref(database, `/User/${user.uid}`);
-    const unsubscribe = onValue(userDevicesRef, (snapshot) => {
-      const devices = snapshot.val();
-      if (devices) {
-        const ebiiDevice = Object.keys(devices).find(key => devices[key].tipe === 'EBII');
-        if (ebiiDevice) {
-          ebiiDeviceIdRef.current = ebiiDevice;
-        }
-      }
-    }, { onlyOnce: true });
-
-    return () => unsubscribe();
-
-  }, [user]);
-
-  // 2. Setup listeners and intervals once user and device ID are available
+  // Setup listeners and intervals once user and device ID are available
    useEffect(() => {
-    if (!user) return;
-    // This effect needs to wait for the device ID to be found.
-    // A bit of delay to ensure ebiiDeviceIdRef.current is set.
-    const setupTimeout = setTimeout(() => {
-        if (!ebiiDeviceIdRef.current) {
-            console.log("HistoricalChart: EBII device ID not found for user. Aborting data listeners.");
-            setLoading(false);
-            return;
-        }
+    if (!user || !ebiiDeviceId || !selectedPond) {
+      if(dataListenerIntervalRef.current) clearInterval(dataListenerIntervalRef.current);
+      return;
+    }
 
-        // Listener for real-time data
-        const deviceValueRef = ref(database, `/User/${user.uid}/${ebiiDeviceIdRef.current}/value`);
-        const rt_listener = onValue(deviceValueRef, (snapshot) => {
-          const value = snapshot.val();
-          if (value && typeof value.do === 'number') { 
-            readingsBufferRef.current.push({ ...value, timestamp: Date.now() });
-          }
+    // Listener for real-time data
+    const deviceValueRef = ref(database, `/User/${user.uid}/${ebiiDeviceId}/value`);
+    const rt_listener = onValue(deviceValueRef, (snapshot) => {
+      const value = snapshot.val();
+      if (value && typeof value.do === 'number') { 
+        readingsBufferRef.current.push({ ...value, timestamp: Date.now() });
+      }
+    });
+
+    // Interval to process and save data
+    dataListenerIntervalRef.current = setInterval(() => {
+      const readings = [...readingsBufferRef.current];
+      if (readings.length === 0) return;
+
+      readingsBufferRef.current = [];
+
+      const avg = readings.reduce((acc, curr) => {
+        acc.do += curr.do;
+        acc.ph += curr.ph;
+        acc.tds += curr.tds;
+        acc.temp += curr.temp;
+        return acc;
+      }, { do: 0, ph: 0, tds: 0, temp: 0 });
+
+      const count = readings.length;
+      const newLogData = {
+          pondId: selectedPond.id,
+          pondName: selectedPond.nama,
+          avg_do: avg.do / count,
+          avg_ph: avg.ph / count,
+          avg_tds: avg.tds / count,
+          avg_temp: avg.temp / count,
+          timestamp: serverTimestamp()
+      };
+      
+      const logsCollectionRef = collection(db, "water_quality_logs");
+      addDoc(logsCollectionRef, newLogData)
+        .catch((serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: logsCollectionRef.path,
+                operation: 'create',
+                requestResourceData: newLogData,
+            });
+            errorEmitter.emit('permission-error', permissionError);
         });
 
-        // Interval to process and save data
-        dataListenerIntervalRef.current = setInterval(() => {
-          const readings = [...readingsBufferRef.current];
-          if (readings.length === 0) return;
+    }, 60000); // 60 seconds
 
-          readingsBufferRef.current = [];
+    return () => {
+      off(deviceValueRef, 'value', rt_listener);
+      if (dataListenerIntervalRef.current) {
+        clearInterval(dataListenerIntervalRef.current);
+      }
+    };
 
-          const avg = readings.reduce((acc, curr) => {
-            acc.do += curr.do;
-            acc.ph += curr.ph;
-            acc.tds += curr.tds;
-            acc.temp += curr.temp;
-            return acc;
-          }, { do: 0, ph: 0, tds: 0, temp: 0 });
+  }, [user, ebiiDeviceId, selectedPond]);
 
-          const count = readings.length;
-          const newLogData = {
-              avg_do: avg.do / count,
-              avg_ph: avg.ph / count,
-              avg_tds: avg.tds / count,
-              avg_temp: avg.temp / count,
-              timestamp: serverTimestamp()
-          };
-          
-          const logsCollectionRef = collection(db, "water_quality_logs");
-          addDoc(logsCollectionRef, newLogData)
-            .catch((serverError) => {
-                const permissionError = new FirestorePermissionError({
-                    path: logsCollectionRef.path,
-                    operation: 'create',
-                    requestResourceData: newLogData,
-                });
-                errorEmitter.emit('permission-error', permissionError);
-            });
-
-        }, 60000); // 60 seconds
-
-        return () => {
-          off(deviceValueRef, 'value', rt_listener);
-          if (dataListenerIntervalRef.current) {
-            clearInterval(dataListenerIntervalRef.current);
-          }
-        };
-    }, 1000); // Wait 1s to ensure device ID is fetched
-
-    return () => clearTimeout(setupTimeout);
-
-  }, [user]);
-
-  // 3. Listen to Firestore for historical data to display in the chart
+  // Listen to Firestore for historical data to display in the chart
   useEffect(() => {
+    if (!selectedPond?.id) {
+        setChartData([]);
+        setLoading(false);
+        return;
+    }
     setLoading(true);
-    const q = query(collection(db, "water_quality_logs"), orderBy("timestamp", "desc"), limit(20));
+    const q = query(
+        collection(db, "water_quality_logs"), 
+        where("pondId", "==", selectedPond.id),
+        orderBy("timestamp", "desc"), 
+        limit(20)
+    );
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const fetchedData: ChartData[] = [];
@@ -175,7 +163,6 @@ export function HistoricalChart() {
             }
         });
 
-        // Ensure data is sorted by time ascending for the chart
         const sortedData = fetchedData.sort((a, b) => a.time.localeCompare(b.time));
         setChartData(sortedData);
         setLoading(false);
@@ -189,7 +176,7 @@ export function HistoricalChart() {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [selectedPond]);
 
   const activeChartConfig = {
     [selectedParameter]: chartConfig[selectedParameter],
@@ -202,7 +189,7 @@ export function HistoricalChart() {
       <CardHeader className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <CardTitle className="text-primary">Historical Data</CardTitle>
-            <CardDescription>Displaying average readings from the last 20 minutes.</CardDescription>
+            <CardDescription>Displaying average readings from the last 20 minutes for the selected pond.</CardDescription>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
             <Select value={selectedParameter} onValueChange={(value) => setSelectedParameter(value as ParameterKey)}>
@@ -225,7 +212,7 @@ export function HistoricalChart() {
         ) : chartData.length === 0 ? (
             <div className="h-[250px] w-full flex flex-col items-center justify-center text-center">
                 <p className="font-medium">No Historical Data</p>
-                <p className="text-sm text-muted-foreground">Waiting for the first data point to be saved...</p>
+                <p className="text-sm text-muted-foreground">Waiting for data or select a pond with data...</p>
             </div>
         ) : (
             <ChartContainer config={activeChartConfig} className="h-[250px] w-full">

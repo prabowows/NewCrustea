@@ -20,6 +20,7 @@ import { Separator } from '@/components/ui/separator';
 import { database } from '@/lib/firebase';
 import { ref, onValue, set } from 'firebase/database';
 import { useUser } from '@/hooks/use-user';
+import { usePond } from '@/context/PondContext';
 
 type Day = 'Sun' | 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat';
 
@@ -53,7 +54,9 @@ const daysOfWeek: { key: Day; label: string }[] = [
 
 export function AeratorControl() {
   const { user } = useUser();
-  const [aeratorDeviceId, setAeratorDeviceId] = useState<string | null>(null);
+  const { devices } = usePond();
+  const aeratorDeviceId = devices.aerator;
+
   const [isAeratorOn, setIsAeratorOn] = useState(false);
   const [aeratorDisplayStatus, setAeratorDisplayStatus] = useState('OFF');
   const [timeoutInput, setTimeoutInput] = useState('');
@@ -66,25 +69,6 @@ export function AeratorControl() {
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  useEffect(() => {
-    if (!mounted || !user) return;
-
-    const userDevicesRef = ref(database, `/User/${user.uid}`);
-    const unsubscribeDevices = onValue(userDevicesRef, (snapshot) => {
-      const devices = snapshot.val();
-      if (devices) {
-        const aerator = Object.keys(devices).find(
-          (key) => devices[key].tipe === 'AERATOR'
-        );
-        if (aerator) {
-          setAeratorDeviceId(aerator);
-        }
-      }
-    });
-
-    return () => unsubscribeDevices();
-  }, [mounted, user]);
 
   useEffect(() => {
     if (!aeratorDeviceId || !user) return;
@@ -242,7 +226,7 @@ export function AeratorControl() {
        <Card className="border-primary">
          <CardHeader>
            <CardTitle className="text-primary">Aerator Control</CardTitle>
-           <CardDescription>No aerator device found for your account.</CardDescription>
+           <CardDescription>No aerator device found for the selected pond.</CardDescription>
          </CardHeader>
        </Card>
      );
@@ -254,7 +238,7 @@ export function AeratorControl() {
       <CardHeader>
         <CardTitle className="text-primary">Aerator Control</CardTitle>
         <CardDescription>
-          Remotely manage the main aerator system.
+          Remotely manage the main aerator system for the selected pond.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

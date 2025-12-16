@@ -26,6 +26,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUser } from '@/hooks/use-user';
 import { useToast } from '@/hooks/use-toast';
+import { usePond } from '@/context/PondContext';
 
 const iconMap = {
   Power,
@@ -60,6 +61,8 @@ type GroupedMetric = {
 export function RealTimeMetrics() {
   const { user } = useUser();
   const { toast } = useToast();
+  const { devices } = usePond();
+  
   const [metrics, setMetrics] = useState<Metric[]>(initialMetrics);
   const [loading, setLoading] = useState(true);
   const [mounted, setMounted] = useState(false);
@@ -69,16 +72,57 @@ export function RealTimeMetrics() {
   }, []);
 
   useEffect(() => {
-    if (!mounted || !user) {
-        if (!user && mounted) {
-            setLoading(false);
-        }
-        return;
+    if (!mounted) return;
+
+    setLoading(true);
+    // Reset metrics to initial state when devices change
+    setMetrics(initialMetrics);
+
+    if (!user) {
+      setLoading(false);
+      return;
     }
 
-    const updateMetrics = (data: any, deviceType: 'EBII' | 'SE') => {
-      if (!data) return;
+    const deviceIds = Object.values(devices).filter(Boolean);
+    if (deviceIds.length === 0) {
+      setLoading(false);
+      return;
+    }
 
+    const listeners: any[] = [];
+
+    const setupListener = (deviceId: string, deviceType: 'EBII' | 'SE') => {
+      const deviceRef = ref(database, `/User/${user.uid}/${deviceId}/value`);
+      const listener = onValue(deviceRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          updateMetrics(data, deviceType);
+        }
+      }, (error) => {
+        console.error(`Firebase Read Error for ${deviceId}:`, error);
+        toast({
+          variant: "destructive",
+          title: "Error Reading Data",
+          description: `Could not read from device ${deviceId}. Check permissions.`
+        });
+      });
+      listeners.push({ ref: deviceRef, listener });
+    };
+
+    if (devices.ebii) setupListener(devices.ebii, 'EBII');
+    if (devices.se) setupListener(devices.se, 'SE');
+    
+    // Give a small delay for data to potentially load
+    const loadingTimeout = setTimeout(() => setLoading(false), 1500);
+
+    return () => {
+      clearTimeout(loadingTimeout);
+      listeners.forEach(({ ref, listener }) => off(ref, 'value', listener));
+    };
+  }, [mounted, user, devices, toast]);
+
+
+  const updateMetrics = (data: any, deviceType: 'EBII' | 'SE') => {
       setMetrics((prevMetrics) => {
         return prevMetrics.map((metric) => {
           const sourceMatch =
@@ -96,56 +140,7 @@ export function RealTimeMetrics() {
           return metric;
         });
       });
-      setLoading(false);
-    };
-
-    const userDevicesRef = ref(database, `/User/${user.uid}`);
-    
-    // Set up a single listener for all devices under the user
-    const unsubscribeDevices = onValue(
-      userDevicesRef,
-      (snapshot) => {
-        const devices = snapshot.val();
-        if (!devices) {
-          setLoading(false);
-          return;
-        }
-
-        let ebiiDataFound = false;
-        let seDataFound = false;
-
-        Object.keys(devices).forEach((deviceId) => {
-          const device = devices[deviceId];
-          if (device.tipe === 'EBII' && device.value) {
-            updateMetrics(device.value, 'EBII');
-            ebiiDataFound = true;
-          }
-          if (device.tipe === 'SE' && device.value) {
-            updateMetrics(device.value, 'SE');
-            seDataFound = true;
-          }
-        });
-        
-        if (ebiiDataFound || seDataFound) {
-            setLoading(false);
-        }
-      },
-      (error) => {
-        setLoading(false);
-        console.error("Firebase Read Error:", error);
-        toast({
-            variant: "destructive",
-            title: "Error Reading Data",
-            description: `Permission denied. Could not read from /User/${user.uid}. Please check your Realtime Database security rules.`
-        });
-      }
-    );
-
-    return () => {
-      // Detach the listener
-      off(userDevicesRef);
-    };
-  }, [mounted, user, toast]);
+  };
 
   const renderMetricCard = (metric: Metric) => {
     const Icon = iconMap[metric.icon as keyof typeof iconMap] || Power;
@@ -259,13 +254,13 @@ export function RealTimeMetrics() {
 
   return (
     <div className="space-y-6">
-      <div>
+       {devices.ebii && <div>
         <h3 className="text-lg font-semibold mb-4 text-primary">EBII System</h3>
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
           {ebiiMetrics.map(renderMetricCard)}
         </div>
-      </div>
-      <div>
+      </div>}
+       {devices.se && <div>
         <h3 className="text-lg font-semibold mb-4 text-primary">Smart Energy</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
           {Object.values(groupedEnergyMetrics).map((metric) => {
@@ -288,7 +283,14 @@ export function RealTimeMetrics() {
             );
           })}
         </div>
-      </div>
+      </div>}
+      {!devices.ebii && !devices.se && (
+        <Card>
+            <CardContent className="pt-6 text-center text-muted-foreground">
+                Tidak ada perangkat (EBII atau Smart Energy) yang terhubung dengan kolam ini.
+            </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

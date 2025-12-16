@@ -2,17 +2,20 @@
 "use client";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { usePond } from "@/context/PondContext";
 import { MapPin } from "lucide-react";
 
 export function LocationOverview() {
+  const { selectedPond } = usePond();
+  
   return (
     <Card className="border-primary">
       <CardHeader>
         <div className="flex items-center gap-4">
           <MapPin className="h-8 w-8 text-primary dark:text-green-400" />
           <div>
-            <CardTitle className="text-primary">Pond Location</CardTitle>
-            <CardDescription>BINUS University @Semarang</CardDescription>
+            <CardTitle className="text-primary">{selectedPond?.nama || 'Lokasi Kolam'}</CardTitle>
+            <CardDescription>{selectedPond?.lokasi || 'Pilih kolam untuk melihat lokasi'}</CardDescription>
           </div>
         </div>
       </CardHeader>
