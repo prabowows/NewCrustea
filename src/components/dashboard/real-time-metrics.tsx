@@ -82,8 +82,10 @@ export function RealTimeMetrics() {
       return;
     }
 
-    const deviceIds = Object.values(devices).filter(Boolean);
+    const deviceIds = Object.values(devices).filter(Boolean) as string[];
+    
     if (deviceIds.length === 0) {
+      setMetrics(initialMetrics); // Ensure values are N/A
       setLoading(false);
       return;
     }
@@ -106,7 +108,7 @@ export function RealTimeMetrics() {
         if (data) {
           updateMetrics(data, deviceType);
         }
-        checkDoneLoading(); // Mark this listener as having received its first data (or confirmed no data)
+        checkDoneLoading();
       }, (error) => {
         console.error(`Firebase Read Error for ${deviceId}:`, error);
         toast({
@@ -114,7 +116,7 @@ export function RealTimeMetrics() {
           title: "Error Reading Data",
           description: `Could not read from device ${deviceId}. Check permissions.`
         });
-        checkDoneLoading(); // Also counts as a completed load attempt, even if it fails
+        checkDoneLoading();
       });
       listeners.push({ ref: deviceRef, listener });
     };
@@ -260,13 +262,13 @@ export function RealTimeMetrics() {
 
   return (
     <div className="space-y-6">
-       {devices.ebii && <div>
+      <div>
         <h3 className="text-lg font-semibold mb-4 text-primary">EBII System</h3>
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
           {ebiiMetrics.map(renderMetricCard)}
         </div>
-      </div>}
-       {devices.se && <div>
+      </div>
+      <div>
         <h3 className="text-lg font-semibold mb-4 text-primary">Smart Energy</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
           {Object.values(groupedEnergyMetrics).map((metric) => {
@@ -289,14 +291,7 @@ export function RealTimeMetrics() {
             );
           })}
         </div>
-      </div>}
-      {!devices.ebii && !devices.se && (
-        <Card>
-            <CardContent className="pt-6 text-center text-muted-foreground">
-                Tidak ada perangkat (EBII atau Smart Energy) yang terhubung dengan kolam ini.
-            </CardContent>
-        </Card>
-      )}
+      </div>
     </div>
   );
 }
