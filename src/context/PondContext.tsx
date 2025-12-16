@@ -87,17 +87,28 @@ export function PondProvider({ children }: { children: ReactNode }) {
             return;
         };
 
-        // This is a placeholder for logic that links devices to a pond.
-        // For now, we assume the first found device of each type belongs to the pond.
-        // A better structure would be to have device IDs inside the pond object in the DB.
-        const findDevice = (type: string) => {
-            return Object.keys(allDevices).find(key => allDevices[key].tipe === type) || null;
+        const findDeviceKeyForPond = (type: string): string | null => {
+            return Object.keys(allDevices).find(key => 
+                allDevices[key].tipe === type && allDevices[key].id_kolam === selectedPond.id
+            ) || null;
+        };
+
+        // Handle Aerator which might be linked via Smart Control (SC)
+        const findAeratorDeviceKey = (): string | null => {
+            // First, find the Smart Control device for the pond
+            const scDeviceKey = findDeviceKeyForPond('SC');
+            if (!scDeviceKey) return null;
+
+            // Then, find an Aerator device linked to that Smart Control device
+            return Object.keys(allDevices).find(key => 
+                allDevices[key].tipe === 'AERATOR' && allDevices[key].id_sc === scDeviceKey
+            ) || null;
         }
 
         setDevices({
-            ebii: findDevice('EBII'),
-            se: findDevice('SE'),
-            aerator: findDevice('AERATOR')
+            ebii: findDeviceKeyForPond('EBII'),
+            se: findDeviceKeyForPond('SE'),
+            aerator: findAeratorDeviceKey()
         });
 
     }, [selectedPond, allDevices]);
