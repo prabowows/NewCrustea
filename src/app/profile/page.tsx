@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,11 +22,17 @@ type UserProfile = {
   email: string;
 };
 
+const initialFormData: Omit<UserProfile, 'email'> = {
+    name: '',
+    address: '',
+    phoneNumber: ''
+};
+
 export default function ProfilePage() {
   const { user, loading: authLoading } = useUser();
   const { toast } = useToast();
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [formData, setFormData] = useState<Omit<UserProfile, 'email'>>({ name: '', address: '', phoneNumber: ''});
+  const [formData, setFormData] = useState(initialFormData);
   const [loading, setLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
 
@@ -45,9 +52,9 @@ export default function ProfilePage() {
           const profileData = docSnap.data() as UserProfile;
           setProfile(profileData);
           setFormData({
-              name: profileData.name,
-              address: profileData.address,
-              phoneNumber: profileData.phoneNumber
+              name: profileData.name || '',
+              address: profileData.address || '',
+              phoneNumber: profileData.phoneNumber || ''
           });
         } else {
           console.log("No such document!");
@@ -102,9 +109,9 @@ export default function ProfilePage() {
   const handleCancel = () => {
     if (profile) {
         setFormData({
-            name: profile.name,
-            address: profile.address,
-            phoneNumber: profile.phoneNumber,
+            name: profile.name || '',
+            address: profile.address || '',
+            phoneNumber: profile.phoneNumber || '',
         });
     }
     setIsEditing(false);
@@ -161,7 +168,7 @@ export default function ProfilePage() {
     )
   }
 
-  const fallback = profile.name
+  const fallback = (profile.name || '')
     .split(' ')
     .map(n => n[0])
     .join('');
@@ -172,12 +179,12 @@ export default function ProfilePage() {
         <CardHeader>
           <div className="flex items-center gap-6">
             <Avatar className="h-20 w-20">
-              <AvatarImage src={`https://i.pravatar.cc/150?u=${user.uid}`} alt={profile.name} />
+              <AvatarImage src={`https://i.pravatar.cc/150?u=${user.uid}`} alt={profile.name || ''} />
               <AvatarFallback>{fallback}</AvatarFallback>
             </Avatar>
             <div className="space-y-1">
-                <CardTitle className="text-3xl">{profile.name}</CardTitle>
-                <CardDescription>{profile.email}</CardDescription>
+                <CardTitle className="text-3xl">{profile.name || 'User'}</CardTitle>
+                <CardDescription>{profile.email || ''}</CardDescription>
             </div>
           </div>
         </CardHeader>
@@ -196,7 +203,7 @@ export default function ProfilePage() {
             </div>
             <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" value={profile.email} readOnly />
+                <Input id="email" value={profile.email || ''} readOnly />
             </div>
             <div className="flex justify-end pt-4 gap-2">
                 {isEditing ? (
