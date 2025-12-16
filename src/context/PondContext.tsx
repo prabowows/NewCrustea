@@ -1,9 +1,9 @@
 
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { database } from '@/lib/firebase';
-import { ref, onValue, off } from 'firebase/database';
+import { ref, onValue, off, get } from 'firebase/database';
 import { useUser } from '@/hooks/use-user';
 
 type Pond = {
@@ -32,11 +32,12 @@ const PondContext = createContext<PondContextType | undefined>(undefined);
 export function PondProvider({ children }: { children: ReactNode }) {
     const { user } = useUser();
     const [ponds, setPonds] = useState<Pond[]>([]);
-    const [selectedPond, setSelectedPond] = useState<Pond | null>(null);
+    const [selectedPondId, setSelectedPondId] = useState<string | null>(null);
     const [allDevices, setAllDevices] = useState<any>({});
     const [devices, setDevices] = useState<Devices>({ ebii: null, se: null, aerator: null });
     const [loading, setLoading] = useState(true);
 
+    // Effect to fetch initial static data (ponds and devices list)
     useEffect(() => {
         if (!user) {
             setLoading(false);
@@ -46,7 +47,7 @@ export function PondProvider({ children }: { children: ReactNode }) {
         setLoading(true);
         const userRef = ref(database, `/User/${user.uid}`);
         
-        const listener = onValue(userRef, (snapshot) => {
+        get(userRef).then((snapshot) => {
             const data = snapshot.val();
             if (!data) {
                 setLoading(false);
@@ -58,7 +59,6 @@ export function PondProvider({ children }: { children: ReactNode }) {
 
             Object.keys(data).forEach(key => {
                 const item = data[key];
-                // Assuming ponds have a 'lokasi' property and devices have a 'tipe'
                 if (item.lokasi && item.nama) {
                     loadedPonds.push({ id: key, ...item });
                 } else if (item.tipe) {
@@ -69,24 +69,26 @@ export function PondProvider({ children }: { children: ReactNode }) {
             setPonds(loadedPonds);
             setAllDevices(loadedDevices);
 
-            if (loadedPonds.length > 0 && !selectedPond) {
-                setSelectedPond(loadedPonds[0]);
-            } else if (loadedPonds.length === 0) {
-                setSelectedPond(null);
+            // Set initial selected pond only if it hasn't been set
+            if (loadedPonds.length > 0 && !selectedPondId) {
+                setSelectedPondId(loadedPonds[0].id);
             }
+            
+            setLoading(false);
+        }).catch(error => {
+            console.error("Firebase initial data fetch error:", error);
             setLoading(false);
         });
 
-        return () => {
-            off(userRef, 'value', listener);
-        };
-    }, [user]);
+    }, [user, selectedPondId]); // Dependency on user is correct. selectedPondId is to help initial set.
 
+    // Effect to calculate devices for the selected pond
     useEffect(() => {
+        const selectedPond = ponds.find(p => p.id === selectedPondId);
         if (!selectedPond || Object.keys(allDevices).length === 0) {
             setDevices({ ebii: null, se: null, aerator: null });
             return;
-        };
+        }
 
         const findDeviceKeyForPond = (type: string): string | null => {
             const deviceKey = Object.keys(allDevices).find(key => 
@@ -110,16 +112,15 @@ export function PondProvider({ children }: { children: ReactNode }) {
             aerator: findAeratorDeviceKey()
         });
 
-    }, [selectedPond, allDevices]);
+    }, [selectedPondId, ponds, allDevices]);
 
-    const setSelectedPondId = (id: string) => {
-        const pond = ponds.find(p => p.id === id);
-        if (pond) {
-            setSelectedPond(pond);
-        }
+    const handleSetSelectedPondId = (id: string) => {
+        setSelectedPondId(id);
     };
 
-    const value = { ponds, selectedPond, setSelectedPondId, devices, loading };
+    const selectedPond = ponds.find(p => p.id === selectedPondId) || null;
+
+    const value = { ponds, selectedPond, setSelectedPondId: handleSetSelectedPondId, devices, loading };
 
     return <PondContext.Provider value={value}>{children}</PondContext.Provider>;
 }
