@@ -37,84 +37,94 @@ export function PondProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     // Effect to fetch initial static data (ponds and devices list)
+    // This runs only once when the user is available.
     useEffect(() => {
         if (!user) {
             setLoading(false);
             return;
         }
 
-        setLoading(true);
-        const userRef = ref(database, `/User/${user.uid}`);
-        
-        get(userRef).then((snapshot) => {
-            const data = snapshot.val();
-            if (!data) {
-                setLoading(false);
-                return;
-            }
+        const fetchInitialData = async () => {
+            setLoading(true);
+            try {
+                const userRef = ref(database, `/User/${user.uid}`);
+                const snapshot = await get(userRef);
+                const data = snapshot.val();
 
-            const loadedPonds: Pond[] = [];
-            const loadedDevices: any = {};
-
-            Object.keys(data).forEach(key => {
-                const item = data[key];
-                if (item.lokasi && item.nama) {
-                    loadedPonds.push({ id: key, ...item });
-                } else if (item.tipe) {
-                    loadedDevices[key] = item;
+                if (!data) {
+                    setPonds([]);
+                    setAllDevices({});
+                    return;
                 }
-            });
 
-            setPonds(loadedPonds);
-            setAllDevices(loadedDevices);
+                const loadedPonds: Pond[] = [];
+                const loadedDevices: any = {};
 
-            if (loadedPonds.length > 0 && !selectedPondId) {
-                setSelectedPondId(loadedPonds[0].id);
+                Object.keys(data).forEach(key => {
+                    const item = data[key];
+                    // Simple check to differentiate ponds from other objects
+                    if (item.lokasi && item.nama && !item.tipe) {
+                        loadedPonds.push({ id: key, ...item });
+                    } else if (item.tipe) { // It's a device
+                        loadedDevices[key] = item;
+                    }
+                });
+
+                setPonds(loadedPonds);
+                setAllDevices(loadedDevices);
+
+                // Set the initial selected pond ONLY if it hasn't been set yet.
+                if (loadedPonds.length > 0 && !selectedPondId) {
+                    setSelectedPondId(loadedPonds[0].id);
+                }
+            } catch (error) {
+                console.error("Firebase initial data fetch error:", error);
+                setPonds([]);
+                setAllDevices({});
+            } finally {
+                setLoading(false);
             }
-            
-            setLoading(false);
-        }).catch(error => {
-            console.error("Firebase initial data fetch error:", error);
-            setLoading(false);
-        });
+        };
 
+        fetchInitialData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
 
-    const findDeviceKeyForPond = useCallback((type: string, pondId: string): string | null => {
-        if (Object.keys(allDevices).length === 0 || !pondId) return null;
-        
-        const deviceKey = Object.keys(allDevices).find(key => 
-            allDevices[key].tipe === type && allDevices[key].id_kolam === pondId
-        );
-        return deviceKey || null;
-    }, [allDevices]);
-    
-    const findAeratorDeviceKey = useCallback((pondId: string): string | null => {
-        if (Object.keys(allDevices).length === 0 || !pondId) return null;
-        
-        const scDeviceKey = findDeviceKeyForPond('SC', pondId);
-        if (!scDeviceKey) return null;
 
-        return Object.keys(allDevices).find(key => 
-            allDevices[key].tipe === 'AERATOR' && allDevices[key].id_sc === scDeviceKey
-        ) || null;
-    }, [allDevices, findDeviceKeyForPond]);
-
-
-    // Effect to calculate devices for the selected pond
+    // Effect to update the devices for the selected pond.
+    // This runs whenever the selected pond ID changes or the list of all devices is updated.
     useEffect(() => {
-        if (!selectedPondId) {
+        if (!selectedPondId || Object.keys(allDevices).length === 0) {
             setDevices({ ebii: null, se: null, aerator: null });
             return;
         }
 
-        setDevices({
+        const findDeviceKeyForPond = (type: string, pondId: string): string | null => {
+            const deviceKey = Object.keys(allDevices).find(key => 
+                allDevices[key].tipe === type && allDevices[key].id_kolam === pondId
+            );
+            return deviceKey || null;
+        };
+        
+        const findAeratorDeviceKey = (pondId: string): string | null => {
+            const scDeviceKey = findDeviceKeyForPond('SC', pondId);
+            if (!scDeviceKey) return null;
+
+            return Object.keys(allDevices).find(key => 
+                allDevices[key].tipe === 'AERATOR' && allDevices[key].id_sc === scDeviceKey
+            ) || null;
+        };
+
+        const newDevices = {
             ebii: findDeviceKeyForPond('EBII', selectedPondId),
             se: findDeviceKeyForPond('SE', selectedPondId),
             aerator: findAeratorDeviceKey(selectedPondId)
-        });
+        };
 
-    }, [selectedPondId, findDeviceKeyForPond, findAeratorDeviceKey]);
+        setDevices(newDevices);
+
+    }, [selectedPondId, allDevices]);
+
 
     const handleSetSelectedPondId = (id: string) => {
         setSelectedPondId(id);
