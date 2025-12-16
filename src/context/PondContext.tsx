@@ -62,10 +62,9 @@ export function PondProvider({ children }: { children: ReactNode }) {
 
                 Object.keys(data).forEach(key => {
                     const item = data[key];
-                    // Simple check to differentiate ponds from other objects
                     if (item.lokasi && item.nama && !item.tipe) {
                         loadedPonds.push({ id: key, ...item });
-                    } else if (item.tipe) { // It's a device
+                    } else if (item.tipe) {
                         loadedDevices[key] = item;
                     }
                 });
@@ -73,8 +72,7 @@ export function PondProvider({ children }: { children: ReactNode }) {
                 setPonds(loadedPonds);
                 setAllDevices(loadedDevices);
 
-                // Set the initial selected pond ONLY if it hasn't been set yet.
-                if (loadedPonds.length > 0 && !selectedPondId) {
+                if (loadedPonds.length > 0) {
                     setSelectedPondId(loadedPonds[0].id);
                 }
             } catch (error) {
@@ -87,9 +85,7 @@ export function PondProvider({ children }: { children: ReactNode }) {
         };
 
         fetchInitialData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
-
 
     // Effect to update the devices for the selected pond.
     // This runs whenever the selected pond ID changes or the list of all devices is updated.
