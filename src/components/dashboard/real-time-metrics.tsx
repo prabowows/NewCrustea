@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { database } from '@/lib/firebase';
 import { ref, onValue, off, Unsubscribe } from 'firebase/database';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -40,7 +40,7 @@ const iconMap = {
 };
 
 const formatValue = (value: any, unit: string) => {
-  if (value === undefined || value === null || value === '') return 'N/A';
+  if (value === undefined || value === null || value === '' || value === 'N/A') return 'N/A';
   if (typeof value === 'number') {
     return `${value.toFixed(2)}${unit ? ` ${unit}` : ''}`;
   }
@@ -58,71 +58,94 @@ type GroupedMetric = {
   }[];
 };
 
+const initialEbiiMetrics = initialMetrics.filter((m) => m.source === 'water_quality');
+const initialEnergyMetrics = initialMetrics.filter((m) => m.source === 'listrik');
+
+
 export function RealTimeMetrics() {
   const { user } = useUser();
   const { toast } = useToast();
   const { devices, loading: isPondContextLoading } = usePond();
-  
-  const [metrics, setMetrics] = useState<Metric[]>(initialMetrics);
 
+  const [ebiiMetrics, setEbiiMetrics] = useState<Metric[]>(initialEbiiMetrics);
+  const [energyMetrics, setEnergyMetrics] = useState<Metric[]>(initialEnergyMetrics);
+
+  // Effect for EBII device
   useEffect(() => {
-    if (!user || isPondContextLoading) {
+    if (!user || !devices.ebii) {
+      setEbiiMetrics(initialEbiiMetrics); // Reset if no device
       return;
     }
-  
-    // Reset metrics to "N/A" when devices change (e.g., switching to an empty pond)
-    // before new listeners are attached.
-    setMetrics(initialMetrics);
     
-    const deviceIds = Object.values(devices).filter(Boolean) as string[];
-  
-    if (deviceIds.length === 0) {
-      // If no devices, ensure metrics are N/A. No listeners needed.
-      setMetrics(initialMetrics);
-      return;
-    }
-  
-    const listeners: Unsubscribe[] = [];
-  
-    deviceIds.forEach(deviceId => {
-      const deviceRef = ref(database, `/User/${user.uid}/${deviceId}/value`);
-      
-      const listener = onValue(deviceRef, (snapshot) => {
-        const data = snapshot.val();
-        if (data) {
-          setMetrics(prevMetrics => 
-            prevMetrics.map(metric => {
-              const deviceType = (devices.ebii === deviceId) ? 'water_quality' : 'listrik';
-              const sourceMatch = metric.source === deviceType;
-  
-              if (sourceMatch) {
-                const firebaseKey = metric.firebaseKey || metric.id;
-                const metricValue = data[firebaseKey];
-                if (metricValue !== undefined) {
-                  return { ...metric, value: formatValue(metricValue, metric.unit) };
-                }
-              }
-              return metric;
-            })
-          );
-        }
-      }, (error) => {
-        console.error(`Firebase Read Error for ${deviceId}:`, error);
-        toast({
-            variant: "destructive",
-            title: "Error Reading Data",
-            description: `Could not read from device ${deviceId}.`,
-        });
+    const deviceId = devices.ebii;
+    const deviceRef = ref(database, `/User/${user.uid}/${deviceId}/value`);
+    
+    const listener = onValue(deviceRef, (snapshot) => {
+      const data = snapshot.val();
+      setEbiiMetrics(prevMetrics => 
+        prevMetrics.map(metric => {
+          const firebaseKey = metric.firebaseKey || metric.id;
+          const metricValue = data?.[firebaseKey];
+          if (metricValue !== undefined) {
+            return { ...metric, value: formatValue(metricValue, metric.unit) };
+          }
+          return { ...metric, value: 'N/A' };
+        })
+      );
+    }, (error) => {
+      console.error(`Firebase Read Error for EBII ${deviceId}:`, error);
+      toast({
+          variant: "destructive",
+          title: "Error Reading EBII Data",
+          description: `Could not read from device ${deviceId}.`,
       });
-  
-      listeners.push(() => off(deviceRef, 'value', listener));
+      setEbiiMetrics(initialEbiiMetrics);
     });
-  
+
+    // Cleanup function: this is crucial. It runs when the component unmounts
+    // or when the dependencies (user, devices.ebii) change.
     return () => {
-      listeners.forEach(unsubscribe => unsubscribe());
+      off(deviceRef, 'value', listener);
     };
     
-  }, [user, devices, isPondContextLoading, toast]);
+  }, [user, devices.ebii, toast]);
+
+  // Effect for Smart Energy (SE) device
+  useEffect(() => {
+    if (!user || !devices.se) {
+      setEnergyMetrics(initialEnergyMetrics); // Reset if no device
+      return;
+    }
+    
+    const deviceId = devices.se;
+    const deviceRef = ref(database, `/User/${user.uid}/${deviceId}/value`);
+
+    const listener = onValue(deviceRef, (snapshot) => {
+      const data = snapshot.val();
+      setEnergyMetrics(prevMetrics => 
+        prevMetrics.map(metric => {
+            const firebaseKey = metric.firebaseKey || metric.id;
+            const metricValue = data?.[firebaseKey];
+            if (metricValue !== undefined) {
+              return { ...metric, value: formatValue(metricValue, metric.unit) };
+            }
+            return { ...metric, value: 'N/A' };
+        })
+      );
+    }, (error) => {
+      console.error(`Firebase Read Error for SE ${deviceId}:`, error);
+      toast({
+          variant: "destructive",
+          title: "Error Reading Energy Data",
+          description: `Could not read from device ${deviceId}.`,
+      });
+      setEnergyMetrics(initialEnergyMetrics);
+    });
+
+    return () => {
+      off(deviceRef, 'value', listener);
+    };
+  }, [user, devices.se, toast]);
 
 
   const renderMetricCard = (metric: Metric) => {
@@ -158,37 +181,36 @@ export function RealTimeMetrics() {
     );
   };
 
-  const ebiiMetrics = metrics.filter((m) =>
-    ['do', 'salinity', 'temperature', 'ph'].includes(m.id)
-  );
-  const smartEnergyMetrics = metrics.filter((m) => m.source === 'listrik');
+  const groupedEnergyMetrics = useMemo(() => {
+    return energyMetrics.reduce(
+      (acc, metric) => {
+        const baseName = metric.name.replace(/ \d+$/, '');
+        const phaseNumber = parseInt(metric.name.slice(-1), 10);
 
-  const groupedEnergyMetrics = smartEnergyMetrics.reduce(
-    (acc, metric) => {
-      const baseName = metric.name.replace(/ \d+$/, '');
-      const phaseNumber = parseInt(metric.name.slice(-1), 10);
+        if (isNaN(phaseNumber)) return acc;
 
-      if (!acc[baseName]) {
-        acc[baseName] = {
-          name: baseName,
-          icon: metric.icon,
-          description: metric.description.replace(/ for phase \d/, ''),
-          unit: metric.unit,
-          phases: [],
-        };
-      }
+        if (!acc[baseName]) {
+          acc[baseName] = {
+            name: baseName,
+            icon: metric.icon,
+            description: metric.description.replace(/ for phase \d/, ''),
+            unit: metric.unit,
+            phases: [],
+          };
+        }
 
-      acc[baseName].phases.push({
-        phase: phaseNumber,
-        value: metric.value,
-      });
+        acc[baseName].phases.push({
+          phase: phaseNumber,
+          value: metric.value,
+        });
 
-      acc[baseName].phases.sort((a, b) => a.phase - b.phase);
+        acc[baseName].phases.sort((a, b) => a.phase - b.phase);
 
-      return acc;
-    },
-    {} as Record<string, GroupedMetric>
-  );
+        return acc;
+      },
+      {} as Record<string, GroupedMetric>
+    );
+  }, [energyMetrics]);
 
   
   if (isPondContextLoading) {
