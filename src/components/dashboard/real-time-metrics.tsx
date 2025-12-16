@@ -26,7 +26,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useUser } from '@/hooks/use-user';
 import { useToast } from '@/hooks/use-toast';
-import { usePond } from '@/context/PondContext';
+import { usePond, AllDevices } from '@/context/PondContext';
 
 const iconMap = {
   Power,
@@ -65,60 +65,73 @@ const initialEnergyMetrics = initialMetrics.filter((m) => m.source === 'listrik'
 export function RealTimeMetrics() {
   const { user } = useUser();
   const { toast } = useToast();
-  const { devices, loading: isPondContextLoading } = usePond();
+  const { selectedPondId, allDevices, loading: isPondContextLoading } = usePond();
 
   const [ebiiMetrics, setEbiiMetrics] = useState<Metric[]>(initialEbiiMetrics);
   const [energyMetrics, setEnergyMetrics] = useState<Metric[]>(initialEnergyMetrics);
 
+  const deviceIds = useMemo(() => {
+    if (!selectedPondId || Object.keys(allDevices).length === 0) {
+        return { ebii: null, se: null };
+    }
+
+    const findDeviceKey = (type: string, pondId: string): string | null => {
+        return Object.keys(allDevices).find(key => 
+            allDevices[key].tipe === type && allDevices[key].id_kolam === pondId
+        ) || null;
+    };
+
+    return {
+        ebii: findDeviceKey('EBII', selectedPondId),
+        se: findDeviceKey('SE', selectedPondId)
+    };
+  }, [selectedPondId, allDevices]);
+
+
   // Effect for EBII device
   useEffect(() => {
-    if (!user || !devices.ebii) {
-      setEbiiMetrics(initialEbiiMetrics); // Reset if no device
+    if (!user || !deviceIds.ebii) {
+      setEbiiMetrics(initialEbiiMetrics); // Reset to N/A if no device
       return;
     }
-    
-    const deviceId = devices.ebii;
-    const deviceRef = ref(database, `/User/${user.uid}/${deviceId}/value`);
+
+    const deviceRef = ref(database, `/User/${user.uid}/${deviceIds.ebii}/value`);
     
     const listener = onValue(deviceRef, (snapshot) => {
       const data = snapshot.val();
       setEbiiMetrics(prevMetrics => 
         prevMetrics.map(metric => {
           const firebaseKey = metric.firebaseKey || metric.id;
+          // Use data if it exists, otherwise keep 'N/A'
           const metricValue = data?.[firebaseKey];
-          if (metricValue !== undefined) {
-            return { ...metric, value: formatValue(metricValue, metric.unit) };
-          }
-          return { ...metric, value: 'N/A' };
+          return { ...metric, value: formatValue(metricValue, metric.unit) };
         })
       );
     }, (error) => {
-      console.error(`Firebase Read Error for EBII ${deviceId}:`, error);
+      console.error(`Firebase Read Error for EBII ${deviceIds.ebii}:`, error);
       toast({
           variant: "destructive",
           title: "Error Reading EBII Data",
-          description: `Could not read from device ${deviceId}.`,
+          description: `Could not read from device ${deviceIds.ebii}.`,
       });
-      setEbiiMetrics(initialEbiiMetrics);
+      setEbiiMetrics(initialEbiiMetrics); // Reset on error
     });
 
-    // Cleanup function: this is crucial. It runs when the component unmounts
-    // or when the dependencies (user, devices.ebii) change.
+    // CRITICAL: Cleanup function to remove the listener
     return () => {
       off(deviceRef, 'value', listener);
     };
     
-  }, [user, devices.ebii, toast]);
+  }, [user, deviceIds.ebii, toast]);
 
   // Effect for Smart Energy (SE) device
   useEffect(() => {
-    if (!user || !devices.se) {
-      setEnergyMetrics(initialEnergyMetrics); // Reset if no device
+    if (!user || !deviceIds.se) {
+      setEnergyMetrics(initialEnergyMetrics); // Reset to N/A if no device
       return;
     }
     
-    const deviceId = devices.se;
-    const deviceRef = ref(database, `/User/${user.uid}/${deviceId}/value`);
+    const deviceRef = ref(database, `/User/${user.uid}/${deviceIds.se}/value`);
 
     const listener = onValue(deviceRef, (snapshot) => {
       const data = snapshot.val();
@@ -126,26 +139,24 @@ export function RealTimeMetrics() {
         prevMetrics.map(metric => {
             const firebaseKey = metric.firebaseKey || metric.id;
             const metricValue = data?.[firebaseKey];
-            if (metricValue !== undefined) {
-              return { ...metric, value: formatValue(metricValue, metric.unit) };
-            }
-            return { ...metric, value: 'N/A' };
+            return { ...metric, value: formatValue(metricValue, metric.unit) };
         })
       );
     }, (error) => {
-      console.error(`Firebase Read Error for SE ${deviceId}:`, error);
+      console.error(`Firebase Read Error for SE ${deviceIds.se}:`, error);
       toast({
           variant: "destructive",
           title: "Error Reading Energy Data",
-          description: `Could not read from device ${deviceId}.`,
+          description: `Could not read from device ${deviceIds.se}.`,
       });
-      setEnergyMetrics(initialEnergyMetrics);
+      setEnergyMetrics(initialEnergyMetrics); // Reset on error
     });
 
+    // CRITICAL: Cleanup function to remove the listener
     return () => {
       off(deviceRef, 'value', listener);
     };
-  }, [user, devices.se, toast]);
+  }, [user, deviceIds.se, toast]);
 
 
   const renderMetricCard = (metric: Metric) => {

@@ -10,7 +10,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,7 +18,7 @@ import { Power, CalendarDays, Wifi } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { database } from '@/lib/firebase';
-import { ref, onValue, set } from 'firebase/database';
+import { ref, onValue, set, off } from 'firebase/database';
 import { useUser } from '@/hooks/use-user';
 import { usePond } from '@/context/PondContext';
 
@@ -54,8 +54,23 @@ const daysOfWeek: { key: Day; label: string }[] = [
 
 export function AeratorControl() {
   const { user } = useUser();
-  const { devices } = usePond();
-  const aeratorDeviceId = devices.aerator;
+  const { selectedPondId, allDevices } = usePond();
+
+  const aeratorDeviceId = useMemo(() => {
+    if (!selectedPondId || Object.keys(allDevices).length === 0) return null;
+    
+    // Find the Smart Control device for the current pond
+    const scDeviceKey = Object.keys(allDevices).find(key => 
+        allDevices[key].tipe === 'SC' && allDevices[key].id_kolam === selectedPondId
+    );
+
+    if (!scDeviceKey) return null;
+
+    // Find the Aerator device linked to that Smart Control device
+    return Object.keys(allDevices).find(key => 
+        allDevices[key].tipe === 'AERATOR' && allDevices[key].id_sc === scDeviceKey
+    ) || null;
+  }, [selectedPondId, allDevices]);
 
   const [isAeratorOn, setIsAeratorOn] = useState(false);
   const [aeratorDisplayStatus, setAeratorDisplayStatus] = useState('OFF');
@@ -71,7 +86,11 @@ export function AeratorControl() {
   }, []);
 
   useEffect(() => {
-    if (!aeratorDeviceId || !user) return;
+    if (!aeratorDeviceId || !user) {
+      setIsAeratorOn(false);
+      setAeratorDisplayStatus('OFF');
+      return;
+    };
 
     const aeratorValueRef = ref(
       database,
@@ -84,6 +103,9 @@ export function AeratorControl() {
         if (value) {
           setIsAeratorOn(value.power || false);
           setAeratorDisplayStatus(value.status || 'OFF');
+        } else {
+          setIsAeratorOn(false);
+          setAeratorDisplayStatus('OFF');
         }
       },
       (error) => {
@@ -97,30 +119,28 @@ export function AeratorControl() {
     );
 
     return () => {
-      unsubscribeStatus();
+      off(aeratorValueRef, 'value', unsubscribeStatus);
     };
   }, [aeratorDeviceId, user, toast]);
 
   useEffect(() => {
-    if (!isTimerRunning || countdown <= 0) {
-      if (isTimerRunning) {
+    let timer: NodeJS.Timeout;
+    if (isTimerRunning && countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prevCountdown) => prevCountdown - 1);
+      }, 1000);
+    } else if (isTimerRunning && countdown <= 0) {
         toast({
           title: 'Timer Finished',
           description: 'Aerator has been turned off.',
         });
         handleToggleAerator(false);
-      }
-      setIsTimerRunning(false);
-      setCountdown(0);
-      return;
+        setIsTimerRunning(false);
+        setCountdown(0);
     }
-
-    const timer = setInterval(() => {
-      setCountdown((prevCountdown) => prevCountdown - 1);
-    }, 1000);
-
     return () => clearInterval(timer);
-  }, [isTimerRunning, countdown, toast]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isTimerRunning, countdown]);
 
   if (!mounted) {
     return null;
