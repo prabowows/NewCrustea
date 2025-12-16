@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { database } from '@/lib/firebase';
 import { ref, get } from 'firebase/database';
 import { useUser } from '@/hooks/use-user';
@@ -9,7 +9,6 @@ type Pond = {
     id: string;
     nama: string;
     lokasi: string;
-    // other pond properties
 };
 
 type Devices = {
@@ -37,7 +36,6 @@ export function PondProvider({ children }: { children: ReactNode }) {
     const [loading, setLoading] = useState(true);
 
     // Effect to fetch initial static data (ponds and devices list)
-    // This runs only once when the user is available.
     useEffect(() => {
         if (!user) {
             setLoading(false);
@@ -72,7 +70,7 @@ export function PondProvider({ children }: { children: ReactNode }) {
                 setPonds(loadedPonds);
                 setAllDevices(loadedDevices);
 
-                if (loadedPonds.length > 0) {
+                if (loadedPonds.length > 0 && !selectedPondId) {
                     setSelectedPondId(loadedPonds[0].id);
                 }
             } catch (error) {
@@ -85,10 +83,9 @@ export function PondProvider({ children }: { children: ReactNode }) {
         };
 
         fetchInitialData();
-    }, [user]);
+    }, [user, selectedPondId]);
 
     // Effect to update the devices for the selected pond.
-    // This runs whenever the selected pond ID changes or the list of all devices is updated.
     useEffect(() => {
         if (!selectedPondId || Object.keys(allDevices).length === 0) {
             setDevices({ ebii: null, se: null, aerator: null });
@@ -111,7 +108,7 @@ export function PondProvider({ children }: { children: ReactNode }) {
             ) || null;
         };
 
-        const newDevices = {
+        const newDevices: Devices = {
             ebii: findDeviceKeyForPond('EBII', selectedPondId),
             se: findDeviceKeyForPond('SE', selectedPondId),
             aerator: findAeratorDeviceKey(selectedPondId)
