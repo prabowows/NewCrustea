@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { database } from '@/lib/firebase';
 import { ref, get } from 'firebase/database';
 import { useUser } from '@/hooks/use-user';
@@ -17,6 +17,14 @@ type Devices = {
     aerator: string | null;
 }
 
+type AllDevices = {
+    [key: string]: {
+        tipe: string;
+        id_kolam?: string;
+        id_sc?: string;
+    }
+}
+
 type PondContextType = {
     ponds: Pond[];
     selectedPond: Pond | null;
@@ -31,7 +39,7 @@ export function PondProvider({ children }: { children: ReactNode }) {
     const { user } = useUser();
     const [ponds, setPonds] = useState<Pond[]>([]);
     const [selectedPondId, setSelectedPondId] = useState<string | null>(null);
-    const [allDevices, setAllDevices] = useState<any>({});
+    const [allDevices, setAllDevices] = useState<AllDevices>({});
     const [devices, setDevices] = useState<Devices>({ ebii: null, se: null, aerator: null });
     const [loading, setLoading] = useState(true);
 
@@ -56,7 +64,7 @@ export function PondProvider({ children }: { children: ReactNode }) {
                 }
 
                 const loadedPonds: Pond[] = [];
-                const loadedDevices: any = {};
+                const loadedDevices: AllDevices = {};
 
                 Object.keys(data).forEach(key => {
                     const item = data[key];
@@ -70,7 +78,6 @@ export function PondProvider({ children }: { children: ReactNode }) {
                 setPonds(loadedPonds);
                 setAllDevices(loadedDevices);
 
-                // Set initial pond selection
                 if (loadedPonds.length > 0) {
                     setSelectedPondId(loadedPonds[0].id);
                 }
@@ -86,7 +93,7 @@ export function PondProvider({ children }: { children: ReactNode }) {
         fetchInitialData();
     }, [user]);
 
-    // Effect 2: Update devices whenever selectedPondId or allDevices list changes
+    // Effect 2: Update devices whenever selectedPondId or the list of allDevices changes.
     useEffect(() => {
         if (!selectedPondId || Object.keys(allDevices).length === 0) {
             setDevices({ ebii: null, se: null, aerator: null });
@@ -98,11 +105,13 @@ export function PondProvider({ children }: { children: ReactNode }) {
                 allDevices[key].tipe === type && allDevices[key].id_kolam === pondId
             ) || null;
         };
-        
+
         const findAeratorDeviceKey = (pondId: string): string | null => {
+            // First find the SC device for the pond
             const scDeviceKey = findDeviceKeyForPond('SC', pondId);
             if (!scDeviceKey) return null;
 
+            // Then find the Aerator device linked to that SC device
             return Object.keys(allDevices).find(key => 
                 allDevices[key].tipe === 'AERATOR' && allDevices[key].id_sc === scDeviceKey
             ) || null;
