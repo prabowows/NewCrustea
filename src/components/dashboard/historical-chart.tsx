@@ -70,6 +70,8 @@ export function HistoricalChart() {
 
   // Setup listeners and intervals once user and device ID are available
    useEffect(() => {
+    // Temporarily disabled Firestore interactions
+    /*
     if (!user || !ebiiDeviceId || !selectedPond) {
       if(dataListenerIntervalRef.current) clearInterval(dataListenerIntervalRef.current);
       return;
@@ -129,11 +131,16 @@ export function HistoricalChart() {
         clearInterval(dataListenerIntervalRef.current);
       }
     };
+    */
 
   }, [user, ebiiDeviceId, selectedPond]);
 
   // Listen to Firestore for historical data to display in the chart
   useEffect(() => {
+    // Temporarily disabled Firestore interactions
+    setChartData([]);
+    setLoading(false);
+    /*
     if (!selectedPond?.id) {
         setChartData([]);
         setLoading(false);
@@ -176,6 +183,7 @@ export function HistoricalChart() {
     });
 
     return () => unsubscribe();
+    */
   }, [selectedPond]);
 
   const activeChartConfig = {
@@ -212,7 +220,7 @@ export function HistoricalChart() {
         ) : chartData.length === 0 ? (
             <div className="h-[250px] w-full flex flex-col items-center justify-center text-center">
                 <p className="font-medium">No Historical Data</p>
-                <p className="text-sm text-muted-foreground">Waiting for data or select a pond with data...</p>
+                <p className="text-sm text-muted-foreground">Fitur data historis dinonaktifkan sementara.</p>
             </div>
         ) : (
             <ChartContainer config={activeChartConfig} className="h-[250px] w-full">
