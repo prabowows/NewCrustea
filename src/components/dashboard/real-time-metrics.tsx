@@ -99,6 +99,12 @@ export function RealTimeMetrics() {
             setLoading(false);
         }
     };
+    
+    // This is the key fix: If there are no devices, we must stop loading immediately.
+    if (initialLoadsPending === 0) {
+      setLoading(false);
+      return;
+    }
 
     const setupListener = (deviceId: string, deviceType: 'EBII' | 'SE') => {
       const deviceRef = ref(database, `/User/${user.uid}/${deviceId}/value`);
