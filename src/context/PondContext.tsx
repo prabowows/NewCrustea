@@ -88,9 +88,19 @@ export function PondProvider({ children }: { children: ReactNode }) {
         };
 
         const findDeviceKeyForPond = (type: string): string | null => {
-            return Object.keys(allDevices).find(key => 
+            // First, try to find a device with a matching id_kolam
+            let deviceKey = Object.keys(allDevices).find(key => 
                 allDevices[key].tipe === type && allDevices[key].id_kolam === selectedPond.id
-            ) || null;
+            );
+            
+            // If not found, as a fallback, find the first device of that type without an id_kolam
+            if (!deviceKey) {
+                 deviceKey = Object.keys(allDevices).find(key => 
+                    allDevices[key].tipe === type && !allDevices[key].id_kolam
+                );
+            }
+
+            return deviceKey || null;
         };
 
         // Handle Aerator which might be linked via Smart Control (SC)
