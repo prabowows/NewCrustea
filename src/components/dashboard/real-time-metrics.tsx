@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { database } from '@/lib/firebase';
 import { ref, onValue, off, Unsubscribe } from 'firebase/database';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -64,38 +64,25 @@ export function RealTimeMetrics() {
   const { devices, loading: isPondContextLoading } = usePond();
   
   const [metrics, setMetrics] = useState<Metric[]>(initialMetrics);
-  const [loading, setLoading] = useState(true);
 
-  // Effect to handle setting up and tearing down Firebase listeners
   useEffect(() => {
-    // Show loading skeleton while context is loading or user is not available
-    if (isPondContextLoading || !user) {
-      setLoading(true);
+    if (!user || isPondContextLoading) {
       return;
     }
   
+    // Reset metrics to "N/A" when devices change (e.g., switching to an empty pond)
+    // before new listeners are attached.
+    setMetrics(initialMetrics);
+    
     const deviceIds = Object.values(devices).filter(Boolean) as string[];
   
-    // If no devices are found for the selected pond, reset to N/A and stop loading.
     if (deviceIds.length === 0) {
+      // If no devices, ensure metrics are N/A. No listeners needed.
       setMetrics(initialMetrics);
-      setLoading(false);
       return;
     }
   
     const listeners: Unsubscribe[] = [];
-  
-    // A flag to ensure we only stop the initial loading once.
-    let initialLoadsPending = deviceIds.length;
-    const checkDoneLoading = () => {
-      initialLoadsPending--;
-      if (initialLoadsPending <= 0) {
-        setLoading(false);
-      }
-    };
-    
-    // Set loading to true when we start fetching new device data
-    setLoading(true);
   
     deviceIds.forEach(deviceId => {
       const deviceRef = ref(database, `/User/${user.uid}/${deviceId}/value`);
@@ -119,7 +106,6 @@ export function RealTimeMetrics() {
             })
           );
         }
-        checkDoneLoading();
       }, (error) => {
         console.error(`Firebase Read Error for ${deviceId}:`, error);
         toast({
@@ -127,14 +113,11 @@ export function RealTimeMetrics() {
             title: "Error Reading Data",
             description: `Could not read from device ${deviceId}.`,
         });
-        checkDoneLoading();
       });
   
       listeners.push(() => off(deviceRef, 'value', listener));
     });
   
-    // Cleanup function: This is crucial.
-    // It runs when the component unmounts OR when dependencies change.
     return () => {
       listeners.forEach(unsubscribe => unsubscribe());
     };
@@ -208,7 +191,7 @@ export function RealTimeMetrics() {
   );
 
   
-  if (loading) {
+  if (isPondContextLoading) {
     return (
       <div className="space-y-6">
         <div>
