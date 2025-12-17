@@ -9,10 +9,10 @@ import { CartesianGrid, Area, AreaChart, XAxis, YAxis, ResponsiveContainer } fro
 import { format } from 'date-fns';
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/hooks/use-user";
-import { db } from "@/lib/firebase"; // Keep Firestore for historical data
-import { collection, query, where, orderBy, limit, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
-import { errorEmitter } from "@/lib/error-emitter";
-import { FirestorePermissionError } from "@/lib/errors";
+// import { db } from "@/lib/firebase"; // Keep Firestore for historical data
+// import { collection, query, where, orderBy, limit, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
+// import { errorEmitter } from "@/lib/error-emitter";
+// import { FirestorePermissionError } from "@/lib/errors";
 import { usePond } from "@/context/PondContext";
 import { database } from '@/lib/firebase'; // Import RTDB
 import { ref, onValue, off } from 'firebase/database'; // Import RTDB functions
@@ -70,7 +70,7 @@ export function HistoricalChart() {
 
 
   const [chartData, setChartData] = useState<ChartData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Set to false as it's disabled
   const [selectedParameter, setSelectedParameter] = useState<ParameterKey>('do');
   
   const readingsBufferRef = useRef<RealtimeReading[]>([]);
@@ -93,7 +93,8 @@ export function HistoricalChart() {
       }
     });
 
-    // Interval to process and save data to Firestore
+    /*
+    // Interval to process and save data to Firestore (DISABLED)
     dataListenerIntervalRef.current = setInterval(() => {
       const readings = [...readingsBufferRef.current];
       if (readings.length === 0) return;
@@ -111,7 +112,6 @@ export function HistoricalChart() {
       const count = readings.length;
       const newLogData = {
           pondId: selectedPondId,
-          // pondName: selectedPond.nama, // selectedPond is not available here, but we have the ID
           avg_do: avg.do / count,
           avg_ph: avg.ph / count,
           avg_tds: avg.tds / count,
@@ -131,6 +131,7 @@ export function HistoricalChart() {
         });
 
     }, 60000); // 60 seconds
+    */
 
     return () => {
       off(deviceDataRef, 'value', rt_listener);
@@ -141,8 +142,9 @@ export function HistoricalChart() {
     
   }, [user, ebiiDeviceId, selectedPondId]);
 
-  // Listen to Firestore for historical data to display in the chart
+  // Listen to Firestore for historical data to display in the chart (DISABLED)
   useEffect(() => {
+    /*
     if (!selectedPondId) {
         setChartData([]);
         setLoading(false);
@@ -185,7 +187,7 @@ export function HistoricalChart() {
     });
 
     return () => unsubscribe();
-    
+    */
   }, [selectedPondId]);
 
   const activeChartConfig = {
@@ -199,7 +201,7 @@ export function HistoricalChart() {
       <CardHeader className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <CardTitle className="text-primary">Historical Data</CardTitle>
-            <CardDescription>Displaying average readings from the last 20 minutes for the selected pond.</CardDescription>
+            <CardDescription>Displaying average readings from the last 20 minutes for the selected pond. (Feature temporarily disabled)</CardDescription>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
             <Select value={selectedParameter} onValueChange={(value) => setSelectedParameter(value as ParameterKey)}>
@@ -219,80 +221,11 @@ export function HistoricalChart() {
             <div className="h-[250px] w-full flex items-center justify-center">
                 <Skeleton className="h-full w-full" />
             </div>
-        ) : chartData.length === 0 ? (
-            <div className="h-[250px] w-full flex flex-col items-center justify-center text-center">
-                <p className="font-medium">No Historical Data</p>
-                <p className="text-sm text-muted-foreground">There is no historical data available for this pond yet.</p>
-            </div>
         ) : (
-            <ChartContainer config={activeChartConfig} className="h-[250px] w-full">
-            <ResponsiveContainer>
-                <AreaChart
-                data={chartData}
-                margin={{
-                    top: 5,
-                    right: 10,
-                    left: -10,
-                    bottom: 0,
-                }}
-                >
-                <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                <XAxis
-                    dataKey="time"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    fontSize={12}
-                />
-                <YAxis 
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                    tickFormatter={(value) => `${value.toFixed(1)}`}
-                    fontSize={12}
-                    domain={['dataMin - 1', 'dataMax + 1']}
-                />
-                <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent 
-                        indicator="dot" 
-                        formatter={(value, name, item) => {
-                            const config = chartConfig[selectedParameter];
-                            if (!config) return null;
-                            const unitLabel = config.label.match(/\(([^)]+)\)/);
-                            const unit = unitLabel ? unitLabel[1] : '';
-                            return (
-                                <div className="flex flex-col">
-                                    <span className="font-semibold text-foreground">
-                                        {`${(value as number).toFixed(2)} ${unit}`}
-                                    </span>
-                                    <span className="text-sm text-muted-foreground">
-                                        {item.payload.time}
-                                    </span>
-                                </div>
-                            );
-                        }}
-                    />}
-                />
-                <defs>
-                    <linearGradient id={uniqueGradientId} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={chartConfig[selectedParameter].color} stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor={chartConfig[selectedParameter].color} stopOpacity={0}/>
-                    </linearGradient>
-                </defs>
-                <Area
-                    type="monotone"
-                    dataKey={selectedParameter}
-                    stroke={chartConfig[selectedParameter].color}
-                    fillOpacity={1}
-                    fill={`url(#${uniqueGradientId})`}
-                    strokeWidth={2}
-                    dot={{ r: 4, fill: chartConfig[selectedParameter].color }}
-                    activeDot={{ r: 6 }}
-                />
-                </AreaChart>
-            </ResponsiveContainer>
-            </ChartContainer>
+            <div className="h-[250px] w-full flex flex-col items-center justify-center text-center">
+                <p className="font-medium">Historical Data Disabled</p>
+                <p className="text-sm text-muted-foreground">This feature is temporarily unavailable.</p>
+            </div>
         )}
       </CardContent>
     </Card>
