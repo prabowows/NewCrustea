@@ -1,3 +1,4 @@
+
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
@@ -106,15 +107,17 @@ export function PondProvider({ children }: { children: ReactNode }) {
             setPondDevices(pondDevicesSnap.val() || {});
             setScDevices(scDevicesSnap.val() || {});
 
-            // Set initial selected pond if not already set or invalid
-            if (userPonds.length > 0) {
-                const currentPondExists = userPonds.some(p => p.id === selectedPondId);
-                if (!currentPondExists) {
-                    setSelectedPondId(userPonds[0].id);
+            // Set initial selected pond ONLY if it's not already set
+            setSelectedPondId(prevSelectedPondId => {
+                if (userPonds.length > 0) {
+                    const currentPondExists = userPonds.some(p => p.id === prevSelectedPondId);
+                    if (!currentPondExists) {
+                        return userPonds[0].id; // Default to first pond if current is invalid or null
+                    }
+                    return prevSelectedPondId; // Keep the existing valid selection
                 }
-            } else {
-                setSelectedPondId(null);
-            }
+                return null; // No ponds, so no selection
+            });
 
         } catch (error) {
             console.error("Firebase initial data fetch error:", error);
@@ -125,7 +128,6 @@ export function PondProvider({ children }: { children: ReactNode }) {
         } finally {
             setLoading(false);
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
 
     useEffect(() => {
