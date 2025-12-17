@@ -110,13 +110,14 @@ export function PondProvider({ children }: { children: ReactNode }) {
             // Set initial selected pond ONLY if it's not already set
             setSelectedPondId(prevSelectedPondId => {
                 if (userPonds.length > 0) {
+                    // If there's no selection yet, or if the current selection is no longer valid, default to the first pond.
                     const currentPondExists = userPonds.some(p => p.id === prevSelectedPondId);
-                    if (!currentPondExists) {
-                        return userPonds[0].id; // Default to first pond if current is invalid or null
+                    if (!prevSelectedPondId || !currentPondExists) {
+                        return userPonds[0].id; 
                     }
-                    return prevSelectedPondId; // Keep the existing valid selection
+                    return prevSelectedPondId; // Keep the existing valid selection.
                 }
-                return null; // No ponds, so no selection
+                return null; // No ponds, so no selection.
             });
 
         } catch (error) {

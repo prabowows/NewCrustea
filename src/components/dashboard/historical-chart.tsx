@@ -4,48 +4,19 @@
 import { useEffect, useState, useRef, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
-import { CartesianGrid, Area, AreaChart, XAxis, YAxis, ResponsiveContainer } from "recharts";
-import { format } from 'date-fns';
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/hooks/use-user";
-// import { db } from "@/lib/firebase"; // Keep Firestore for historical data
-// import { collection, query, where, orderBy, limit, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
-// import { errorEmitter } from "@/lib/error-emitter";
-// import { FirestorePermissionError } from "@/lib/errors";
 import { usePond } from "@/context/PondContext";
-import { database } from '@/lib/firebase'; // Import RTDB
-import { ref, onValue, off } from 'firebase/database'; // Import RTDB functions
+import { database } from '@/lib/firebase';
+import { ref, onValue, off } from 'firebase/database';
 
 type ParameterKey = 'do' | 'ph' | 'temp' | 'tds';
-
-type ChartData = {
-    time: string;
-    do: number;
-    ph: number;
-    temp: number;
-    tds: number;
-};
 
 type RealtimeReading = {
   do: number;
   ph: number;
   tds: number;
   temp: number;
-};
-
-type ChartConfig = {
-  [key in ParameterKey]: {
-    label: string;
-    color: string;
-  };
-};
-
-const chartConfig: ChartConfig = {
-  do: { label: "DO (mg/L)", color: "hsl(var(--chart-1))" },
-  ph: { label: "pH", color: "hsl(var(--chart-2))" },
-  temp: { label: "Temp (°C)", color: "hsl(var(--chart-3))" },
-  tds: { label: "TDS (ppm)", color: "hsl(var(--destructive))" },
 };
 
 const parameterOptions: { value: ParameterKey, label: string }[] = [
@@ -59,152 +30,56 @@ const parameterOptions: { value: ParameterKey, label: string }[] = [
 export function HistoricalChart() {
   const { user } = useUser();
   const { selectedPondId, allDevices, pondDevices } = usePond();
+  const [loading] = useState(false); // Kept for consistency, but feature is disabled.
+  const [selectedParameter, setSelectedParameter] = useState<ParameterKey>('do');
 
   const ebiiDeviceId = useMemo(() => {
     if (!selectedPondId || !pondDevices[selectedPondId]) return null;
-
     const devicesInPond = pondDevices[selectedPondId];
     return Object.keys(devicesInPond).find(key => allDevices[key]?.tipe === 'EBII') || null;
-
   }, [selectedPondId, allDevices, pondDevices]);
-
-
-  const [chartData, setChartData] = useState<ChartData[]>([]);
-  const [loading, setLoading] = useState(false); // Set to false as it's disabled
-  const [selectedParameter, setSelectedParameter] = useState<ParameterKey>('do');
   
   const readingsBufferRef = useRef<RealtimeReading[]>([]);
-  const dataListenerIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
-  // Setup listeners and intervals once user and device ID are available
+  
+  // This useEffect now correctly cleans up the RTDB listener.
   useEffect(() => {
+    // 1. Guard clause: Do nothing if user or device ID is missing.
     if (!user || !ebiiDeviceId || !selectedPondId) {
-      if(dataListenerIntervalRef.current) clearInterval(dataListenerIntervalRef.current);
       readingsBufferRef.current = [];
       return;
     }
 
-    // Listener for real-time data from RTDB
+    // 2. Define the specific path for the listener.
     const deviceDataRef = ref(database, `/device_data/${ebiiDeviceId}`);
+    
+    // 3. Set up the new listener to populate a buffer (logic is paused but listener is managed).
     const rt_listener = onValue(deviceDataRef, (snapshot) => {
       const value = snapshot.val();
       if (value && typeof value.do === 'number') { 
+        // NOTE: This buffer is not currently used to save data, 
+        // but the listener management is crucial.
         readingsBufferRef.current.push(value);
       }
     });
 
-    /*
-    // Interval to process and save data to Firestore (DISABLED)
-    dataListenerIntervalRef.current = setInterval(() => {
-      const readings = [...readingsBufferRef.current];
-      if (readings.length === 0) return;
-
-      readingsBufferRef.current = [];
-
-      const avg = readings.reduce((acc, curr) => {
-        acc.do += curr.do;
-        acc.ph += curr.ph;
-        acc.tds += curr.tds;
-        acc.temp += curr.temp;
-        return acc;
-      }, { do: 0, ph: 0, tds: 0, temp: 0 });
-
-      const count = readings.length;
-      const newLogData = {
-          pondId: selectedPondId,
-          avg_do: avg.do / count,
-          avg_ph: avg.ph / count,
-          avg_tds: avg.tds / count,
-          avg_temp: avg.temp / count,
-          timestamp: serverTimestamp()
-      };
-      
-      const logsCollectionRef = collection(db, "water_quality_logs");
-      addDoc(logsCollectionRef, newLogData)
-        .catch((serverError) => {
-            const permissionError = new FirestorePermissionError({
-                path: logsCollectionRef.path,
-                operation: 'create',
-                requestResourceData: newLogData,
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        });
-
-    }, 60000); // 60 seconds
-    */
-
+    // 4. MANDATORY CLEANUP FUNCTION: This is critical.
+    // It runs when the component unmounts or before the effect runs again.
     return () => {
       off(deviceDataRef, 'value', rt_listener);
-      if (dataListenerIntervalRef.current) {
-        clearInterval(dataListenerIntervalRef.current);
-      }
     };
     
   }, [user, ebiiDeviceId, selectedPondId]);
 
-  // Listen to Firestore for historical data to display in the chart (DISABLED)
-  useEffect(() => {
-    /*
-    if (!selectedPondId) {
-        setChartData([]);
-        setLoading(false);
-        return;
-    }
-    setLoading(true);
-    const q = query(
-        collection(db, "water_quality_logs"), 
-        where("pondId", "==", selectedPondId),
-        orderBy("timestamp", "desc"), 
-        limit(20)
-    );
-
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-        const fetchedData: ChartData[] = [];
-        querySnapshot.forEach((doc) => {
-            const docData = doc.data();
-            if (docData.timestamp) {
-                const date = docData.timestamp.toDate();
-                fetchedData.push({
-                    time: format(date, 'HH:mm'),
-                    do: docData.avg_do || 0,
-                    ph: docData.avg_ph || 0,
-                    temp: docData.avg_temp || 0,
-                    tds: docData.avg_tds || 0,
-                });
-            }
-        });
-
-        const sortedData = fetchedData.sort((a, b) => a.time.localeCompare(b.time));
-        setChartData(sortedData);
-        setLoading(false);
-    }, (error) => {
-        const permissionError = new FirestorePermissionError({
-          path: collection(db, "water_quality_logs").path,
-          operation: 'list',
-        });
-        errorEmitter.emit('permission-error', permissionError);
-        setLoading(false);
-    });
-
-    return () => unsubscribe();
-    */
-  }, [selectedPondId]);
-
-  const activeChartConfig = {
-    [selectedParameter]: chartConfig[selectedParameter],
-  };
-
-  const uniqueGradientId = `color-${selectedParameter}`;
 
   return (
     <Card className="border-primary">
       <CardHeader className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <CardTitle className="text-primary">Historical Data</CardTitle>
-            <CardDescription>Displaying average readings from the last 20 minutes for the selected pond. (Feature temporarily disabled)</CardDescription>
+            <CardDescription>Displaying historical readings from the selected pond.</CardDescription>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
-            <Select value={selectedParameter} onValueChange={(value) => setSelectedParameter(value as ParameterKey)}>
+            <Select value={selectedParameter} onValueChange={(value) => setSelectedParameter(value as ParameterKey)} disabled>
                 <SelectTrigger className="w-full sm:w-[220px]">
                     <SelectValue placeholder="Select Parameter" />
                 </SelectTrigger>
@@ -222,9 +97,9 @@ export function HistoricalChart() {
                 <Skeleton className="h-full w-full" />
             </div>
         ) : (
-            <div className="h-[250px] w-full flex flex-col items-center justify-center text-center">
-                <p className="font-medium">Historical Data Disabled</p>
-                <p className="text-sm text-muted-foreground">This feature is temporarily unavailable.</p>
+            <div className="h-[250px] w-full flex flex-col items-center justify-center text-center bg-muted/50 rounded-lg">
+                <p className="font-medium text-muted-foreground">Historical Chart Disabled</p>
+                <p className="text-sm text-muted-foreground">This feature is temporarily unavailable pending database migration.</p>
             </div>
         )}
       </CardContent>
