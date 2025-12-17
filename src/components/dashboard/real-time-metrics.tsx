@@ -69,7 +69,7 @@ export function RealTimeMetrics() {
   const [energyMetrics, setEnergyMetrics] = useState<Metric[]>(initialEnergyMetrics);
 
   const deviceIds = useMemo(() => {
-    if (!selectedPondId || Object.keys(allDevices).length === 0 || Object.keys(pondDevices).length === 0) {
+    if (!selectedPondId || !allDevices || !pondDevices) {
         return { ebii: null, se: null };
     }
 
@@ -77,13 +77,16 @@ export function RealTimeMetrics() {
     if (!devicesInPond) {
       return { ebii: null, se: null };
     }
-
-    const findDeviceKey = (type: string): string | null => {
-      return Object.keys(devicesInPond).find(key => allDevices[key]?.tipe === type) || null;
+    
+    const findDeviceKey = (type: string, prefix?: string): string | null => {
+        return Object.keys(devicesInPond).find(key => 
+            allDevices[key]?.tipe === type &&
+            (!prefix || key.startsWith(prefix))
+        ) || null;
     };
 
     return {
-        ebii: findDeviceKey('EBII'),
+        ebii: findDeviceKey('EBII', 'EBII_'),
         se: findDeviceKey('SE')
     };
   }, [selectedPondId, allDevices, pondDevices]);
