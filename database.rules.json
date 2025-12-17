@@ -1,20 +1,9 @@
 {
   "rules": {
     ".read": "auth != null",
-    ".write": false, // Write access is globally denied, except where specified below.
-    "users": {
-      "$uid": {
-        ".read": "$uid === auth.uid",
-        ".write": "$uid === auth.uid"
-      }
-    },
-    "user_ponds": {
-      "$uid": {
-        ".read": "$uid === auth.uid"
-      }
-    },
+    ".write": false,
     "device_commands": {
-      ".write": "auth != null" // Allow authenticated users to write commands
+      ".write": "auth != null"
     }
   }
 }
