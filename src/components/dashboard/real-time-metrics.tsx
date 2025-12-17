@@ -1,8 +1,9 @@
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
 import { database } from '@/lib/firebase';
-import { ref, onValue, off } from 'firebase/database';
+import { ref, onValue, off, type DatabaseReference } from 'firebase/database';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
@@ -92,19 +93,22 @@ export function RealTimeMetrics() {
   }, [selectedPondId, allDevices, pondDevices]);
 
 
-  // Effect for EBII device
+  // Effect for EBII device - STRICTLY following the cleanup pattern
   useEffect(() => {
-    // 1. Reset to N/A when device changes or is not available
+    // 1. Reset state to "N/A" whenever the device ID changes.
+    // This prevents old data from flashing on the screen.
     setEbiiMetrics(initialEbiiMetrics);
 
-    // 2. If no device, do nothing and exit.
-    if (!deviceIds.ebii) {
+    // 2. Guard Clause: If there's no device ID, do nothing.
+    const ebiiDeviceId = deviceIds.ebii;
+    if (!ebiiDeviceId) {
       return;
     }
     
-    const deviceDataRef = ref(database, `/device_data/${deviceIds.ebii}`);
+    // 3. Define the specific path for the listener.
+    const deviceDataRef: DatabaseReference = ref(database, `/device_data/${ebiiDeviceId}`);
     
-    // 3. Set up the new listener
+    // 4. Set up the new listener.
     const listener = onValue(deviceDataRef, (snapshot) => {
       const data = snapshot.val();
       setEbiiMetrics(prevMetrics => 
@@ -115,35 +119,40 @@ export function RealTimeMetrics() {
         })
       );
     }, (error) => {
-      console.error(`Firebase Read Error for EBII ${deviceIds.ebii}:`, error);
+      console.error(`Firebase Read Error for EBII ${ebiiDeviceId}:`, error);
       toast({
           variant: "destructive",
           title: "Error Reading EBII Data",
-          description: `Could not read from device ${deviceIds.ebii}.`,
+          description: `Could not read from device ${ebiiDeviceId}.`,
       });
-      setEbiiMetrics(initialEbiiMetrics);
+      setEbiiMetrics(initialEbiiMetrics); // Reset on error
     });
 
-    // 4. CRITICAL: Cleanup function. This runs when the component unmounts OR when deviceIds.ebii changes.
+    // 5. MANDATORY CLEANUP FUNCTION:
+    // This function is returned by useEffect and will be called automatically
+    // by React right before the component unmounts OR before the effect runs again
+    // (because deviceIds.ebii has changed).
     return () => {
       off(deviceDataRef, 'value', listener);
     };
     
   }, [deviceIds.ebii, toast]); // Dependency array ensures this effect re-runs ONLY when the device ID changes.
 
-  // Effect for Smart Energy (SE) device
+  // Effect for Smart Energy (SE) device - STRICTLY following the cleanup pattern
   useEffect(() => {
-    // 1. Reset to N/A when device changes or is not available
+    // 1. Reset state to "N/A".
     setEnergyMetrics(initialEnergyMetrics);
 
-    // 2. If no device, do nothing and exit.
-    if (!deviceIds.se) {
+    // 2. Guard Clause.
+    const seDeviceId = deviceIds.se;
+    if (!seDeviceId) {
       return;
     }
     
-    const deviceDataRef = ref(database, `/device_data/${deviceIds.se}`);
+    // 3. Define the specific path.
+    const deviceDataRef: DatabaseReference = ref(database, `/device_data/${seDeviceId}`);
 
-    // 3. Set up the new listener
+    // 4. Set up the new listener.
     const listener = onValue(deviceDataRef, (snapshot) => {
       const data = snapshot.val();
       setEnergyMetrics(prevMetrics => 
@@ -154,16 +163,16 @@ export function RealTimeMetrics() {
         })
       );
     }, (error) => {
-      console.error(`Firebase Read Error for SE ${deviceIds.se}:`, error);
+      console.error(`Firebase Read Error for SE ${seDeviceId}:`, error);
       toast({
           variant: "destructive",
           title: "Error Reading Energy Data",
-          description: `Could not read from device ${deviceIds.se}.`,
+          description: `Could not read from device ${seDeviceId}.`,
       });
-      setEnergyMetrics(initialEnergyMetrics);
+      setEnergyMetrics(initialEnergyMetrics); // Reset on error
     });
 
-    // 4. CRITICAL: Cleanup function.
+    // 5. MANDATORY CLEANUP FUNCTION.
     return () => {
       off(deviceDataRef, 'value', listener);
     };
@@ -294,7 +303,16 @@ export function RealTimeMetrics() {
         </div>
       </div>
       <div>
-        <h3 className="text-lg font-semibold text-primary mb-4">Smart Energy</h3>
+        <h3 className="text-lg font-semibold text-primary">Smart Energy</h3>
+        {deviceIds.se ? (
+          <p className="text-xs text-muted-foreground mb-4">
+            Device ID: {deviceIds.se}
+          </p>
+        ) : (
+          <p className="text-xs text-muted-foreground mb-4">
+            No Smart Energy device found for this pond.
+          </p>
+        )}
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
           {Object.values(groupedEnergyMetrics).map((metric) => {
             const Icon = iconMap[metric.icon as keyof typeof iconMap] || Power;
