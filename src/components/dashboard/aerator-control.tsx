@@ -471,7 +471,3 @@ export function AeratorControl() {
     </Card>
   );
 }
-
-    
-
-    

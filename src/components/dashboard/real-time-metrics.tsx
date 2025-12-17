@@ -338,7 +338,3 @@ export function RealTimeMetrics() {
     </div>
   );
 }
-
-    
-
-    
