@@ -354,7 +354,7 @@ export default function HomePage() {
             </div>
           </div>
         </section>
-        <section className="w-full pb-8 md:pb-10">
+        <section className="w-full py-8 md:py-10 mt-12">
           <div className="container px-4 md:px-6">
             <Tabs defaultValue="with" className="w-full">
               <TabsList className="grid w-full grid-cols-2 max-w-md mx-auto h-12">
