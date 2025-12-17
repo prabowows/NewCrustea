@@ -361,7 +361,7 @@ export default function HomePage() {
                 <TabsTrigger value="with" className="text-base py-2.5">Dengan Crustea</TabsTrigger>
                 <TabsTrigger value="without" className="text-base py-2.5">Tanpa Crustea</TabsTrigger>
               </TabsList>
-              <TabsContent value="with" className="mt-6">
+              <TabsContent value="with" className="mt-8">
                 <div className="grid gap-12 lg:grid-cols-2 items-center">
                   <div className="relative rounded-lg overflow-hidden border shadow-lg group [perspective:1000px] aspect-video animate-rotate-y-3d">
                      <Image
@@ -389,7 +389,7 @@ export default function HomePage() {
                   </div>
                 </div>
               </TabsContent>
-              <TabsContent value="without" className="mt-6">
+              <TabsContent value="without" className="mt-8">
                 <div className="grid gap-12 lg:grid-cols-2 items-center">
                    <div className="rounded-lg overflow-hidden border bg-background p-4 shadow-lg">
                      <Image
@@ -493,3 +493,4 @@ export default function HomePage() {
     
 
     
+
