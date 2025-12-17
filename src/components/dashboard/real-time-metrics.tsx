@@ -275,13 +275,22 @@ export function RealTimeMetrics() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-lg font-semibold mb-4 text-primary">EBII System</h3>
+        <h3 className="text-lg font-semibold text-primary">EBII System</h3>
+        {deviceIds.ebii ? (
+          <p className="text-xs text-muted-foreground mb-4">
+            Device ID: {deviceIds.ebii}
+          </p>
+        ) : (
+          <p className="text-xs text-muted-foreground mb-4">
+            No EBII device found for this pond.
+          </p>
+        )}
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-4">
           {ebiiMetrics.map(renderMetricCard)}
         </div>
       </div>
       <div>
-        <h3 className="text-lg font-semibold mb-4 text-primary">Smart Energy</h3>
+        <h3 className="text-lg font-semibold text-primary mb-4">Smart Energy</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
           {Object.values(groupedEnergyMetrics).map((metric) => {
             const Icon = iconMap[metric.icon as keyof typeof iconMap] || Power;
