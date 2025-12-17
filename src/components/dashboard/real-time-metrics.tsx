@@ -94,15 +94,17 @@ export function RealTimeMetrics() {
 
   // Effect for EBII device
   useEffect(() => {
-    // Reset to N/A when device changes or is not available
+    // 1. Reset to N/A when device changes or is not available
     setEbiiMetrics(initialEbiiMetrics);
 
+    // 2. If no device, do nothing and exit.
     if (!deviceIds.ebii) {
-      return; // No device, so no listener to set up
+      return;
     }
     
     const deviceDataRef = ref(database, `/device_data/${deviceIds.ebii}`);
     
+    // 3. Set up the new listener
     const listener = onValue(deviceDataRef, (snapshot) => {
       const data = snapshot.val();
       setEbiiMetrics(prevMetrics => 
@@ -122,24 +124,26 @@ export function RealTimeMetrics() {
       setEbiiMetrics(initialEbiiMetrics);
     });
 
-    // CRITICAL: Cleanup function to remove the listener when the component unmounts OR when deviceIds.ebii changes
+    // 4. CRITICAL: Cleanup function. This runs when the component unmounts OR when deviceIds.ebii changes.
     return () => {
       off(deviceDataRef, 'value', listener);
     };
     
-  }, [deviceIds.ebii, toast]);
+  }, [deviceIds.ebii, toast]); // Dependency array ensures this effect re-runs ONLY when the device ID changes.
 
   // Effect for Smart Energy (SE) device
   useEffect(() => {
-    // Reset to N/A when device changes or is not available
+    // 1. Reset to N/A when device changes or is not available
     setEnergyMetrics(initialEnergyMetrics);
 
+    // 2. If no device, do nothing and exit.
     if (!deviceIds.se) {
-      return; // No device, so no listener to set up
+      return;
     }
     
     const deviceDataRef = ref(database, `/device_data/${deviceIds.se}`);
 
+    // 3. Set up the new listener
     const listener = onValue(deviceDataRef, (snapshot) => {
       const data = snapshot.val();
       setEnergyMetrics(prevMetrics => 
@@ -159,11 +163,11 @@ export function RealTimeMetrics() {
       setEnergyMetrics(initialEnergyMetrics);
     });
 
-    // CRITICAL: Cleanup function to remove the listener
+    // 4. CRITICAL: Cleanup function.
     return () => {
       off(deviceDataRef, 'value', listener);
     };
-  }, [deviceIds.se, toast]);
+  }, [deviceIds.se, toast]); // Dependency array ensures this effect re-runs ONLY when the device ID changes.
 
 
   const renderMetricCard = (metric: Metric) => {
