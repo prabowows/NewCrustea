@@ -11,14 +11,24 @@ export type Pond = {
     lokasi: string;
 };
 
+export type Device = {
+    id: string;
+    name: string;
+    tipe: string;
+    pond_id?: string;
+    sc_id?: string;
+}
+
 export type AllDevices = {
-    [key: string]: {
-        tipe: string;
-        id_kolam?: string;
-        id_sc?: string;
-        nama?: string;
-        name?: string;
-    }
+    [key: string]: Device;
+}
+
+export type PondDevices = {
+    [key: string]: boolean;
+}
+
+export type ScDevices = {
+    [key: string]: boolean;
 }
 
 type PondContextType = {
@@ -26,6 +36,8 @@ type PondContextType = {
     selectedPondId: string | null;
     setSelectedPondId: (id: string) => void;
     allDevices: AllDevices;
+    pondDevices: { [key: string]: PondDevices };
+    scDevices: { [key: string]: ScDevices };
     loading: boolean;
     selectedPond: Pond | null;
 };
@@ -37,9 +49,10 @@ export function PondProvider({ children }: { children: ReactNode }) {
     const [ponds, setPonds] = useState<Pond[]>([]);
     const [selectedPondId, setSelectedPondId] = useState<string | null>(null);
     const [allDevices, setAllDevices] = useState<AllDevices>({});
+    const [pondDevices, setPondDevices] = useState<{ [key: string]: PondDevices }>({});
+    const [scDevices, setScDevices] = useState<{ [key: string]: ScDevices }>({});
     const [loading, setLoading] = useState(true);
 
-    // Effect to fetch initial static data (ponds and all devices) ONCE
     useEffect(() => {
         if (!user) {
             setLoading(false);
@@ -49,39 +62,62 @@ export function PondProvider({ children }: { children: ReactNode }) {
         const fetchInitialData = async () => {
             setLoading(true);
             try {
-                const userRef = ref(database, `/User/${user.uid}`);
-                const snapshot = await get(userRef);
-                const data = snapshot.val();
+                // 1. Get user's pond IDs
+                const userPondsRef = ref(database, `/user_ponds/${user.uid}`);
+                const userPondsSnap = await get(userPondsRef);
+                const userPondIds = userPondsSnap.exists() ? Object.keys(userPondsSnap.val()) : [];
 
-                if (!data) {
+                if (userPondIds.length === 0) {
                     setPonds([]);
                     setAllDevices({});
+                    setPondDevices({});
+                    setScDevices({});
+                    setLoading(false);
                     return;
                 }
 
-                const loadedPonds: Pond[] = [];
-                const loadedDevices: AllDevices = {};
+                // 2. Fetch all required data in parallel
+                const [pondsSnap, devicesSnap, pondDevicesSnap, scDevicesSnap] = await Promise.all([
+                    get(ref(database, '/ponds')),
+                    get(ref(database, '/devices')),
+                    get(ref(database, '/pond_devices')),
+                    get(ref(database, '/sc_devices')),
+                ]);
 
-                Object.keys(data).forEach(key => {
-                    const item = data[key];
-                    if (item.lokasi && item.nama && !item.tipe) {
-                        loadedPonds.push({ id: key, ...item });
-                    } else if (item.tipe) {
-                        loadedDevices[key] = item;
+                const allPondsData = pondsSnap.val() || {};
+                const allDevicesData = devicesSnap.val() || {};
+                
+                // 3. Filter ponds based on user's access
+                const userPonds = userPondIds.map(id => ({
+                    id,
+                    ...allPondsData[id]
+                })).filter(p => p.nama); // Ensure pond data exists
+
+                // 4. Map devices data to include the ID inside the object
+                const mappedDevices: AllDevices = {};
+                for (const deviceId in allDevicesData) {
+                    mappedDevices[deviceId] = {
+                        id: deviceId,
+                        ...allDevicesData[deviceId]
                     }
-                });
-
-                setPonds(loadedPonds);
-                setAllDevices(loadedDevices);
-
-                // Set initial selected pond only if it's not already set
-                if (loadedPonds.length > 0 && selectedPondId === null) {
-                    setSelectedPondId(loadedPonds[0].id);
                 }
+                
+                setPonds(userPonds);
+                setAllDevices(mappedDevices);
+                setPondDevices(pondDevicesSnap.val() || {});
+                setScDevices(scDevicesSnap.val() || {});
+
+                // Set initial selected pond if not already set
+                if (userPonds.length > 0 && selectedPondId === null) {
+                    setSelectedPondId(userPonds[0].id);
+                }
+
             } catch (error) {
                 console.error("Firebase initial data fetch error:", error);
                 setPonds([]);
                 setAllDevices({});
+                setPondDevices({});
+                setScDevices({});
             } finally {
                 setLoading(false);
             }
@@ -95,11 +131,13 @@ export function PondProvider({ children }: { children: ReactNode }) {
         return ponds.find(p => p.id === selectedPondId) || null;
     }, [ponds, selectedPondId]);
     
-    const value = { 
+    const value: PondContextType = { 
         ponds, 
         selectedPondId, 
         setSelectedPondId, 
         allDevices, 
+        pondDevices,
+        scDevices,
         loading, 
         selectedPond 
     };

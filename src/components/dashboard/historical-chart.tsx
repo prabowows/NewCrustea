@@ -9,12 +9,13 @@ import { CartesianGrid, Area, AreaChart, XAxis, YAxis, ResponsiveContainer } fro
 import { format } from 'date-fns';
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/hooks/use-user";
-import { database, db } from "@/lib/firebase";
-import { ref, onValue, off } from "firebase/database";
+import { db } from "@/lib/firebase"; // Keep Firestore for historical data
 import { collection, query, where, orderBy, limit, onSnapshot, addDoc, serverTimestamp } from "firebase/firestore";
 import { errorEmitter } from "@/lib/error-emitter";
 import { FirestorePermissionError } from "@/lib/errors";
 import { usePond } from "@/context/PondContext";
+import { database } from '@/lib/firebase'; // Import RTDB
+import { ref, onValue, off } from 'firebase/database'; // Import RTDB functions
 
 type ParameterKey = 'do' | 'ph' | 'temp' | 'tds';
 
@@ -31,7 +32,6 @@ type RealtimeReading = {
   ph: number;
   tds: number;
   temp: number;
-  timestamp: number;
 };
 
 type ChartConfig = {
@@ -58,14 +58,16 @@ const parameterOptions: { value: ParameterKey, label: string }[] = [
 
 export function HistoricalChart() {
   const { user } = useUser();
-  const { selectedPond, selectedPondId, allDevices } = usePond();
+  const { selectedPondId, allDevices, pondDevices } = usePond();
 
   const ebiiDeviceId = useMemo(() => {
-    if (!selectedPondId || !allDevices) return null;
-    return Object.keys(allDevices).find(key => 
-        allDevices[key].tipe === 'EBII' && allDevices[key].id_kolam === selectedPondId
-    ) || null;
-  }, [selectedPondId, allDevices]);
+    if (!selectedPondId || !pondDevices[selectedPondId]) return null;
+
+    const devicesInPond = pondDevices[selectedPondId];
+    return Object.keys(devicesInPond).find(key => allDevices[key]?.tipe === 'EBII') || null;
+
+  }, [selectedPondId, allDevices, pondDevices]);
+
 
   const [chartData, setChartData] = useState<ChartData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,24 +77,23 @@ export function HistoricalChart() {
   const dataListenerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   // Setup listeners and intervals once user and device ID are available
-   useEffect(() => {
-    // Temporarily disabled Firestore interactions
-    /*
-    if (!user || !ebiiDeviceId || !selectedPond) {
+  useEffect(() => {
+    if (!user || !ebiiDeviceId || !selectedPondId) {
       if(dataListenerIntervalRef.current) clearInterval(dataListenerIntervalRef.current);
+      readingsBufferRef.current = [];
       return;
     }
 
-    // Listener for real-time data
-    const deviceValueRef = ref(database, `/User/${user.uid}/${ebiiDeviceId}/value`);
-    const rt_listener = onValue(deviceValueRef, (snapshot) => {
+    // Listener for real-time data from RTDB
+    const deviceDataRef = ref(database, `/device_data/${ebiiDeviceId}`);
+    const rt_listener = onValue(deviceDataRef, (snapshot) => {
       const value = snapshot.val();
       if (value && typeof value.do === 'number') { 
-        readingsBufferRef.current.push({ ...value, timestamp: Date.now() });
+        readingsBufferRef.current.push(value);
       }
     });
 
-    // Interval to process and save data
+    // Interval to process and save data to Firestore
     dataListenerIntervalRef.current = setInterval(() => {
       const readings = [...readingsBufferRef.current];
       if (readings.length === 0) return;
@@ -109,8 +110,8 @@ export function HistoricalChart() {
 
       const count = readings.length;
       const newLogData = {
-          pondId: selectedPond.id,
-          pondName: selectedPond.nama,
+          pondId: selectedPondId,
+          // pondName: selectedPond.nama, // selectedPond is not available here, but we have the ID
           avg_do: avg.do / count,
           avg_ph: avg.ph / count,
           avg_tds: avg.tds / count,
@@ -132,22 +133,17 @@ export function HistoricalChart() {
     }, 60000); // 60 seconds
 
     return () => {
-      off(deviceValueRef, 'value', rt_listener);
+      off(deviceDataRef, 'value', rt_listener);
       if (dataListenerIntervalRef.current) {
         clearInterval(dataListenerIntervalRef.current);
       }
     };
-    */
-
-  }, [user, ebiiDeviceId, selectedPond]);
+    
+  }, [user, ebiiDeviceId, selectedPondId]);
 
   // Listen to Firestore for historical data to display in the chart
   useEffect(() => {
-    // Temporarily disabled Firestore interactions
-    setChartData([]);
-    setLoading(false);
-    /*
-    if (!selectedPond?.id) {
+    if (!selectedPondId) {
         setChartData([]);
         setLoading(false);
         return;
@@ -155,7 +151,7 @@ export function HistoricalChart() {
     setLoading(true);
     const q = query(
         collection(db, "water_quality_logs"), 
-        where("pondId", "==", selectedPond.id),
+        where("pondId", "==", selectedPondId),
         orderBy("timestamp", "desc"), 
         limit(20)
     );
@@ -189,8 +185,8 @@ export function HistoricalChart() {
     });
 
     return () => unsubscribe();
-    */
-  }, [selectedPond]);
+    
+  }, [selectedPondId]);
 
   const activeChartConfig = {
     [selectedParameter]: chartConfig[selectedParameter],
@@ -226,7 +222,7 @@ export function HistoricalChart() {
         ) : chartData.length === 0 ? (
             <div className="h-[250px] w-full flex flex-col items-center justify-center text-center">
                 <p className="font-medium">No Historical Data</p>
-                <p className="text-sm text-muted-foreground">Fitur data historis dinonaktifkan sementara.</p>
+                <p className="text-sm text-muted-foreground">There is no historical data available for this pond yet.</p>
             </div>
         ) : (
             <ChartContainer config={activeChartConfig} className="h-[250px] w-full">

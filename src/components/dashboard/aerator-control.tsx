@@ -54,23 +54,26 @@ const daysOfWeek: { key: Day; label: string }[] = [
 
 export function AeratorControl() {
   const { user } = useUser();
-  const { selectedPondId, allDevices } = usePond();
+  const { selectedPondId, allDevices, pondDevices, scDevices } = usePond();
 
   const aeratorDeviceId = useMemo(() => {
-    if (!selectedPondId || Object.keys(allDevices).length === 0) return null;
+    if (!selectedPondId || !pondDevices[selectedPondId]) return null;
+
+    // 1. Find the Smart Control device for the current pond
+    const scDeviceKey = Object.keys(pondDevices[selectedPondId] || {}).find(
+      key => allDevices[key]?.tipe === 'SC'
+    );
     
-    // Find the Smart Control device for the current pond
-    const scDeviceKey = Object.keys(allDevices).find(key => 
-        allDevices[key].tipe === 'SC' && allDevices[key].id_kolam === selectedPondId
+    if (!scDeviceKey || !scDevices[scDeviceKey]) return null;
+
+    // 2. Find the first Aerator device linked to that Smart Control device
+    const aeratorKey = Object.keys(scDevices[scDeviceKey]).find(
+        key => allDevices[key]?.tipe === 'AERATOR'
     );
 
-    if (!scDeviceKey) return null;
+    return aeratorKey || null;
 
-    // Find the Aerator device linked to that Smart Control device
-    return Object.keys(allDevices).find(key => 
-        allDevices[key].tipe === 'AERATOR' && allDevices[key].id_sc === scDeviceKey
-    ) || null;
-  }, [selectedPondId, allDevices]);
+  }, [selectedPondId, allDevices, pondDevices, scDevices]);
 
   const [isAeratorOn, setIsAeratorOn] = useState(false);
   const [aeratorDisplayStatus, setAeratorDisplayStatus] = useState('OFF');
@@ -85,19 +88,17 @@ export function AeratorControl() {
     setMounted(true);
   }, []);
 
+  // Effect to listen to aerator status from `device_data`
   useEffect(() => {
-    if (!aeratorDeviceId || !user) {
+    if (!aeratorDeviceId) {
       setIsAeratorOn(false);
       setAeratorDisplayStatus('OFF');
       return;
     };
 
-    const aeratorValueRef = ref(
-      database,
-      `/User/${user.uid}/${aeratorDeviceId}/value`
-    );
+    const aeratorDataRef = ref(database, `/device_data/${aeratorDeviceId}`);
     const unsubscribeStatus = onValue(
-      aeratorValueRef,
+      aeratorDataRef,
       (snapshot) => {
         const value = snapshot.val();
         if (value) {
@@ -119,9 +120,9 @@ export function AeratorControl() {
     );
 
     return () => {
-      off(aeratorValueRef, 'value', unsubscribeStatus);
+      off(aeratorDataRef, 'value', unsubscribeStatus);
     };
-  }, [aeratorDeviceId, user, toast]);
+  }, [aeratorDeviceId, toast]);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -146,15 +147,15 @@ export function AeratorControl() {
     return null;
   }
 
+  // Function to send commands to `device_commands`
   const handleToggleAerator = (forceStatus?: boolean) => {
     if (!user || !aeratorDeviceId) return;
 
     const newStatus = forceStatus !== undefined ? forceStatus : !isAeratorOn;
-    const aeratorPowerRef = ref(
-      database,
-      `/User/${user.uid}/${aeratorDeviceId}/value/power`
-    );
-    set(aeratorPowerRef, newStatus)
+    // Write to the new `device_commands` path
+    const aeratorCommandRef = ref(database, `/device_commands/${aeratorDeviceId}/power`);
+    
+    set(aeratorCommandRef, newStatus)
       .then(() => {
         toast({
           title: 'Success',
@@ -293,7 +294,7 @@ export function AeratorControl() {
               <div>
                 <p className="text-base font-medium">Send Command</p>
                 <p className="text-xs text-muted-foreground">
-                  Command: {isAeratorOn ? 'ON' : 'OFF'}
+                  Turn Aerator {isAeratorOn ? 'OFF' : 'ON'}
                 </p>
               </div>
               <Button
@@ -302,8 +303,8 @@ export function AeratorControl() {
                 className={cn(
                   'rounded-full w-16 h-16 text-primary-foreground transition-colors duration-300',
                   isAeratorOn
-                    ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                    : 'bg-red-100 text-red-700 hover:bg-red-200'
+                    ? 'bg-red-500 hover:bg-red-600'
+                    : 'bg-green-500 hover:bg-green-600'
                 )}
                 aria-label="Toggle Aerator Power"
               >
