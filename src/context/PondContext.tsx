@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode, useMemo, useCallback } from 'react';
 import { database } from '@/lib/firebase';
 import { ref, get } from 'firebase/database';
 import { useUser } from '@/hooks/use-user';
@@ -40,6 +40,7 @@ type PondContextType = {
     scDevices: { [key: string]: ScDevices };
     loading: boolean;
     selectedPond: Pond | null;
+    fetchInitialData: () => Promise<void>;
 };
 
 const PondContext = createContext<PondContextType | undefined>(undefined);
@@ -53,79 +54,83 @@ export function PondProvider({ children }: { children: ReactNode }) {
     const [scDevices, setScDevices] = useState<{ [key: string]: ScDevices }>({});
     const [loading, setLoading] = useState(true);
 
-    useEffect(() => {
+    const fetchInitialData = useCallback(async () => {
         if (!user) {
             setLoading(false);
             return;
         }
+        setLoading(true);
+        try {
+            // 1. Get user's pond IDs
+            const userPondsRef = ref(database, `/user_ponds/${user.uid}`);
+            const userPondsSnap = await get(userPondsRef);
+            const userPondIds = userPondsSnap.exists() ? Object.keys(userPondsSnap.val()) : [];
 
-        const fetchInitialData = async () => {
-            setLoading(true);
-            try {
-                // 1. Get user's pond IDs
-                const userPondsRef = ref(database, `/user_ponds/${user.uid}`);
-                const userPondsSnap = await get(userPondsRef);
-                const userPondIds = userPondsSnap.exists() ? Object.keys(userPondsSnap.val()) : [];
-
-                if (userPondIds.length === 0) {
-                    setPonds([]);
-                    setAllDevices({});
-                    setPondDevices({});
-                    setScDevices({});
-                    setLoading(false);
-                    return;
-                }
-
-                // 2. Fetch all required data in parallel
-                const [pondsSnap, devicesSnap, pondDevicesSnap, scDevicesSnap] = await Promise.all([
-                    get(ref(database, '/ponds')),
-                    get(ref(database, '/devices')),
-                    get(ref(database, '/pond_devices')),
-                    get(ref(database, '/sc_devices')),
-                ]);
-
-                const allPondsData = pondsSnap.val() || {};
-                const allDevicesData = devicesSnap.val() || {};
-                
-                // 3. Filter ponds based on user's access
-                const userPonds = userPondIds.map(id => ({
-                    id,
-                    ...allPondsData[id]
-                })).filter(p => p.nama); // Ensure pond data exists
-
-                // 4. Map devices data to include the ID inside the object
-                const mappedDevices: AllDevices = {};
-                for (const deviceId in allDevicesData) {
-                    mappedDevices[deviceId] = {
-                        id: deviceId,
-                        ...allDevicesData[deviceId]
-                    }
-                }
-                
-                setPonds(userPonds);
-                setAllDevices(mappedDevices);
-                setPondDevices(pondDevicesSnap.val() || {});
-                setScDevices(scDevicesSnap.val() || {});
-
-                // Set initial selected pond if not already set
-                if (userPonds.length > 0 && selectedPondId === null) {
-                    setSelectedPondId(userPonds[0].id);
-                }
-
-            } catch (error) {
-                console.error("Firebase initial data fetch error:", error);
+            if (userPondIds.length === 0) {
                 setPonds([]);
                 setAllDevices({});
                 setPondDevices({});
                 setScDevices({});
-            } finally {
                 setLoading(false);
+                return;
             }
-        };
 
-        fetchInitialData();
+            // 2. Fetch all required data in parallel
+            const [pondsSnap, devicesSnap, pondDevicesSnap, scDevicesSnap] = await Promise.all([
+                get(ref(database, '/ponds')),
+                get(ref(database, '/devices')),
+                get(ref(database, '/pond_devices')),
+                get(ref(database, '/sc_devices')),
+            ]);
+
+            const allPondsData = pondsSnap.val() || {};
+            const allDevicesData = devicesSnap.val() || {};
+            
+            // 3. Filter ponds based on user's access
+            const userPonds = userPondIds.map(id => ({
+                id,
+                ...allPondsData[id]
+            })).filter(p => p.nama); // Ensure pond data exists
+
+            // 4. Map devices data to include the ID inside the object
+            const mappedDevices: AllDevices = {};
+            for (const deviceId in allDevicesData) {
+                mappedDevices[deviceId] = {
+                    id: deviceId,
+                    ...allDevicesData[deviceId]
+                }
+            }
+            
+            setPonds(userPonds);
+            setAllDevices(mappedDevices);
+            setPondDevices(pondDevicesSnap.val() || {});
+            setScDevices(scDevicesSnap.val() || {});
+
+            // Set initial selected pond if not already set or invalid
+            if (userPonds.length > 0) {
+                const currentPondExists = userPonds.some(p => p.id === selectedPondId);
+                if (!currentPondExists) {
+                    setSelectedPondId(userPonds[0].id);
+                }
+            } else {
+                setSelectedPondId(null);
+            }
+
+        } catch (error) {
+            console.error("Firebase initial data fetch error:", error);
+            setPonds([]);
+            setAllDevices({});
+            setPondDevices({});
+            setScDevices({});
+        } finally {
+            setLoading(false);
+        }
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
+
+    useEffect(() => {
+        fetchInitialData();
+    }, [fetchInitialData]);
 
     const selectedPond = useMemo(() => {
         return ponds.find(p => p.id === selectedPondId) || null;
@@ -139,7 +144,8 @@ export function PondProvider({ children }: { children: ReactNode }) {
         pondDevices,
         scDevices,
         loading, 
-        selectedPond 
+        selectedPond,
+        fetchInitialData,
     };
 
     return <PondContext.Provider value={value}>{children}</PondContext.Provider>;
