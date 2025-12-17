@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -18,7 +19,7 @@ import { Power, CalendarDays, Wifi } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { database } from '@/lib/firebase';
-import { ref, onValue, set, off } from 'firebase/database';
+import { ref, onValue, set, off, DatabaseReference } from 'firebase/database';
 import { useUser } from '@/hooks/use-user';
 import { usePond } from '@/context/PondContext';
 
@@ -88,16 +89,22 @@ export function AeratorControl() {
     setMounted(true);
   }, []);
 
-  // Effect to listen to aerator status from `device_data`
+  // Effect to listen to aerator status from `device_data` with proper cleanup
   useEffect(() => {
-    if (!aeratorDeviceId) {
-      setIsAeratorOn(false);
-      setAeratorDisplayStatus('OFF');
-      return;
-    };
+    // 1. Reset state to default when device changes
+    setIsAeratorOn(false);
+    setAeratorDisplayStatus('OFF');
 
-    const aeratorDataRef = ref(database, `/device_data/${aeratorDeviceId}`);
-    const unsubscribeStatus = onValue(
+    // 2. Guard clause: If there's no device ID, do nothing.
+    if (!aeratorDeviceId) {
+      return;
+    }
+
+    // 3. Define the specific path for the listener.
+    const aeratorDataRef: DatabaseReference = ref(database, `/device_data/${aeratorDeviceId}`);
+    
+    // 4. Set up the new listener.
+    const listener = onValue(
       aeratorDataRef,
       (snapshot) => {
         const value = snapshot.val();
@@ -105,6 +112,7 @@ export function AeratorControl() {
           setIsAeratorOn(value.power || false);
           setAeratorDisplayStatus(value.status || 'OFF');
         } else {
+          // If no data exists, ensure state is reset
           setIsAeratorOn(false);
           setAeratorDisplayStatus('OFF');
         }
@@ -116,13 +124,18 @@ export function AeratorControl() {
           title: 'Connection Error',
           description: 'Could not fetch aerator status.',
         });
+        // Reset state on error
+        setIsAeratorOn(false);
+        setAeratorDisplayStatus('OFF');
       }
     );
 
+    // 5. MANDATORY CLEANUP FUNCTION: This is critical.
+    // It runs before the effect runs again (if aeratorDeviceId changes) or when the component unmounts.
     return () => {
-      off(aeratorDataRef, 'value', unsubscribeStatus);
+      off(aeratorDataRef, 'value', listener);
     };
-  }, [aeratorDeviceId, toast]);
+  }, [aeratorDeviceId, toast]); // Dependency array ensures this runs only when the device ID changes.
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -458,3 +471,5 @@ export function AeratorControl() {
     </Card>
   );
 }
+
+    
