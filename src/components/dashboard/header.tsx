@@ -85,7 +85,12 @@ export function Header() {
             </Link>
             <DropdownMenuItem><ClipboardList className="mr-2 h-4 w-4" /><span>Kelola Tambak</span></DropdownMenuItem>
             <DropdownMenuItem><LineChart className="mr-2 h-4 w-4" /><span>Monitoring</span></DropdownMenuItem>
-            <DropdownMenuItem><Wind className="mr-2 h-4 w-4" /><span>Kontrol Aerator</span></DropdownMenuItem>
+            <Link href="/dashboard/aerator">
+              <DropdownMenuItem>
+                <Wind className="mr-2 h-4 w-4" />
+                <span>Kontrol Aerator</span>
+              </DropdownMenuItem>
+            </Link>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout}><LogOut className="mr-2 h-4 w-4" /><span>Keluar</span></DropdownMenuItem>
           </DropdownMenuContent>
