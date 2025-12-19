@@ -13,8 +13,10 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, Edit, Trash2 } from 'lucide-react';
+import { PlusCircle, MoreHorizontal } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import Link from 'next/link';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const initialPondState: Omit<Pond, 'id'> = {
     nama: '',
@@ -26,20 +28,14 @@ export default function ManagePondsPage() {
     const { user } = useUser();
     const { toast } = useToast();
 
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
+    const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-    const [currentPond, setCurrentPond] = useState<Partial<Pond> | null>(null);
     const [formData, setFormData] = useState<Omit<Pond, 'id'>>(initialPondState);
     const [pondToDelete, setPondToDelete] = useState<Pond | null>(null);
 
-    const handleDialogOpen = (pond: Partial<Pond> | null) => {
-        setCurrentPond(pond);
-        if (pond && 'id' in pond) {
-            setFormData({ nama: pond.nama || '', lokasi: pond.lokasi || '' });
-        } else {
-            setFormData(initialPondState);
-        }
-        setIsDialogOpen(true);
+    const handleAddDialogOpen = () => {
+        setFormData(initialPondState);
+        setIsAddDialogOpen(true);
     };
 
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -59,28 +55,22 @@ export default function ManagePondsPage() {
         }
 
         try {
-            if (currentPond && 'id' in currentPond && currentPond.id) {
-                // Update existing pond
-                const pondRef = ref(database, `ponds/${currentPond.id}`);
-                await update(pondRef, formData);
-                toast({ title: 'Sukses', description: 'Data kolam berhasil diperbarui.' });
-            } else {
-                // Create new pond
-                const pondsRef = ref(database, 'ponds');
-                const newPondRef = push(pondsRef);
-                const newPondId = newPondRef.key;
+            // Create new pond
+            const pondsRef = ref(database, 'ponds');
+            const newPondRef = push(pondsRef);
+            const newPondId = newPondRef.key;
 
-                if (!newPondId) throw new Error("Failed to generate new pond ID.");
+            if (!newPondId) throw new Error("Failed to generate new pond ID.");
 
-                const updates: { [key: string]: any } = {};
-                updates[`/ponds/${newPondId}`] = formData;
-                updates[`/user_ponds/${user.uid}/${newPondId}`] = true;
+            const updates: { [key: string]: any } = {};
+            updates[`/ponds/${newPondId}`] = formData;
+            updates[`/user_ponds/${user.uid}/${newPondId}`] = true;
 
-                await update(ref(database), updates);
-                toast({ title: 'Sukses', description: 'Kolam baru berhasil ditambahkan.' });
-            }
+            await update(ref(database), updates);
+            toast({ title: 'Sukses', description: 'Kolam baru berhasil ditambahkan.' });
+            
             await fetchInitialData();
-            setIsDialogOpen(false);
+            setIsAddDialogOpen(false);
         } catch (error: any) {
             console.error("Failed to save pond: ", error);
             toast({ variant: 'destructive', title: 'Gagal', description: error.message });
@@ -121,7 +111,7 @@ export default function ManagePondsPage() {
                         <CardTitle className="text-primary">Kelola Tambak</CardTitle>
                         <CardDescription>Tambah, ubah, atau hapus data kolam Anda.</CardDescription>
                     </div>
-                    <Button onClick={() => handleDialogOpen(null)}>
+                    <Button onClick={handleAddDialogOpen}>
                         <PlusCircle className="mr-2 h-4 w-4" />
                         Tambah Kolam
                     </Button>
@@ -133,7 +123,7 @@ export default function ManagePondsPage() {
                                 <TableRow>
                                     <TableHead>Nama Kolam</TableHead>
                                     <TableHead>Lokasi</TableHead>
-                                    <TableHead className="text-right w-[120px]">Aksi</TableHead>
+                                    <TableHead className="text-right w-[80px]">Aksi</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -142,8 +132,7 @@ export default function ManagePondsPage() {
                                         <TableRow key={i}>
                                             <TableCell><Skeleton className="h-5 w-32" /></TableCell>
                                             <TableCell><Skeleton className="h-5 w-48" /></TableCell>
-                                            <TableCell className="text-right space-x-2">
-                                                <Skeleton className="h-8 w-8 inline-block" />
+                                            <TableCell className="text-right">
                                                 <Skeleton className="h-8 w-8 inline-block" />
                                             </TableCell>
                                         </TableRow>
@@ -151,17 +140,32 @@ export default function ManagePondsPage() {
                                 ) : ponds && ponds.length > 0 ? (
                                     ponds.map((pond) => (
                                         <TableRow key={pond.id}>
-                                            <TableCell className="font-medium">{pond.nama}</TableCell>
+                                            <TableCell className="font-medium">
+                                                <Link href={`/dashboard/manage-ponds/${pond.id}`} className="hover:underline text-primary">
+                                                    {pond.nama}
+                                                </Link>
+                                            </TableCell>
                                             <TableCell>{pond.lokasi}</TableCell>
-                                            <TableCell className="text-right space-x-2">
-                                                <Button variant="outline" size="icon" onClick={() => handleDialogOpen(pond)}>
-                                                    <Edit className="h-4 w-4" />
-                                                    <span className="sr-only">Ubah</span>
-                                                </Button>
-                                                <Button variant="destructive" size="icon" onClick={() => handleDeleteConfirmation(pond)}>
-                                                    <Trash2 className="h-4 w-4" />
-                                                    <span className="sr-only">Hapus</span>
-                                                </Button>
+                                            <TableCell className="text-right">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" className="h-8 w-8 p-0">
+                                                            <span className="sr-only">Buka menu</span>
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <DropdownMenuItem asChild>
+                                                            <Link href={`/dashboard/manage-ponds/${pond.id}`}>Lihat/Ubah Detail</Link>
+                                                        </DropdownMenuItem>
+                                                        <DropdownMenuItem
+                                                            onClick={() => handleDeleteConfirmation(pond)}
+                                                            className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                                                        >
+                                                            Hapus Kolam
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
                                             </TableCell>
                                         </TableRow>
                                     ))
@@ -178,11 +182,11 @@ export default function ManagePondsPage() {
                 </CardContent>
             </Card>
 
-            {/* Add/Edit Dialog */}
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            {/* Add Dialog */}
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogContent className="sm:max-w-[425px]">
                     <DialogHeader>
-                        <DialogTitle>{currentPond && currentPond.id ? 'Ubah Kolam' : 'Tambah Kolam Baru'}</DialogTitle>
+                        <DialogTitle>Tambah Kolam Baru</DialogTitle>
                         <DialogDescription>
                             Isi detail di bawah ini. Klik simpan jika sudah selesai.
                         </DialogDescription>
