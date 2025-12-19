@@ -1,8 +1,10 @@
+
 'use client';
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Settings, User, LifeBuoy, LogOut, LayoutDashboard, LineChart, Wind, ClipboardList } from "lucide-react";
 import Link from "next/link";
 import { ThemeSwitcher } from "../theme-switcher";
@@ -57,50 +59,71 @@ export function Header() {
             />
         </Link>
       </div>
-      <div className="flex items-center gap-4">
-        <ThemeSwitcher />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="rounded-full">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={user?.photoURL || `https://i.pravatar.cc/150?u=${user?.uid}`} alt="User Avatar" />
-                <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
-              </Avatar>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Akun Saya</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <Link href="/dashboard">
-              <DropdownMenuItem>
-                <LayoutDashboard className="mr-2 h-4 w-4" />
-                <span>Dashboard</span>
-              </DropdownMenuItem>
-            </Link>
-            <Link href="/profile">
-              <DropdownMenuItem>
-                <User className="mr-2 h-4 w-4" />
-                <span>Profil</span>
-              </DropdownMenuItem>
-            </Link>
-            <Link href="/dashboard/manage-ponds">
+      <Dialog>
+        <div className="flex items-center gap-4">
+          <ThemeSwitcher />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.photoURL || `https://i.pravatar.cc/150?u=${user?.uid}`} alt="User Avatar" />
+                  <AvatarFallback>{getAvatarFallback()}</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Akun Saya</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <Link href="/dashboard">
                 <DropdownMenuItem>
-                    <ClipboardList className="mr-2 h-4 w-4" />
-                    <span>Kelola Tambak</span>
+                  <LayoutDashboard className="mr-2 h-4 w-4" />
+                  <span>Dashboard</span>
                 </DropdownMenuItem>
-            </Link>
-            <DropdownMenuItem><LineChart className="mr-2 h-4 w-4" /><span>Monitoring</span></DropdownMenuItem>
-            <Link href="/dashboard/aerator">
-              <DropdownMenuItem>
-                <Wind className="mr-2 h-4 w-4" />
-                <span>Kontrol Aerator</span>
-              </DropdownMenuItem>
-            </Link>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={handleLogout}><LogOut className="mr-2 h-4 w-4" /><span>Keluar</span></DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+              </Link>
+              <Link href="/profile">
+                <DropdownMenuItem>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profil</span>
+                </DropdownMenuItem>
+              </Link>
+              <Link href="/dashboard/manage-ponds">
+                  <DropdownMenuItem>
+                      <ClipboardList className="mr-2 h-4 w-4" />
+                      <span>Kelola Tambak</span>
+                  </DropdownMenuItem>
+              </Link>
+              <DropdownMenuItem><LineChart className="mr-2 h-4 w-4" /><span>Monitoring</span></DropdownMenuItem>
+              <Link href="/dashboard/aerator">
+                <DropdownMenuItem>
+                  <Wind className="mr-2 h-4 w-4" />
+                  <span>Kontrol Aerator</span>
+                </DropdownMenuItem>
+              </Link>
+              <DropdownMenuSeparator />
+              <DialogTrigger asChild>
+                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Keluar</span>
+                </DropdownMenuItem>
+              </DialogTrigger>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Konfirmasi Keluar</DialogTitle>
+                <DialogDescription>
+                    Apakah Anda yakin ingin keluar dari akun Anda?
+                </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+                <DialogTrigger asChild>
+                    <Button variant="outline">Batal</Button>
+                </DialogTrigger>
+                <Button variant="destructive" onClick={handleLogout}>Yakin</Button>
+            </DialogFooter>
+        </DialogContent>
+       </Dialog>
     </header>
   );
 }
