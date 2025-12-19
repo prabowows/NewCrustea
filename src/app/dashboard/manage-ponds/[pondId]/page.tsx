@@ -5,7 +5,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { usePond, type Pond, type Device } from '@/context/PondContext';
 import { database } from '@/lib/firebase';
-import { ref, update } from 'firebase/database';
+import { ref, update, set } from 'firebase/database';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -16,6 +16,8 @@ import { ArrowLeft, HardDrive, Edit, PlusCircle } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+
 
 export default function PondDetailPage() {
     const { pondId } = useParams();
@@ -25,6 +27,9 @@ export default function PondDetailPage() {
 
     const [isEditing, setIsEditing] = useState(false);
     const [pondData, setPondData] = useState<Partial<Omit<Pond, 'id'>>>({ nama: '', lokasi: '' });
+    const [isAddDeviceOpen, setIsAddDeviceOpen] = useState(false);
+    const [newDeviceId, setNewDeviceId] = useState('');
+
 
     const currentPond = useMemo(() => {
         return ponds.find(p => p.id === pondId);
@@ -72,11 +77,29 @@ export default function PondDetailPage() {
         setIsEditing(false);
     }
     
-    const handleAddDevice = () => {
-        toast({
-            title: "Fitur Dalam Pengembangan",
-            description: "Fungsionalitas untuk menambah perangkat baru akan segera tersedia."
-        })
+    const handleAddDevice = async () => {
+        if (!pondId || !newDeviceId) {
+            toast({ variant: 'destructive', title: 'Error', description: 'ID Perangkat tidak boleh kosong.' });
+            return;
+        }
+
+        if (!allDevices[newDeviceId]) {
+            toast({ variant: 'destructive', title: 'Error', description: 'ID Perangkat tidak ditemukan di database utama.' });
+            return;
+        }
+
+        try {
+            const deviceInPondRef = ref(database, `/pond_devices/${pondId}/${newDeviceId}`);
+            await set(deviceInPondRef, true);
+            toast({ title: 'Sukses', description: 'Perangkat baru berhasil ditambahkan ke kolam.' });
+            
+            await fetchInitialData(); // Refresh all data
+            setIsAddDeviceOpen(false); // Close dialog
+            setNewDeviceId(''); // Reset input
+        } catch (error: any) {
+            console.error("Failed to add device to pond: ", error);
+            toast({ variant: 'destructive', title: 'Gagal', description: `Gagal menambahkan perangkat: ${error.message}` });
+        }
     }
 
 
@@ -142,11 +165,11 @@ export default function PondDetailPage() {
                 <CardContent className="space-y-4">
                      <div className="space-y-2">
                         <Label htmlFor="nama">Nama Kolam</Label>
-                        <Input id="nama" value={pondData.nama} onChange={handleInputChange} readOnly={!isEditing} />
+                        <Input id="nama" value={pondData.nama || ''} onChange={handleInputChange} readOnly={!isEditing} />
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="lokasi">Lokasi Kolam</Label>
-                        <Input id="lokasi" value={pondData.lokasi} onChange={handleInputChange} readOnly={!isEditing} />
+                        <Input id="lokasi" value={pondData.lokasi || ''} onChange={handleInputChange} readOnly={!isEditing} />
                     </div>
                 </CardContent>
                 {isEditing && (
@@ -167,10 +190,42 @@ export default function PondDetailPage() {
                                 <CardDescription>Daftar perangkat yang terpasang di kolam ini.</CardDescription>
                             </div>
                         </div>
-                        <Button size="sm" variant="outline" onClick={handleAddDevice}>
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Tambah Perangkat
-                        </Button>
+                        <Dialog open={isAddDeviceOpen} onOpenChange={setIsAddDeviceOpen}>
+                            <DialogTrigger asChild>
+                                <Button size="sm" variant="outline">
+                                    <PlusCircle className="mr-2 h-4 w-4" />
+                                    Tambah Perangkat
+                                </Button>
+                            </DialogTrigger>
+                             <DialogContent className="sm:max-w-[425px]">
+                                <DialogHeader>
+                                    <DialogTitle>Tambah Perangkat ke Kolam</DialogTitle>
+                                    <DialogDescription>
+                                        Masukkan ID perangkat yang ingin Anda hubungkan ke kolam ini.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="grid gap-4 py-4">
+                                    <div className="grid grid-cols-4 items-center gap-4">
+                                        <Label htmlFor="deviceId" className="text-right">
+                                            ID Perangkat
+                                        </Label>
+                                        <Input
+                                            id="deviceId"
+                                            value={newDeviceId}
+                                            onChange={(e) => setNewDeviceId(e.target.value)}
+                                            className="col-span-3"
+                                            placeholder="Contoh: EBII_XXXXXXXX"
+                                        />
+                                    </div>
+                                </div>
+                                <DialogFooter>
+                                    <DialogClose asChild>
+                                        <Button type="button" variant="secondary">Batal</Button>
+                                    </DialogClose>
+                                    <Button type="button" onClick={handleAddDevice}>Simpan</Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
                     </div>
                 </CardHeader>
                 <CardContent>
@@ -210,3 +265,4 @@ export default function PondDetailPage() {
     );
 }
 
+    
