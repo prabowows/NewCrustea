@@ -116,8 +116,7 @@ export function RealTimeMetrics() {
     const deviceDataRef: DatabaseReference = ref(database, `/device_data/${ebiiDeviceId}`);
     
     const listener = onValue(deviceDataRef, (snapshot) => {
-      const data = snapshot.val();
-      const readingData = data;
+      const readingData = snapshot.val();
 
       setEbiiMetrics(prevMetrics => 
         prevMetrics.map(metric => {
@@ -352,3 +351,5 @@ export function RealTimeMetrics() {
     </div>
   );
 }
+
+    
