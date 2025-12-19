@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, HardDrive, Edit } from 'lucide-react';
+import { ArrowLeft, HardDrive, Edit, PlusCircle } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
@@ -71,6 +71,14 @@ export default function PondDetailPage() {
         }
         setIsEditing(false);
     }
+    
+    const handleAddDevice = () => {
+        toast({
+            title: "Fitur Dalam Pengembangan",
+            description: "Fungsionalitas untuk menambah perangkat baru akan segera tersedia."
+        })
+    }
+
 
     if (contextLoading) {
         return (
@@ -151,11 +159,19 @@ export default function PondDetailPage() {
             
             <Card>
                 <CardHeader>
-                    <div className="flex items-center gap-2">
-                         <HardDrive className="h-5 w-5 text-muted-foreground"/>
-                        <CardTitle>Perangkat Terhubung</CardTitle>
+                    <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-3">
+                            <HardDrive className="h-5 w-5 text-muted-foreground"/>
+                            <div>
+                                <CardTitle>Perangkat Terhubung</CardTitle>
+                                <CardDescription>Daftar perangkat yang terpasang di kolam ini.</CardDescription>
+                            </div>
+                        </div>
+                        <Button size="sm" variant="outline" onClick={handleAddDevice}>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Tambah Perangkat
+                        </Button>
                     </div>
-                    <CardDescription>Daftar perangkat yang terpasang di kolam ini.</CardDescription>
                 </CardHeader>
                 <CardContent>
                      <div className="rounded-md border">
