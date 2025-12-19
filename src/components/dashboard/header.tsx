@@ -83,7 +83,12 @@ export function Header() {
                 <span>Profil</span>
               </DropdownMenuItem>
             </Link>
-            <DropdownMenuItem><ClipboardList className="mr-2 h-4 w-4" /><span>Kelola Tambak</span></DropdownMenuItem>
+            <Link href="/dashboard/manage-ponds">
+                <DropdownMenuItem>
+                    <ClipboardList className="mr-2 h-4 w-4" />
+                    <span>Kelola Tambak</span>
+                </DropdownMenuItem>
+            </Link>
             <DropdownMenuItem><LineChart className="mr-2 h-4 w-4" /><span>Monitoring</span></DropdownMenuItem>
             <Link href="/dashboard/aerator">
               <DropdownMenuItem>
