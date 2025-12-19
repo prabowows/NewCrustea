@@ -71,15 +71,8 @@ export default function LoginPage() {
       <div className="flex min-h-screen flex-col items-center justify-center bg-black/30">
         <div className="w-full max-w-sm">
           <Card className="bg-card/80 backdrop-blur-sm relative">
-             <Link href="/home" passHref>
-                <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute top-4 left-4 text-primary hover:bg-primary/10"
-                >
-                    <ArrowLeft className="h-5 w-5" />
-                    <span className="sr-only">Kembali ke Beranda</span>
-                </Button>
+             <Link href="/home" className="absolute top-4 left-4 text-primary hover:text-primary/80 transition-colors p-2 rounded-full" aria-label="Kembali ke Beranda">
+                <ArrowLeft className="h-6 w-6" />
             </Link>
             <CardHeader className="space-y-4 text-center pt-16">
               <div className="flex justify-center">
