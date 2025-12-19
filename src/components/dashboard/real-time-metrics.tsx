@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import { database } from '@/lib/firebase';
 import { ref, onValue, off, type DatabaseReference } from 'firebase/database';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -68,6 +68,17 @@ export function RealTimeMetrics() {
 
   const [ebiiMetrics, setEbiiMetrics] = useState<Metric[]>(initialEbiiMetrics);
   const [energyMetrics, setEnergyMetrics] = useState<Metric[]>(initialEnergyMetrics);
+  const [isSwitching, setIsSwitching] = useState(false);
+  const pondIdRef = useRef(selectedPondId);
+
+  useEffect(() => {
+    if (pondIdRef.current !== selectedPondId) {
+      setIsSwitching(true);
+      pondIdRef.current = selectedPondId;
+      const timer = setTimeout(() => setIsSwitching(false), 500); // Animation duration
+      return () => clearTimeout(timer);
+    }
+  }, [selectedPondId]);
 
   const deviceIds = useMemo(() => {
     if (!selectedPondId || !allDevices || !pondDevices) {
@@ -106,11 +117,12 @@ export function RealTimeMetrics() {
     
     const listener = onValue(deviceDataRef, (snapshot) => {
       const data = snapshot.val();
+      const readingData = data?.value || data; // Handle both nested and flat structures
 
       setEbiiMetrics(prevMetrics => 
         prevMetrics.map(metric => {
           const firebaseKey = metric.firebaseKey || metric.id;
-          const metricValue = data?.[firebaseKey];
+          const metricValue = readingData?.[firebaseKey];
           return { ...metric, value: formatValue(metricValue, metric.unit) };
         })
       );
@@ -246,7 +258,7 @@ export function RealTimeMetrics() {
   }, [energyMetrics]);
 
   
-  if (isPondContextLoading) {
+  if (isPondContextLoading || isSwitching) {
     return (
       <div className="space-y-6">
         <div>
@@ -340,7 +352,3 @@ export function RealTimeMetrics() {
     </div>
   );
 }
-
-    
-
-    
