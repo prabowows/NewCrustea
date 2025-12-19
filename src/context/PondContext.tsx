@@ -46,14 +46,29 @@ type PondContextType = {
 
 const PondContext = createContext<PondContextType | undefined>(undefined);
 
-export function PondProvider({ children }: { children: ReactNode }) {
+type PondProviderProps = {
+    children: ReactNode;
+    onPondSwitch?: () => void;
+};
+
+
+export function PondProvider({ children, onPondSwitch }: PondProviderProps) {
     const { user } = useUser();
     const [ponds, setPonds] = useState<Pond[]>([]);
-    const [selectedPondId, setSelectedPondId] = useState<string | null>(null);
+    const [selectedPondId, _setSelectedPondId] = useState<string | null>(null);
     const [allDevices, setAllDevices] = useState<AllDevices>({});
     const [pondDevices, setPondDevices] = useState<{ [key: string]: PondDevices }>({});
     const [scDevices, setScDevices] = useState<{ [key: string]: ScDevices }>({});
     const [loading, setLoading] = useState(true);
+
+    const setSelectedPondId = (id: string) => {
+        if (id !== selectedPondId) {
+            _setSelectedPondId(id);
+            if (onPondSwitch) {
+                onPondSwitch();
+            }
+        }
+    };
 
     const fetchInitialData = useCallback(async () => {
         if (!user) {
@@ -108,7 +123,7 @@ export function PondProvider({ children }: { children: ReactNode }) {
             setScDevices(scDevicesSnap.val() || {});
 
             // Set initial selected pond ONLY if it's not already set
-            setSelectedPondId(prevSelectedPondId => {
+            _setSelectedPondId(prevSelectedPondId => {
                 if (userPonds.length > 0) {
                     // If there's no selection yet, or if the current selection is no longer valid, default to the first pond.
                     const currentPondExists = userPonds.some(p => p.id === prevSelectedPondId);
