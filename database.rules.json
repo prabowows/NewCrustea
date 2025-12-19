@@ -1,7 +1,9 @@
 {
   "rules": {
     "device_data": {
-      ".read": "auth != null"
+      "$deviceId": {
+        ".read": "auth != null"
+      }
     },
     "device_commands": {
       ".write": "auth != null"
