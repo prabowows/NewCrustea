@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { auth } from '@/lib/firebase';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { ArrowLeft } from 'lucide-react';
 
 const loginSchema = z.object({
   email: z.string().email({ message: 'Alamat email tidak valid.' }),
@@ -60,6 +61,16 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-screen w-full">
+       <Link href="/home" passHref>
+          <Button
+            variant="default"
+            size="icon"
+            className="absolute top-4 left-4 z-20 bg-success text-success-foreground hover:bg-success/90"
+          >
+            <ArrowLeft className="h-5 w-5" />
+            <span className="sr-only">Kembali ke Beranda</span>
+          </Button>
+        </Link>
        <Image
         src="https://images.pexels.com/photos/1483780/pexels-photo-1483780.jpeg"
         alt="Ocean background"
