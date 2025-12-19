@@ -7,7 +7,6 @@ import { AlarmsTable } from "@/components/dashboard/alarms-table";
 import { ParameterAnalysis } from "@/components/dashboard/parameter-analysis";
 import { LocationOverview } from "@/components/dashboard/location-overview";
 import { PondSelector } from "@/components/dashboard/pond-selector";
-import { RefreshButton } from "@/components/dashboard/refresh-button";
 import { usePond } from '@/context/PondContext';
 import { AeratorControl } from "@/components/dashboard/aerator-control";
 
@@ -18,7 +17,6 @@ export default function DashboardPage() {
        <div className="lg:col-span-2 grid grid-cols-1 gap-4 md:gap-8">
         <PondSelector />
         <LocationOverview />
-        <RefreshButton />
         <RealTimeMetrics key={`rt-${selectedPondId}`} />
       </div>
 
