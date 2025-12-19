@@ -1,9 +1,28 @@
 {
   "rules": {
-    ".read": "auth != null",
-    ".write": false,
+    "device_data": {
+      ".read": "auth != null"
+    },
     "device_commands": {
       ".write": "auth != null"
+    },
+    "devices": {
+      ".read": "auth != null"
+    },
+    "pond_devices": {
+      ".read": "auth != null"
+    },
+    "ponds": {
+      ".read": "auth != null"
+    },
+    "sc_devices": {
+      ".read": "auth != null"
+    },
+    "user_ponds": {
+      ".read": "auth != null"
+    },
+    "users": {
+      ".read": "auth != null"
     }
   }
 }
