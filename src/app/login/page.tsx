@@ -61,16 +61,6 @@ export default function LoginPage() {
 
   return (
     <div className="relative min-h-screen w-full">
-       <Link href="/home" passHref>
-          <Button
-            variant="default"
-            size="icon"
-            className="absolute top-4 left-4 z-20 bg-success text-success-foreground hover:bg-success/90"
-          >
-            <ArrowLeft className="h-5 w-5" />
-            <span className="sr-only">Kembali ke Beranda</span>
-          </Button>
-        </Link>
        <Image
         src="https://images.pexels.com/photos/1483780/pexels-photo-1483780.jpeg"
         alt="Ocean background"
@@ -80,8 +70,18 @@ export default function LoginPage() {
       />
       <div className="flex min-h-screen flex-col items-center justify-center bg-black/30">
         <div className="w-full max-w-sm">
-          <Card className="bg-card/80 backdrop-blur-sm">
-            <CardHeader className="space-y-4 text-center">
+          <Card className="bg-card/80 backdrop-blur-sm relative">
+             <Link href="/home" passHref>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    className="absolute top-4 left-4 text-primary hover:bg-primary/10"
+                >
+                    <ArrowLeft className="h-5 w-5" />
+                    <span className="sr-only">Kembali ke Beranda</span>
+                </Button>
+            </Link>
+            <CardHeader className="space-y-4 text-center pt-16">
               <div className="flex justify-center">
                   <Link href="/home" className="flex items-center gap-2 font-semibold">
                       <Image
