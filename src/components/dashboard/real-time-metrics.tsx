@@ -98,7 +98,7 @@ export function RealTimeMetrics() {
     };
 
     return {
-        ebii: findDeviceKey('EBII', 'EBII_'),
+        ebii: findDeviceKey('EBII'),
         se: findDeviceKey('SE')
     };
   }, [selectedPondId, allDevices, pondDevices]);
@@ -117,7 +117,7 @@ export function RealTimeMetrics() {
     
     const listener = onValue(deviceDataRef, (snapshot) => {
       const data = snapshot.val();
-      const readingData = data?.value || data; // Handle both nested and flat structures
+      const readingData = data;
 
       setEbiiMetrics(prevMetrics => 
         prevMetrics.map(metric => {
