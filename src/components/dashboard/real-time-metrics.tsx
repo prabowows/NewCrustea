@@ -87,7 +87,7 @@ export function RealTimeMetrics() {
     };
 
     return {
-        ebii: findDeviceKey('EBII', 'EBII_'),
+        ebii: findDeviceKey('EBII'),
         se: findDeviceKey('SE')
     };
   }, [selectedPondId, allDevices, pondDevices]);
@@ -95,22 +95,20 @@ export function RealTimeMetrics() {
 
   // Effect for EBII device - STRICTLY following the cleanup pattern
   useEffect(() => {
-    // 1. Reset state to "N/A" whenever the device ID changes.
-    // This prevents old data from flashing on the screen.
     setEbiiMetrics(initialEbiiMetrics);
 
-    // 2. Guard Clause: If there's no device ID, do nothing.
     const ebiiDeviceId = deviceIds.ebii;
     if (!ebiiDeviceId) {
       return;
     }
     
-    // 3. Define the specific path for the listener.
     const deviceDataRef: DatabaseReference = ref(database, `/device_data/${ebiiDeviceId}`);
     
-    // 4. Set up the new listener.
     const listener = onValue(deviceDataRef, (snapshot) => {
-      const data = snapshot.val();
+      const rawData = snapshot.val();
+      // NEW: Check for the nested "value" object for EBII devices
+      const data = rawData && rawData.value ? rawData.value : rawData;
+
       setEbiiMetrics(prevMetrics => 
         prevMetrics.map(metric => {
           const firebaseKey = metric.firebaseKey || metric.id;
@@ -125,34 +123,26 @@ export function RealTimeMetrics() {
           title: "Error Reading EBII Data",
           description: `Could not read from device ${ebiiDeviceId}.`,
       });
-      setEbiiMetrics(initialEbiiMetrics); // Reset on error
+      setEbiiMetrics(initialEbiiMetrics);
     });
 
-    // 5. MANDATORY CLEANUP FUNCTION:
-    // This function is returned by useEffect and will be called automatically
-    // by React right before the component unmounts OR before the effect runs again
-    // (because deviceIds.ebii has changed).
     return () => {
       off(deviceDataRef, 'value', listener);
     };
     
-  }, [deviceIds.ebii, toast]); // Dependency array ensures this effect re-runs ONLY when the device ID changes.
+  }, [deviceIds.ebii, toast]);
 
   // Effect for Smart Energy (SE) device - STRICTLY following the cleanup pattern
   useEffect(() => {
-    // 1. Reset state to "N/A".
     setEnergyMetrics(initialEnergyMetrics);
 
-    // 2. Guard Clause.
     const seDeviceId = deviceIds.se;
     if (!seDeviceId) {
       return;
     }
     
-    // 3. Define the specific path.
     const deviceDataRef: DatabaseReference = ref(database, `/device_data/${seDeviceId}`);
 
-    // 4. Set up the new listener.
     const listener = onValue(deviceDataRef, (snapshot) => {
       const data = snapshot.val();
       setEnergyMetrics(prevMetrics => 
@@ -172,11 +162,10 @@ export function RealTimeMetrics() {
       setEnergyMetrics(initialEnergyMetrics); // Reset on error
     });
 
-    // 5. MANDATORY CLEANUP FUNCTION.
     return () => {
       off(deviceDataRef, 'value', listener);
     };
-  }, [deviceIds.se, toast]); // Dependency array ensures this effect re-runs ONLY when the device ID changes.
+  }, [deviceIds.se, toast]);
 
 
   const renderMetricCard = (metric: Metric) => {
@@ -218,7 +207,22 @@ export function RealTimeMetrics() {
         const baseName = metric.name.replace(/ \d+$/, '');
         const phaseNumber = parseInt(metric.name.slice(-1), 10);
 
-        if (isNaN(phaseNumber)) return acc;
+        if (isNaN(phaseNumber)) {
+            // Handle metrics without phase number like 'Power'
+             if (!acc[baseName]) {
+                acc[baseName] = {
+                    name: baseName,
+                    icon: metric.icon,
+                    description: metric.description,
+                    unit: metric.unit,
+                    phases: [],
+                };
+            }
+            // For now, we will group them but may need a different display logic
+            acc[baseName].phases.push({ phase: 0, value: metric.value });
+
+            return acc;
+        };
 
         if (!acc[baseName]) {
           acc[baseName] = {
@@ -266,7 +270,7 @@ export function RealTimeMetrics() {
         <div>
           <h3 className="text-lg font-semibold mb-4 text-primary">Smart Energy</h3>
            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
-            {Array(3).fill(0).map((_, i) => (
+            {Object.keys(groupedEnergyMetrics).map((key, i) => (
               <Card key={`sk-energy-${i}`} className="border-primary">
                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <Skeleton className="h-4 w-20" />
@@ -325,7 +329,7 @@ export function RealTimeMetrics() {
                 <CardContent className="space-y-2">
                   {metric.phases.map((p) => (
                     <div key={p.phase} className="flex justify-between items-baseline">
-                      <span className="text-sm text-muted-foreground">Phase {p.phase}</span>
+                      <span className="text-sm text-muted-foreground">Phase {p.phase === 0 ? '' : p.phase}</span>
                       <span className="text-lg font-bold font-mono">{p.value}</span>
                     </div>
                   ))}
@@ -338,3 +342,5 @@ export function RealTimeMetrics() {
     </div>
   );
 }
+
+    
