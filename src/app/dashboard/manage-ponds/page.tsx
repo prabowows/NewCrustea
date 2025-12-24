@@ -21,7 +21,8 @@ import { useRouter } from 'next/navigation';
 
 const initialPondState: Omit<Pond, 'id'> = {
     nama: '',
-    lokasi: ''
+    lokasi: '',
+    gmaps_url: '',
 };
 
 export default function ManagePondsPage() {
@@ -207,6 +208,12 @@ export default function ManagePondsPage() {
                                 Lokasi
                             </Label>
                             <Input id="lokasi" value={formData.lokasi} onChange={handleFormChange} className="col-span-3" />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="gmaps_url" className="text-right">
+                                URL G-Maps
+                            </Label>
+                            <Input id="gmaps_url" value={formData.gmaps_url || ''} onChange={handleFormChange} className="col-span-3" placeholder="https://maps.app.goo.gl/..."/>
                         </div>
                     </div>
                     <DialogFooter>

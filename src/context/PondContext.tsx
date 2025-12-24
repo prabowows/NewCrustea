@@ -10,6 +10,7 @@ export type Pond = {
     id: string;
     nama: string;
     lokasi: string;
+    gmaps_url?: string;
 };
 
 export type Device = {

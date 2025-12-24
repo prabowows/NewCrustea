@@ -26,7 +26,7 @@ export default function PondDetailPage() {
     const { toast } = useToast();
 
     const [isEditing, setIsEditing] = useState(false);
-    const [pondData, setPondData] = useState<Partial<Omit<Pond, 'id'>>>({ nama: '', lokasi: '' });
+    const [pondData, setPondData] = useState<Partial<Omit<Pond, 'id'>>>({ nama: '', lokasi: '', gmaps_url: '' });
     const [isAddDeviceOpen, setIsAddDeviceOpen] = useState(false);
     const [newDeviceId, setNewDeviceId] = useState('');
 
@@ -46,6 +46,7 @@ export default function PondDetailPage() {
             setPondData({
                 nama: currentPond.nama,
                 lokasi: currentPond.lokasi,
+                gmaps_url: currentPond.gmaps_url,
             });
         }
     }, [currentPond]);
@@ -72,7 +73,7 @@ export default function PondDetailPage() {
     
     const handleCancel = () => {
         if (currentPond) {
-            setPondData({ nama: currentPond.nama, lokasi: currentPond.lokasi });
+            setPondData({ nama: currentPond.nama, lokasi: currentPond.lokasi, gmaps_url: currentPond.gmaps_url });
         }
         setIsEditing(false);
     }
@@ -111,6 +112,7 @@ export default function PondDetailPage() {
                     <Skeleton className="h-4 w-48" />
                 </CardHeader>
                 <CardContent className="space-y-4">
+                    <Skeleton className="h-10 w-full" />
                     <Skeleton className="h-10 w-full" />
                     <Skeleton className="h-10 w-full" />
                 </CardContent>
@@ -170,6 +172,10 @@ export default function PondDetailPage() {
                     <div className="space-y-2">
                         <Label htmlFor="lokasi">Lokasi Kolam</Label>
                         <Input id="lokasi" value={pondData.lokasi || ''} onChange={handleInputChange} readOnly={!isEditing} />
+                    </div>
+                    <div className="space-y-2">
+                        <Label htmlFor="gmaps_url">URL Google Maps</Label>
+                        <Input id="gmaps_url" value={pondData.gmaps_url || ''} onChange={handleInputChange} readOnly={!isEditing} placeholder="https://maps.app.goo.gl/..."/>
                     </div>
                 </CardContent>
                 {isEditing && (
