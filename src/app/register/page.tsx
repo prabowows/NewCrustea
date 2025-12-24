@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Button } from '@/components/ui/button';
@@ -19,7 +20,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { auth, db } from '@/lib/firebase';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import { errorEmitter } from '@/lib/error-emitter';
 import { FirestorePermissionError } from '@/lib/errors';
@@ -51,12 +52,16 @@ export default function RegisterPage() {
       const userCredential = await createUserWithEmailAndPassword(auth, data.email, data.password);
       const user = userCredential.user;
 
+      const defaultPhotoURL = `https://avatar.vercel.sh/${data.email}.png`;
+      await updateProfile(user, { displayName: data.name, photoURL: defaultPhotoURL });
+
       const userDocRef = doc(db, 'users', user.uid);
       const newUserProfile = {
         name: data.name,
         email: data.email,
         address: '',
         phoneNumber: '',
+        photoURL: defaultPhotoURL,
         createdAt: new Date(),
       };
 
@@ -168,7 +173,7 @@ export default function RegisterPage() {
                     </Button>
                   </form>
                 </Form>
-            </CardContent>
+            </Content>
              <CardFooter className="flex flex-col gap-4">
                 <p className="text-center text-sm text-muted-foreground">
                 Sudah punya akun?{' '}

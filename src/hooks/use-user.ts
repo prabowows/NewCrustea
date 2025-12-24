@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -17,5 +18,5 @@ export function useUser() {
     return () => unsubscribe();
   }, []);
 
-  return { user, loading };
+  return { user, loading, setUser };
 }

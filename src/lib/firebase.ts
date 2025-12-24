@@ -5,6 +5,7 @@ import { initializeApp, getApps, type FirebaseApp, type FirebaseOptions } from "
 import { getDatabase } from "firebase/database";
 import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 const firebaseConfig: FirebaseOptions = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -33,10 +34,12 @@ function initializeFirebaseApp(config: FirebaseOptions): FirebaseApp {
 
 let app: FirebaseApp;
 let database: any;
+let storage: any;
 
 try {
     app = initializeFirebaseApp(firebaseConfig);
     database = getDatabase(app);
+    storage = getStorage(app);
 } catch (error) {
     console.error("Firebase initialization error:", error);
 }
@@ -47,4 +50,4 @@ const auth = getAuth(app);
 // @ts-ignore
 const db = getFirestore(app);
 
-export { app, database, auth, db };
+export { app, database, auth, db, storage };
