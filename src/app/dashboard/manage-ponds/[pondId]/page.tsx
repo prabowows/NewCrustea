@@ -180,19 +180,19 @@ export default function PondDetailPage() {
                 )}
             </Card>
             
-            <Card>
+            <Card className="border-primary">
                 <CardHeader>
                     <div className="flex justify-between items-center">
                         <div className="flex items-center gap-3">
-                            <HardDrive className="h-5 w-5 text-muted-foreground"/>
+                            <HardDrive className="h-5 w-5 text-primary"/>
                             <div>
-                                <CardTitle>Perangkat Terhubung</CardTitle>
+                                <CardTitle className="text-primary">Perangkat Terhubung</CardTitle>
                                 <CardDescription>Daftar perangkat yang terpasang di kolam ini.</CardDescription>
                             </div>
                         </div>
                         <Dialog open={isAddDeviceOpen} onOpenChange={setIsAddDeviceOpen}>
                             <DialogTrigger asChild>
-                                <Button size="sm" variant="outline">
+                                <Button size="sm">
                                     <PlusCircle className="mr-2 h-4 w-4" />
                                     Tambah Perangkat
                                 </Button>
@@ -264,5 +264,3 @@ export default function PondDetailPage() {
         </div>
     );
 }
-
-    
