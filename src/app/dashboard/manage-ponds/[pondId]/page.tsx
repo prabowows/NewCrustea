@@ -174,7 +174,7 @@ export default function PondDetailPage() {
                 </CardContent>
                 {isEditing && (
                     <CardFooter className="justify-end gap-2">
-                        <Button variant="ghost" onClick={handleCancel}>Batal</Button>
+                        <Button variant="destructive" onClick={handleCancel}>Batal</Button>
                         <Button onClick={handleSave}>Simpan Perubahan</Button>
                     </CardFooter>
                 )}
@@ -264,5 +264,7 @@ export default function PondDetailPage() {
         </div>
     );
 }
+
+    
 
     
