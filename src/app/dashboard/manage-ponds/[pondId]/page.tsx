@@ -192,7 +192,7 @@ export default function PondDetailPage() {
                         </div>
                         <Dialog open={isAddDeviceOpen} onOpenChange={setIsAddDeviceOpen}>
                             <DialogTrigger asChild>
-                                <Button size="sm">
+                                <Button size="sm" variant="outline" className="text-primary border-primary">
                                     <PlusCircle className="mr-2 h-4 w-4" />
                                     Tambah Perangkat
                                 </Button>
