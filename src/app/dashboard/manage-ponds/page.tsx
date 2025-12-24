@@ -17,6 +17,7 @@ import { PlusCircle, MoreHorizontal } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useRouter } from 'next/navigation';
 
 const initialPondState: Omit<Pond, 'id'> = {
     nama: '',
@@ -27,6 +28,7 @@ export default function ManagePondsPage() {
     const { ponds, loading, fetchInitialData } = usePond();
     const { user } = useUser();
     const { toast } = useToast();
+    const router = useRouter();
 
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
     const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -139,14 +141,16 @@ export default function ManagePondsPage() {
                                     ))
                                 ) : ponds && ponds.length > 0 ? (
                                     ponds.map((pond) => (
-                                        <TableRow key={pond.id}>
-                                            <TableCell className="font-medium">
-                                                <Link href={`/dashboard/manage-ponds/${pond.id}`} className="hover:underline text-primary">
-                                                    {pond.nama}
-                                                </Link>
+                                        <TableRow 
+                                            key={pond.id} 
+                                            onClick={() => router.push(`/dashboard/manage-ponds/${pond.id}`)}
+                                            className="cursor-pointer"
+                                        >
+                                            <TableCell className="font-medium text-primary">
+                                                {pond.nama}
                                             </TableCell>
                                             <TableCell>{pond.lokasi}</TableCell>
-                                            <TableCell className="text-right">
+                                            <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                                                 <DropdownMenu>
                                                     <DropdownMenuTrigger asChild>
                                                         <Button variant="ghost" className="h-8 w-8 p-0">
@@ -155,8 +159,8 @@ export default function ManagePondsPage() {
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
-                                                        <DropdownMenuItem asChild>
-                                                            <Link href={`/dashboard/manage-ponds/${pond.id}`}>Lihat/Ubah Detail</Link>
+                                                        <DropdownMenuItem onClick={() => router.push(`/dashboard/manage-ponds/${pond.id}`)}>
+                                                            Lihat/Ubah Detail
                                                         </DropdownMenuItem>
                                                         <DropdownMenuItem
                                                             onClick={() => handleDeleteConfirmation(pond)}
