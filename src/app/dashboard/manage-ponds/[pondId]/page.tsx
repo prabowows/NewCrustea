@@ -198,9 +198,14 @@ export default function PondDetailPage() {
                                 </Button>
                             </DialogTrigger>
                              <DialogContent className="sm:max-w-[425px]">
-                                <DialogHeader>
-                                    <DialogTitle>Tambah Perangkat ke Kolam</DialogTitle>
-                                    <DialogDescription>
+                                <DialogHeader className="items-center text-center">
+                                    <div className="rounded-full border border-primary/20 bg-primary/10 p-3 w-fit">
+                                        <HardDrive className="h-10 w-10 text-primary" />
+                                    </div>
+                                    <DialogTitle className="text-2xl font-bold text-primary">
+                                        Tambah Perangkat ke Kolam
+                                    </DialogTitle>
+                                    <DialogDescription className="text-base text-muted-foreground pt-2">
                                         Masukkan ID perangkat yang ingin Anda hubungkan ke kolam ini.
                                     </DialogDescription>
                                 </DialogHeader>
@@ -220,7 +225,7 @@ export default function PondDetailPage() {
                                 </div>
                                 <DialogFooter>
                                     <DialogClose asChild>
-                                        <Button type="button" variant="secondary">Batal</Button>
+                                        <Button type="button" variant="destructive">Batal</Button>
                                     </DialogClose>
                                     <Button type="button" onClick={handleAddDevice}>Simpan</Button>
                                 </DialogFooter>
@@ -264,6 +269,8 @@ export default function PondDetailPage() {
         </div>
     );
 }
+
+    
 
     
 
