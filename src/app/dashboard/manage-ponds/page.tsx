@@ -146,7 +146,7 @@ export default function ManagePondsPage() {
                                             onClick={() => router.push(`/dashboard/manage-ponds/${pond.id}`)}
                                             className="cursor-pointer"
                                         >
-                                            <TableCell className="font-medium text-primary">
+                                            <TableCell className="font-medium">
                                                 {pond.nama}
                                             </TableCell>
                                             <TableCell>{pond.lokasi}</TableCell>
