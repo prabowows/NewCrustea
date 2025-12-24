@@ -109,18 +109,21 @@ export function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Konfirmasi Keluar</DialogTitle>
-                <DialogDescription>
-                    Apakah Anda yakin ingin keluar dari akun Anda?
+        <DialogContent className="sm:max-w-sm">
+            <DialogHeader className="items-center text-center">
+                <div className="rounded-full border border-primary/20 bg-primary/10 p-3 mb-4">
+                    <LogOut className="h-10 w-10 text-primary" />
+                </div>
+                <DialogTitle className="text-2xl font-bold">
+                    Konfirmasi Keluar
+                </DialogTitle>
+                <DialogDescription className="text-base text-muted-foreground pt-2">
+                    Apakah Anda yakin ingin keluar dari akun Anda? Sesi Anda akan berakhir.
                 </DialogDescription>
             </DialogHeader>
-            <DialogFooter>
-                <DialogTrigger asChild>
-                    <Button variant="outline">Batal</Button>
-                </DialogTrigger>
-                <Button variant="destructive" onClick={handleLogout}>Yakin</Button>
+            <DialogFooter className="flex-row justify-center gap-4 pt-4 sm:justify-center">
+                <Button variant="destructive" onClick={() => (document.querySelector('[data-radix-dialog-close]') as HTMLElement)?.click()} className="w-full">Batal</Button>
+                <Button variant="default" onClick={handleLogout} className="w-full">Yakin</Button>
             </DialogFooter>
         </DialogContent>
        </Dialog>
