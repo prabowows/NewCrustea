@@ -123,7 +123,7 @@ export function Header() {
             </DialogHeader>
             <DialogFooter className="flex-row justify-center gap-4 pt-4 sm:justify-center">
                 <Button variant="destructive" onClick={() => (document.querySelector('[data-radix-dialog-close]') as HTMLElement)?.click()} className="w-full">Batal</Button>
-                <Button variant="default" onClick={handleLogout} className="w-full bg-primary text-primary-foreground hover:bg-primary/90">Yakin</Button>
+                <Button variant="default" onClick={handleLogout} className="w-full bg-primary text-white hover:bg-primary/90">Yakin</Button>
             </DialogFooter>
         </DialogContent>
        </Dialog>
