@@ -211,7 +211,7 @@ export default function ManagePondsPage() {
                     </div>
                     <DialogFooter>
                         <DialogClose asChild>
-                            <Button type="button" variant="secondary">Batal</Button>
+                            <Button type="button" variant="destructive">Batal</Button>
                         </DialogClose>
                         <Button type="button" onClick={handleSubmit}>Simpan</Button>
                     </DialogFooter>

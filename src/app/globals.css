@@ -11,7 +11,7 @@
     --popover: 180 20% 98%;
     --popover-foreground: 222.2 84% 4.9%;
     --primary: 73 58% 51%; /* #adcb37 */
-    --primary-foreground: 222.2 84% 4.9%;
+    --primary-foreground: 0 0% 100%;
     --secondary: 220 73% 68%; /* muted blue */
     --secondary-foreground: 0 0% 100%;
     --muted: 210 40% 96.1%;
@@ -41,7 +41,7 @@
     --popover: 204 10% 10%;
     --popover-foreground: 210 40% 98%;
     --primary: 73 58% 51%;
-    --primary-foreground: 222.2 84% 4.9%;
+    --primary-foreground: 0 0% 100%;
     --secondary: 220 73% 68%;
     --secondary-foreground: 0 0% 100%;
     --muted: 204 10% 15%;
