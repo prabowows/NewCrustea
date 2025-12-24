@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, MoreHorizontal } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -220,16 +220,21 @@ export default function ManagePondsPage() {
             
             {/* Delete Confirmation Dialog */}
             <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Konfirmasi Hapus</DialogTitle>
-                        <DialogDescription>
-                            Apakah Anda yakin ingin menghapus kolam "{pondToDelete?.nama}"? Tindakan ini tidak dapat diurungkan.
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader className="items-center text-center">
+                        <div className="rounded-full border border-destructive/20 bg-destructive/10 p-3">
+                            <AlertTriangle className="h-10 w-10 text-destructive" />
+                        </div>
+                        <DialogTitle className="text-2xl font-bold text-destructive">
+                            Konfirmasi Hapus
+                        </DialogTitle>
+                        <DialogDescription className="text-base text-muted-foreground">
+                            Apakah Anda yakin ingin menghapus kolam "{pondToDelete?.nama}"? Tindakan ini bersifat permanen dan tidak dapat diurungkan.
                         </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDeleteOpen(false)}>Batal</Button>
-                        <Button variant="destructive" onClick={handleDelete}>Hapus</Button>
+                    <DialogFooter className="flex-row justify-center gap-4 pt-4">
+                        <Button variant="outline" onClick={() => setIsDeleteOpen(false)} className="w-full">Batal</Button>
+                        <Button variant="destructive" onClick={handleDelete} className="w-full">Ya, Hapus Kolam</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
