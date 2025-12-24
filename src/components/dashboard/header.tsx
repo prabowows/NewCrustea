@@ -4,7 +4,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Settings, User, LifeBuoy, LogOut, LayoutDashboard, LineChart, Wind, ClipboardList } from "lucide-react";
 import Link from "next/link";
 import { ThemeSwitcher } from "../theme-switcher";
@@ -122,7 +122,9 @@ export function Header() {
                 </DialogDescription>
             </DialogHeader>
             <DialogFooter className="flex-row justify-center gap-4 pt-4 sm:justify-center">
-                <Button variant="destructive" onClick={() => (document.querySelector('[data-radix-dialog-close]') as HTMLElement)?.click()} className="w-full">Batal</Button>
+                <DialogClose asChild>
+                    <Button variant="destructive" className="w-full">Batal</Button>
+                </DialogClose>
                 <Button variant="default" onClick={handleLogout} className="w-full bg-primary text-white hover:bg-primary/90">Yakin</Button>
             </DialogFooter>
         </DialogContent>
