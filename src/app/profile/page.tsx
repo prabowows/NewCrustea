@@ -32,6 +32,50 @@ const initialFormData: Omit<UserProfile, 'email' | 'photoURL'> = {
     phoneNumber: ''
 };
 
+// Helper function to compress and resize the image
+const compressImage = (file: File, maxSize: number = 512): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+        const image = new Image();
+        image.src = URL.createObjectURL(file);
+        image.onload = () => {
+            const canvas = document.createElement('canvas');
+            let { width, height } = image;
+
+            if (width > height) {
+                if (width > maxSize) {
+                    height = Math.round((height * maxSize) / width);
+                    width = maxSize;
+                }
+            } else {
+                if (height > maxSize) {
+                    width = Math.round((width * maxSize) / height);
+                    height = maxSize;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                return reject(new Error('Could not get canvas context'));
+            }
+            ctx.drawImage(image, 0, 0, width, height);
+
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    resolve(blob);
+                } else {
+                    reject(new Error('Canvas to Blob conversion failed'));
+                }
+            }, 'image/jpeg', 0.8); // Compress to JPEG with 80% quality
+        };
+        image.onerror = (error) => {
+            reject(error);
+        };
+    });
+};
+
+
 export default function ProfilePage() {
   const { user, loading: authLoading, setUser } = useUser();
   const { toast } = useToast();
@@ -119,12 +163,15 @@ export default function ProfilePage() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0 || !user) return;
     const file = e.target.files[0];
-    const storageRef = ref(storage, `profile_images/${user.uid}`);
     
     setIsUploading(true);
 
     try {
-      const snapshot = await uploadBytes(storageRef, file);
+      // Compress the image before uploading
+      const compressedBlob = await compressImage(file);
+      
+      const storageRef = ref(storage, `profile_images/${user.uid}`);
+      const snapshot = await uploadBytes(storageRef, compressedBlob);
       const downloadURL = await getDownloadURL(snapshot.ref);
 
       // Update Firebase Auth profile
@@ -147,10 +194,14 @@ export default function ProfilePage() {
       toast({
         variant: "destructive",
         title: "Unggah Gagal",
-        description: "Tidak dapat mengunggah gambar profil baru.",
+        description: "Tidak dapat mengunggah gambar profil baru. Pastikan file adalah gambar.",
       });
     } finally {
       setIsUploading(false);
+      // Reset the file input so the user can upload the same file again if they want
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     }
   };
 
@@ -250,7 +301,7 @@ export default function ProfilePage() {
                 ref={fileInputRef} 
                 className="hidden" 
                 onChange={handleImageUpload}
-                accept="image/png, image/jpeg"
+                accept="image/png, image/jpeg, image/webp"
               />
             </div>
             <div className="space-y-1 text-center sm:text-left">
@@ -291,3 +342,5 @@ export default function ProfilePage() {
     </div>
   );
 }
+
+    
