@@ -103,11 +103,14 @@ export function PondProvider({ children, onPondSwitch }: PondProviderProps) {
             const allPondsData = pondsSnap.val() || {};
             const allDevicesData = devicesSnap.val() || {};
             
-            // 3. Filter ponds based on user's access
-            const userPonds = userPondIds.map(id => ({
-                id,
-                ...allPondsData[id]
-            })).filter(p => p.nama); // Ensure pond data exists
+            // 3. Filter and sort ponds based on user's access
+            const userPonds = userPondIds
+                .map(id => ({
+                    id,
+                    ...allPondsData[id]
+                }))
+                .filter(p => p.nama) // Ensure pond data exists
+                .sort((a, b) => a.nama.localeCompare(b.nama)); // Sort alphabetically by name
 
             // 4. Map devices data to include the ID inside the object
             const mappedDevices: AllDevices = {};
