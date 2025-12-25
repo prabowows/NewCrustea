@@ -59,9 +59,16 @@ export default function PondDetailPage() {
     const handleSave = async () => {
         if (!pondId) return;
 
+        // Ensure gmaps_url is not undefined. Firebase doesn't accept undefined.
+        // We convert it to null to remove it from the database if the field is empty.
+        const dataToSave = {
+            ...pondData,
+            gmaps_url: pondData.gmaps_url || null,
+        };
+
         try {
             const pondRef = ref(database, `ponds/${pondId}`);
-            await update(pondRef, pondData);
+            await update(pondRef, dataToSave);
             toast({ title: 'Sukses', description: 'Data kolam berhasil diperbarui.' });
             setIsEditing(false);
             await fetchInitialData(); // Refresh context data
@@ -270,3 +277,5 @@ export default function PondDetailPage() {
         </div>
     );
 }
+
+    
