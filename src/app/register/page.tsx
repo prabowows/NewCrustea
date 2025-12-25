@@ -173,7 +173,7 @@ export default function RegisterPage() {
                     </Button>
                   </form>
                 </Form>
-            </Content>
+            </CardContent>
              <CardFooter className="flex flex-col gap-4">
                 <p className="text-center text-sm text-muted-foreground">
                 Sudah punya akun?{' '}
