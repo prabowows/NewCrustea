@@ -12,11 +12,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, HardDrive, Edit, PlusCircle } from 'lucide-react';
+import { ArrowLeft, HardDrive, Edit, PlusCircle, Info } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 
 export default function PondDetailPage() {
@@ -192,7 +193,28 @@ export default function PondDetailPage() {
                         <Input id="lokasi" value={pondData.lokasi || ''} onChange={handleInputChange} readOnly={!isEditing} />
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="gmaps_url">URL Google Maps</Label>
+                        <div className="flex items-center gap-2">
+                            <Label htmlFor="gmaps_url">URL Google Maps</Label>
+                             {isEditing && (
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top" align="start" className="max-w-xs">
+                                            <p className="font-bold">Cara Menyalin URL Embed:</p>
+                                            <ol className="list-decimal list-inside space-y-1 mt-2 text-xs">
+                                                <li>Buka lokasi di Google Maps.</li>
+                                                <li>Klik "Share" atau "Bagikan".</li>
+                                                <li>Pilih tab "Embed a map" atau "Sematkan peta".</li>
+                                                <li>Klik "COPY HTML".</li>
+                                                <li>Tempel di sini. Aplikasi akan mengambil URL-nya secara otomatis.</li>
+                                            </ol>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            )}
+                        </div>
                         <Input id="gmaps_url" value={pondData.gmaps_url || ''} onChange={handleInputChange} readOnly={!isEditing} placeholder="Tempel kode <iframe> dari Google Maps di sini"/>
                     </div>
                 </CardContent>

@@ -13,11 +13,12 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, MoreHorizontal, AlertTriangle } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, AlertTriangle, Info } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useRouter } from 'next/navigation';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 const initialPondState: Omit<Pond, 'id'> = {
     nama: '',
@@ -221,9 +222,28 @@ export default function ManagePondsPage() {
                             <Input id="lokasi" value={formData.lokasi} onChange={handleFormChange} className="col-span-3" />
                         </div>
                         <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="gmaps_url" className="text-right">
-                                URL G-Maps
-                            </Label>
+                             <div className="flex items-center gap-2 justify-end text-right">
+                                <Label htmlFor="gmaps_url">
+                                    URL G-Maps
+                                </Label>
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <Info className="h-4 w-4 text-muted-foreground cursor-help" />
+                                        </TooltipTrigger>
+                                        <TooltipContent side="top" align="start" className="max-w-xs">
+                                            <p className="font-bold">Cara Menyalin URL Embed:</p>
+                                            <ol className="list-decimal list-inside space-y-1 mt-2 text-xs">
+                                                <li>Buka lokasi di Google Maps.</li>
+                                                <li>Klik "Share" atau "Bagikan".</li>
+                                                <li>Pilih tab "Embed a map" atau "Sematkan peta".</li>
+                                                <li>Klik "COPY HTML".</li>
+                                                <li>Tempel di sini. Aplikasi akan mengambil URL-nya secara otomatis.</li>
+                                            </ol>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                            </div>
                             <Input id="gmaps_url" value={formData.gmaps_url || ''} onChange={handleFormChange} className="col-span-3" placeholder="Tempel kode <iframe> dari G-Maps"/>
                         </div>
                     </div>
