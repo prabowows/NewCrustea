@@ -1,5 +1,7 @@
 {
   "rules": {
+    ".read": false,
+    ".write": false,
     "device_data": {
       "$deviceId": {
         ".read": "auth != null"
@@ -21,10 +23,9 @@
       ".read": "auth != null"
     },
     "user_ponds": {
-      ".read": "auth != null"
-    },
-    "users": {
-      ".read": "auth != null"
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid"
+      }
     }
   }
 }
