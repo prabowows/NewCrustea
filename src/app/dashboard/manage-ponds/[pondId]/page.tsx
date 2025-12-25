@@ -53,7 +53,18 @@ export default function PondDetailPage() {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
-        setPondData(prev => ({ ...prev, [id]: value }));
+        
+        if (id === 'gmaps_url') {
+            const iframeRegex = /<iframe src="([^"]+)"/;
+            const match = value.match(iframeRegex);
+            if (match && match[1]) {
+                setPondData(prev => ({ ...prev, [id]: match[1] }));
+            } else {
+                setPondData(prev => ({ ...prev, [id]: value }));
+            }
+        } else {
+            setPondData(prev => ({ ...prev, [id]: value }));
+        }
     };
 
     const handleSave = async () => {
@@ -182,7 +193,7 @@ export default function PondDetailPage() {
                     </div>
                     <div className="space-y-2">
                         <Label htmlFor="gmaps_url">URL Google Maps</Label>
-                        <Input id="gmaps_url" value={pondData.gmaps_url || ''} onChange={handleInputChange} readOnly={!isEditing} placeholder="https://maps.app.goo.gl/..."/>
+                        <Input id="gmaps_url" value={pondData.gmaps_url || ''} onChange={handleInputChange} readOnly={!isEditing} placeholder="Tempel kode <iframe> dari Google Maps di sini"/>
                     </div>
                 </CardContent>
                 {isEditing && (
@@ -277,5 +288,3 @@ export default function PondDetailPage() {
         </div>
     );
 }
-
-    

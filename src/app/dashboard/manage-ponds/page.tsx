@@ -43,7 +43,18 @@ export default function ManagePondsPage() {
 
     const handleFormChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { id, value } = e.target;
-        setFormData(prev => ({ ...prev, [id]: value }));
+        
+        if (id === 'gmaps_url') {
+            const iframeRegex = /<iframe src="([^"]+)"/;
+            const match = value.match(iframeRegex);
+            if (match && match[1]) {
+                setFormData(prev => ({ ...prev, [id]: match[1] }));
+            } else {
+                setFormData(prev => ({ ...prev, [id]: value }));
+            }
+        } else {
+            setFormData(prev => ({ ...prev, [id]: value }));
+        }
     };
 
     const handleSubmit = async () => {
@@ -213,7 +224,7 @@ export default function ManagePondsPage() {
                             <Label htmlFor="gmaps_url" className="text-right">
                                 URL G-Maps
                             </Label>
-                            <Input id="gmaps_url" value={formData.gmaps_url || ''} onChange={handleFormChange} className="col-span-3" placeholder="https://maps.app.goo.gl/..."/>
+                            <Input id="gmaps_url" value={formData.gmaps_url || ''} onChange={handleFormChange} className="col-span-3" placeholder="Tempel kode <iframe> dari G-Maps"/>
                         </div>
                     </div>
                     <DialogFooter>
