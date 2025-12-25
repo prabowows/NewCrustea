@@ -19,9 +19,10 @@ import * as z from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { auth, db } from '@/lib/firebase';
+import { auth, db, database } from '@/lib/firebase'; // Import database
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
+import { ref, set } from "firebase/database"; // Import ref and set for Realtime Database
 import { errorEmitter } from '@/lib/error-emitter';
 import { FirestorePermissionError } from '@/lib/errors';
 
@@ -55,6 +56,7 @@ export default function RegisterPage() {
       const defaultPhotoURL = `https://avatar.vercel.sh/${data.email}.png`;
       await updateProfile(user, { displayName: data.name, photoURL: defaultPhotoURL });
 
+      // Firestore document setup
       const userDocRef = doc(db, 'users', user.uid);
       const newUserProfile = {
         name: data.name,
@@ -64,31 +66,33 @@ export default function RegisterPage() {
         photoURL: defaultPhotoURL,
         createdAt: new Date(),
       };
+      
+      // Realtime Database setup
+      const userRTDBRef = ref(database, `users/${user.uid}`);
+      const userPondsRTDBRef = ref(database, `user_ponds/${user.uid}`);
 
-      setDoc(userDocRef, newUserProfile)
-        .then(() => {
-            toast({
-              title: 'Registrasi Berhasil',
-              description: 'Akun Anda telah dibuat. Silakan login.',
-            });
-            router.push('/login');
-        })
-        .catch((serverError) => {
-            // This is the new error handling part
-            const permissionError = new FirestorePermissionError({
-                path: userDocRef.path,
-                operation: 'create',
-                requestResourceData: newUserProfile,
-            });
-            errorEmitter.emit('permission-error', permissionError);
-        });
+      // Use Promise.all to handle all database writes
+      await Promise.all([
+        setDoc(userDocRef, newUserProfile),
+        set(userRTDBRef, { name: data.name }),
+        set(userPondsRTDBRef, "") // Set an empty value to create the user's node
+      ]);
+
+      toast({
+        title: 'Registrasi Berhasil',
+        description: 'Akun Anda telah dibuat. Silakan login.',
+      });
+      router.push('/login');
 
     } catch (error: any) {
-      // This catch block handles auth errors, not Firestore errors.
-      console.error('Registration auth error:', error.code, error.message);
+      console.error('Registration error:', error);
       let description = 'Terjadi kesalahan. Silakan coba lagi.';
       if (error.code === 'auth/email-already-in-use') {
         description = 'Alamat email ini sudah terdaftar. Silakan gunakan email lain atau login.';
+      } else if (error instanceof FirestorePermissionError) {
+        // Handle specific Firestore permission errors if needed
+        errorEmitter.emit('permission-error', error);
+        description = 'Gagal menyimpan data profil karena masalah izin.';
       }
       toast({
         variant: 'destructive',
