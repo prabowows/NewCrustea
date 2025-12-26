@@ -268,19 +268,19 @@ export default function ManagePondsPage() {
                                             <Info className="h-5 w-5 text-muted-foreground" />
                                         </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="max-w-lg w-[90vw]">
+                                    <DialogContent className="w-[90vw] max-w-xl">
                                         <DialogHeader>
                                             <DialogTitle>Cara Mendapatkan Kode Semat Peta</DialogTitle>
                                             <DialogDescription>
                                                 Ikuti langkah-langkah berikut untuk mendapatkan dan menempelkan kode dari Google Maps.
                                             </DialogDescription>
                                         </DialogHeader>
-                                        <Carousel className="w-full p-4 relative">
+                                         <Carousel className="w-full p-4 relative">
                                             <CarouselContent>
                                                 {tutorialSteps.map((step, index) => (
                                                     <CarouselItem key={index}>
-                                                       <div className="flex flex-col items-center justify-center text-center">
-                                                            <Card className="overflow-hidden border-0 w-full max-w-md">
+                                                        <div className="flex flex-col items-center justify-center text-center">
+                                                            <Card className="overflow-hidden border-0 w-full">
                                                                 <CardContent className="p-0">
                                                                     <div className="aspect-video w-full relative">
                                                                         <Image
@@ -301,14 +301,14 @@ export default function ManagePondsPage() {
                                                     </CarouselItem>
                                                 ))}
                                             </CarouselContent>
-                                            <div className="absolute bottom-[-20px] left-1/2 -translate-x-1/2 flex gap-4 md:hidden">
-                                                <CarouselPrevious variant="default" />
-                                                <CarouselNext variant="default" />
-                                            </div>
                                              <CarouselPrevious className="absolute left-[-20px] top-1/2 -translate-y-1/2 hidden md:inline-flex" />
                                              <CarouselNext className="absolute right-[-20px] top-1/2 -translate-y-1/2 hidden md:inline-flex" />
+                                             <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4 md:hidden">
+                                                <CarouselPrevious variant="outline" size="icon" />
+                                                <CarouselNext variant="outline" size="icon"/>
+                                            </div>
                                         </Carousel>
-                                        <DialogFooter className="mt-4">
+                                        <DialogFooter className="mt-8 sm:mt-4">
                                             <DialogClose asChild>
                                                 <Button type="button">Tutup</Button>
                                             </DialogClose>
@@ -350,6 +350,5 @@ export default function ManagePondsPage() {
         </div>
     );
 }
-
 
     
