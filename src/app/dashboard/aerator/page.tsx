@@ -12,8 +12,7 @@ import { Button } from '@/components/ui/button';
 import { useState, useEffect, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { Power, Wind, WifiOff, Loader2 } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
+import { Wind, WifiOff } from 'lucide-react';
 import { database } from '@/lib/firebase';
 import { ref, onValue, set, off, DatabaseReference } from 'firebase/database';
 import { useUser } from '@/hooks/use-user';
@@ -36,30 +35,23 @@ export default function AeratorControlPage() {
   const [aeratorDevices, setAeratorDevices] = useState<AeratorDevice[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 1. Dynamically find the Smart Controller KEY for the selected pond.
-  // This key is present in both pond_devices and sc_devices.
   const smartControllerKey = useMemo(() => {
     if (!selectedPondId || !pondDevices[selectedPondId] || !scDevices) return null;
     
     const devicesInPond = Object.keys(pondDevices[selectedPondId]);
-    // Find a key from this pond's devices that also exists as a key in the main sc_devices list.
     return devicesInPond.find(key => scDevices[key]);
 
   }, [selectedPondId, pondDevices, scDevices]);
 
-  // 2. Get all aerator IDs managed by that Smart Controller key.
   const aeratorDeviceIds = useMemo(() => {
     if (!smartControllerKey || !scDevices[smartControllerKey]) return [];
     
-    // Get the aerator IDs from sc_devices using the found key
     const aeratorIds = Object.keys(scDevices[smartControllerKey]);
     
-    // Filter to ensure these devices are of type 'AE'
     return aeratorIds.filter(id => allDevices[id]?.tipe === 'AE');
 
   }, [smartControllerKey, scDevices, allDevices]);
 
-  // 3. Effect to set up listeners for all aerators
   useEffect(() => {
     setLoading(true);
 
@@ -69,7 +61,6 @@ export default function AeratorControlPage() {
       return;
     }
     
-    // Initialize state
     const initialAerators = aeratorDeviceIds.map(id => ({
         id,
         name: allDevices[id]?.name || id,
@@ -102,7 +93,6 @@ export default function AeratorControlPage() {
 
     setLoading(false);
 
-    // Cleanup function
     return () => {
       listeners.forEach(({ ref: r, listener: l }) => off(r, 'value', l));
     };
@@ -110,10 +100,9 @@ export default function AeratorControlPage() {
   }, [aeratorDeviceIds, allDevices]);
 
 
-  const handleToggleAerator = (deviceId: string, currentStatus: boolean) => {
+  const handleSetAerator = (deviceId: string, newStatus: boolean) => {
     if (!user) return;
 
-    const newStatus = !currentStatus;
     const aeratorCommandRef = ref(database, `/device_commands/${deviceId}/power`);
     
     set(aeratorCommandRef, newStatus)
@@ -142,7 +131,10 @@ export default function AeratorControlPage() {
                 </CardHeader>
                 <CardContent className="flex items-center justify-between">
                     <Skeleton className="h-8 w-20" />
-                    <Skeleton className="h-8 w-14" />
+                    <div className="flex gap-2">
+                        <Skeleton className="h-8 w-12" />
+                        <Skeleton className="h-8 w-12" />
+                    </div>
                 </CardContent>
             </Card>
         ))}
@@ -193,11 +185,25 @@ export default function AeratorControlPage() {
                                         >
                                             {device.displayStatus}
                                         </div>
-                                        <Switch
-                                            checked={device.isAeratorOn}
-                                            onCheckedChange={() => handleToggleAerator(device.id, device.isAeratorOn)}
-                                            aria-label={`Toggle ${device.name}`}
-                                        />
+                                        <div className="flex items-center gap-2">
+                                            <Button 
+                                                size="sm"
+                                                variant="destructive"
+                                                disabled={!device.isAeratorOn}
+                                                onClick={() => handleSetAerator(device.id, false)}
+                                                className="w-[60px]"
+                                            >
+                                                OFF
+                                            </Button>
+                                            <Button
+                                                size="sm"
+                                                disabled={device.isAeratorOn}
+                                                onClick={() => handleSetAerator(device.id, true)}
+                                                className="w-[60px] bg-green-600 hover:bg-green-700 text-white"
+                                            >
+                                                ON
+                                            </Button>
+                                        </div>
                                     </CardContent>
                                 </Card>
                             ))}
