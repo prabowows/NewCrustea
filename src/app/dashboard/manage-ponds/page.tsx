@@ -113,6 +113,7 @@ export default function ManagePondsPage() {
             const updates: { [key: string]: any } = {};
             updates[`/ponds/${newPondId}`] = formData;
             updates[`/user_ponds/${user.uid}/${newPondId}`] = true;
+            updates[`/pond_devices/${newPondId}`] = ""; // Initialize the node for devices
 
             await update(ref(database), updates);
             toast({ title: 'Sukses', description: 'Kolam baru berhasil ditambahkan.' });
