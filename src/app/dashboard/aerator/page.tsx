@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { useState, useEffect, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { Wind, WifiOff } from 'lucide-react';
+import { Wind, WifiOff, Power } from 'lucide-react';
 import { database } from '@/lib/firebase';
 import { ref, onValue, set, off, DatabaseReference } from 'firebase/database';
 import { useUser } from '@/hooks/use-user';
@@ -37,7 +37,7 @@ export default function AeratorControlPage() {
 
   const smartControllerKey = useMemo(() => {
     if (!selectedPondId || !pondDevices[selectedPondId] || !scDevices) return null;
-    
+
     const devicesInPond = Object.keys(pondDevices[selectedPondId]);
     return devicesInPond.find(key => scDevices[key]);
 
@@ -100,9 +100,10 @@ export default function AeratorControlPage() {
   }, [aeratorDeviceIds, allDevices]);
 
 
-  const handleSetAerator = (deviceId: string, newStatus: boolean) => {
+  const handleSetAerator = (deviceId: string, currentStatus: boolean) => {
     if (!user) return;
 
+    const newStatus = !currentStatus;
     const aeratorCommandRef = ref(database, `/device_commands/${deviceId}/power`);
     
     set(aeratorCommandRef, newStatus)
@@ -131,10 +132,7 @@ export default function AeratorControlPage() {
                 </CardHeader>
                 <CardContent className="flex items-center justify-between">
                     <Skeleton className="h-8 w-20" />
-                    <div className="flex gap-2">
-                        <Skeleton className="h-8 w-12" />
-                        <Skeleton className="h-8 w-12" />
-                    </div>
+                    <Skeleton className="h-16 w-16 rounded-full" />
                 </CardContent>
             </Card>
         ))}
@@ -183,27 +181,21 @@ export default function AeratorControlPage() {
                                                 : 'text-destructive'
                                             )}
                                         >
-                                            {device.displayStatus}
+                                            {device.isAeratorOn ? 'ON' : 'OFF'}
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                            <Button 
-                                                size="sm"
-                                                variant="destructive"
-                                                disabled={!device.isAeratorOn}
-                                                onClick={() => handleSetAerator(device.id, false)}
-                                                className="w-[60px]"
+                                        <Button
+                                            size="icon"
+                                            variant="ghost"
+                                            onClick={() => handleSetAerator(device.id, device.isAeratorOn)}
+                                            className={cn(
+                                                'h-16 w-16 rounded-full transition-colors',
+                                                device.isAeratorOn
+                                                ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                                                : 'bg-red-100 text-red-700 hover:bg-red-200'
+                                            )}
                                             >
-                                                OFF
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                disabled={device.isAeratorOn}
-                                                onClick={() => handleSetAerator(device.id, true)}
-                                                className="w-[60px] bg-green-600 hover:bg-green-700 text-white"
-                                            >
-                                                ON
-                                            </Button>
-                                        </div>
+                                            <Power className="h-8 w-8" />
+                                        </Button>
                                     </CardContent>
                                 </Card>
                             ))}
