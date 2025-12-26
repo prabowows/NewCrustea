@@ -1,11 +1,10 @@
-
 'use client';
 
 import { useState } from 'react';
 import { usePond, type Pond } from '@/context/PondContext';
 import { useUser } from '@/hooks/use-user';
 import { database } from '@/lib/firebase';
-import { ref, push, set, update, remove } from 'firebase/database';
+import { ref, push, update } from 'firebase/database';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -13,18 +12,52 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, MoreHorizontal, AlertTriangle, Info } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, AlertTriangle, Info, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useRouter } from 'next/navigation';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import Image from 'next/image';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
 
 const initialPondState: Omit<Pond, 'id'> = {
     nama: '',
     lokasi: '',
     gmaps_url: '',
 };
+
+const tutorialSteps = [
+    {
+        title: "Langkah 1: Buka Google Maps & Cari Lokasi",
+        description: "Buka Google Maps di browser Anda dan cari lokasi spesifik dari kolam atau tambak Anda.",
+        image: "https://picsum.photos/seed/gmaps1/1280/720",
+        hint: "google maps search"
+    },
+    {
+        title: "Langkah 2: Klik 'Bagikan'",
+        description: "Setelah pin lokasi muncul, klik tombol 'Bagikan' (Share) yang ada di panel informasi lokasi.",
+        image: "https://picsum.photos/seed/gmaps2/1280/720",
+        hint: "google maps share"
+    },
+    {
+        title: "Langkah 3: Pilih 'Sematkan Peta'",
+        description: "Sebuah jendela pop-up akan muncul. Pilih tab 'Sematkan peta' (Embed a map).",
+        image: "https://picsum.photos/seed/gmaps3/1280/720",
+        hint: "google maps embed"
+    },
+    {
+        title: "Langkah 4: Salin Kode HTML",
+        description: "Klik tombol 'SALIN HTML' (COPY HTML) untuk menyalin kode <iframe> ke clipboard Anda.",
+        image: "https://picsum.photos/seed/gmaps4/1280/720",
+        hint: "copy html code"
+    },
+    {
+        title: "Langkah 5: Tempel di Sini",
+        description: "Kembali ke aplikasi ini dan tempel (paste) seluruh kode yang sudah disalin ke dalam kotak input URL.",
+        image: "https://picsum.photos/seed/gmaps5/1280/720",
+        hint: "paste code"
+    },
+];
 
 export default function ManagePondsPage() {
     const { ponds, loading, fetchInitialData } = usePond();
@@ -221,30 +254,60 @@ export default function ManagePondsPage() {
                             </Label>
                             <Input id="lokasi" value={formData.lokasi} onChange={handleFormChange} className="col-span-3" />
                         </div>
-                        <div className="grid grid-cols-4 items-center gap-4">
-                             <div className="flex items-center gap-2 justify-end text-right">
-                                <Label htmlFor="gmaps_url">
-                                    URL G-Maps
-                                </Label>
-                                <TooltipProvider>
-                                    <Tooltip>
-                                        <TooltipTrigger asChild>
-                                            <Info className="h-4 w-4 text-muted-foreground cursor-help" />
-                                        </TooltipTrigger>
-                                        <TooltipContent side="top" align="start" className="max-w-xs">
-                                            <p className="font-bold">Cara Menyalin URL Embed:</p>
-                                            <ol className="list-decimal list-inside space-y-1 mt-2 text-xs">
-                                                <li>Buka lokasi di Google Maps.</li>
-                                                <li>Klik "Share" atau "Bagikan".</li>
-                                                <li>Pilih tab "Embed a map" atau "Sematkan peta".</li>
-                                                <li>Klik "COPY HTML".</li>
-                                                <li>Tempel di sini. Aplikasi akan mengambil URL-nya secara otomatis.</li>
-                                            </ol>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                </TooltipProvider>
+                         <div className="grid grid-cols-4 items-start gap-4">
+                            <Label htmlFor="gmaps_url" className="text-right pt-2">
+                                URL G-Maps
+                            </Label>
+                            <div className="col-span-3 flex items-center gap-2">
+                                <Input id="gmaps_url" value={formData.gmaps_url || ''} onChange={handleFormChange} className="flex-grow" placeholder="Tempel kode <iframe>"/>
+                                <Dialog>
+                                    <DialogTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="shrink-0">
+                                            <Info className="h-5 w-5 text-muted-foreground" />
+                                        </Button>
+                                    </DialogTrigger>
+                                    <DialogContent className="max-w-lg">
+                                        <DialogHeader>
+                                            <DialogTitle>Cara Mendapatkan Kode Semat Peta</DialogTitle>
+                                            <DialogDescription>
+                                                Ikuti langkah-langkah berikut untuk mendapatkan dan menempelkan kode dari Google Maps.
+                                            </DialogDescription>
+                                        </DialogHeader>
+                                        <Carousel className="w-full">
+                                            <CarouselContent>
+                                                {tutorialSteps.map((step, index) => (
+                                                    <CarouselItem key={index}>
+                                                        <div className="p-1 text-center">
+                                                             <Card className="overflow-hidden">
+                                                                <CardContent className="p-0">
+                                                                    <div className="aspect-video w-full relative">
+                                                                        <Image
+                                                                            src={step.image}
+                                                                            alt={step.title}
+                                                                            fill
+                                                                            className="object-contain"
+                                                                            data-ai-hint={step.hint}
+                                                                        />
+                                                                    </div>
+                                                                </CardContent>
+                                                            </Card>
+                                                            <h3 className="font-semibold mt-4 text-lg">{step.title}</h3>
+                                                            <p className="text-sm text-muted-foreground mt-1">{step.description}</p>
+                                                        </div>
+                                                    </CarouselItem>
+                                                ))}
+                                            </CarouselContent>
+                                            <CarouselPrevious className="absolute left-[-50px] top-1/2 -translate-y-1/2" />
+                                            <CarouselNext className="absolute right-[-50px] top-1/2 -translate-y-1/2" />
+                                        </Carousel>
+                                        <DialogFooter>
+                                            <DialogClose asChild>
+                                                <Button type="button">Tutup</Button>
+                                            </DialogClose>
+                                        </DialogFooter>
+                                    </DialogContent>
+                                </Dialog>
                             </div>
-                            <Input id="gmaps_url" value={formData.gmaps_url || ''} onChange={handleFormChange} className="col-span-3" placeholder="Tempel kode <iframe> dari G-Maps"/>
                         </div>
                     </div>
                     <DialogFooter>
@@ -279,3 +342,5 @@ export default function ManagePondsPage() {
         </div>
     );
 }
+
+    
