@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { PlusCircle, MoreHorizontal, AlertTriangle, Info, ChevronLeft, ChevronRight } from 'lucide-react';
+import { PlusCircle, MoreHorizontal, AlertTriangle, Info } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import Link from 'next/link';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -234,7 +234,7 @@ export default function ManagePondsPage() {
 
             {/* Add Dialog */}
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-md">
                     <DialogHeader>
                         <DialogTitle>Tambah Kolam Baru</DialogTitle>
                         <DialogDescription>
@@ -258,7 +258,7 @@ export default function ManagePondsPage() {
                             <Label htmlFor="gmaps_url" className="text-right pt-2">
                                 URL G-Maps
                             </Label>
-                            <div className="col-span-3 flex items-center gap-2">
+                            <div className="col-span-3 flex items-center gap-1">
                                 <Input id="gmaps_url" value={formData.gmaps_url || ''} onChange={handleFormChange} className="flex-grow" placeholder="Tempel kode <iframe>"/>
                                 <Dialog>
                                     <DialogTrigger asChild>
@@ -266,39 +266,41 @@ export default function ManagePondsPage() {
                                             <Info className="h-5 w-5 text-muted-foreground" />
                                         </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="max-w-lg">
+                                    <DialogContent className="max-w-xl">
                                         <DialogHeader>
                                             <DialogTitle>Cara Mendapatkan Kode Semat Peta</DialogTitle>
                                             <DialogDescription>
                                                 Ikuti langkah-langkah berikut untuk mendapatkan dan menempelkan kode dari Google Maps.
                                             </DialogDescription>
                                         </DialogHeader>
-                                        <Carousel className="w-full">
+                                        <Carousel className="w-full p-4">
                                             <CarouselContent>
                                                 {tutorialSteps.map((step, index) => (
                                                     <CarouselItem key={index}>
-                                                        <div className="p-1 text-center">
-                                                             <Card className="overflow-hidden">
+                                                       <div className="flex flex-col items-center justify-center text-center">
+                                                            <Card className="overflow-hidden border-0 w-full max-w-md">
                                                                 <CardContent className="p-0">
                                                                     <div className="aspect-video w-full relative">
                                                                         <Image
                                                                             src={step.image}
                                                                             alt={step.title}
                                                                             fill
-                                                                            className="object-contain"
+                                                                            className="object-contain rounded-md"
                                                                             data-ai-hint={step.hint}
                                                                         />
                                                                     </div>
                                                                 </CardContent>
                                                             </Card>
-                                                            <h3 className="font-semibold mt-4 text-lg">{step.title}</h3>
-                                                            <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">{step.description}</p>
+                                                            <div className="mt-4">
+                                                                <h3 className="font-semibold text-lg">{step.title}</h3>
+                                                                <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">{step.description}</p>
+                                                            </div>
                                                         </div>
                                                     </CarouselItem>
                                                 ))}
                                             </CarouselContent>
-                                            <CarouselPrevious className="absolute left-[-50px] top-1/2 -translate-y-1/2" />
-                                            <CarouselNext className="absolute right-[-50px] top-1/2 -translate-y-1/2" />
+                                            <CarouselPrevious className="absolute left-[-20px] top-1/2 -translate-y-1/2" />
+                                            <CarouselNext className="absolute right-[-20px] top-1/2 -translate-y-1/2" />
                                         </Carousel>
                                         <DialogFooter>
                                             <DialogClose asChild>

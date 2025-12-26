@@ -4,14 +4,14 @@ import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { usePond, type Pond, type Device } from '@/context/PondContext';
 import { database } from '@/lib/firebase';
-import { ref, update, set } from 'firebase/database';
+import { ref, update, set, get } from 'firebase/database';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, HardDrive, Edit, PlusCircle, Info, ChevronLeft, ChevronRight } from 'lucide-react';
+import { ArrowLeft, HardDrive, Edit, PlusCircle, Info } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
@@ -63,6 +63,7 @@ export default function PondDetailPage() {
     const [pondData, setPondData] = useState<Partial<Omit<Pond, 'id'>>>({ nama: '', lokasi: '', gmaps_url: '' });
     const [isAddDeviceOpen, setIsAddDeviceOpen] = useState(false);
     const [newDeviceId, setNewDeviceId] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
 
     const currentPond = useMemo(() => {
@@ -128,27 +129,46 @@ export default function PondDetailPage() {
     }
     
     const handleAddDevice = async () => {
+        setIsSubmitting(true);
         if (!pondId || !newDeviceId) {
             toast({ variant: 'destructive', title: 'Error', description: 'ID Perangkat tidak boleh kosong.' });
-            return;
-        }
-
-        if (!allDevices[newDeviceId]) {
-            toast({ variant: 'destructive', title: 'Error', description: 'ID Perangkat tidak ditemukan di database utama.' });
+            setIsSubmitting(false);
             return;
         }
 
         try {
-            const deviceInPondRef = ref(database, `/pond_devices/${pondId}/${newDeviceId}`);
-            await set(deviceInPondRef, true);
-            toast({ title: 'Sukses', description: 'Perangkat baru berhasil ditambahkan ke kolam.' });
+            // Check if device exists in the main /devices node
+            const deviceRef = ref(database, `devices/${newDeviceId}`);
+            const deviceSnap = await get(deviceRef);
+            if (!deviceSnap.exists()) {
+                 toast({ variant: 'destructive', title: 'Error', description: `Perangkat dengan ID "${newDeviceId}" tidak ditemukan.` });
+                 setIsSubmitting(false);
+                 return;
+            }
+
+            // Check if device is already in a pond
+            if (deviceSnap.val().pond_id) {
+                 toast({ variant: 'destructive', title: 'Error', description: `Perangkat "${newDeviceId}" sudah terhubung ke kolam lain.` });
+                 setIsSubmitting(false);
+                 return;
+            }
+
+            // Add device to pond_devices and update the pond_id in devices
+            const updates: { [key: string]: any } = {};
+            updates[`/pond_devices/${pondId}/${newDeviceId}`] = true;
             
-            await fetchInitialData(); // Refresh all data
+            await update(ref(database), updates);
+
+            toast({ title: 'Sukses', description: `Perangkat "${newDeviceId}" berhasil ditambahkan ke kolam.` });
+            
+            await fetchInitialData(); // Refresh all data from context
             setIsAddDeviceOpen(false); // Close dialog
             setNewDeviceId(''); // Reset input
         } catch (error: any) {
             console.error("Failed to add device to pond: ", error);
             toast({ variant: 'destructive', title: 'Gagal', description: `Gagal menambahkan perangkat: ${error.message}` });
+        } finally {
+            setIsSubmitting(false);
         }
     }
 
@@ -240,39 +260,41 @@ export default function PondDetailPage() {
                                             <Info className="h-5 w-5 text-muted-foreground" />
                                         </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="max-w-lg">
+                                    <DialogContent className="max-w-xl">
                                         <DialogHeader>
                                             <DialogTitle>Cara Mendapatkan Kode Semat Peta</DialogTitle>
                                             <DialogDescription>
                                                 Ikuti langkah-langkah berikut untuk mendapatkan dan menempelkan kode dari Google Maps.
                                             </DialogDescription>
                                         </DialogHeader>
-                                        <Carousel className="w-full">
+                                        <Carousel className="w-full p-4">
                                             <CarouselContent>
                                                 {tutorialSteps.map((step, index) => (
                                                     <CarouselItem key={index}>
-                                                        <div className="p-1 text-center">
-                                                            <Card className="overflow-hidden">
+                                                        <div className="flex flex-col items-center justify-center text-center">
+                                                            <Card className="overflow-hidden border-0 w-full max-w-md">
                                                                 <CardContent className="p-0">
                                                                     <div className="aspect-video w-full relative">
                                                                         <Image
                                                                             src={step.image}
                                                                             alt={step.title}
                                                                             fill
-                                                                            className="object-contain"
+                                                                            className="object-contain rounded-md"
                                                                             data-ai-hint={step.hint}
                                                                         />
                                                                     </div>
                                                                 </CardContent>
                                                             </Card>
-                                                            <h3 className="font-semibold mt-4 text-lg">{step.title}</h3>
-                                                            <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">{step.description}</p>
+                                                            <div className="mt-4">
+                                                                <h3 className="font-semibold text-lg">{step.title}</h3>
+                                                                <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">{step.description}</p>
+                                                            </div>
                                                         </div>
                                                     </CarouselItem>
                                                 ))}
                                             </CarouselContent>
-                                            <CarouselPrevious className="absolute left-[-50px] top-1/2 -translate-y-1/2" />
-                                            <CarouselNext className="absolute right-[-50px] top-1/2 -translate-y-1/2" />
+                                            <CarouselPrevious className="absolute left-[-20px] top-1/2 -translate-y-1/2" />
+                                            <CarouselNext className="absolute right-[-20px] top-1/2 -translate-y-1/2" />
                                         </Carousel>
                                         <DialogFooter>
                                             <DialogClose asChild>
@@ -305,7 +327,7 @@ export default function PondDetailPage() {
                         </div>
                         <Dialog open={isAddDeviceOpen} onOpenChange={setIsAddDeviceOpen}>
                             <DialogTrigger asChild>
-                                <Button size="sm">
+                                <Button size="sm" onClick={() => setNewDeviceId('')}>
                                     <PlusCircle className="mr-2 h-4 w-4" />
                                     Tambah Perangkat
                                 </Button>
@@ -328,14 +350,17 @@ export default function PondDetailPage() {
                                             onChange={(e) => setNewDeviceId(e.target.value)}
                                             className="col-span-3"
                                             placeholder="Contoh: EBII_XXXXXXXX"
+                                            disabled={isSubmitting}
                                         />
                                     </div>
                                 </div>
                                 <DialogFooter>
                                     <DialogClose asChild>
-                                        <Button type="button" variant="destructive">Batal</Button>
+                                        <Button type="button" variant="destructive" disabled={isSubmitting}>Batal</Button>
                                     </DialogClose>
-                                    <Button type="button" onClick={handleAddDevice}>Simpan</Button>
+                                    <Button type="button" onClick={handleAddDevice} disabled={isSubmitting}>
+                                        {isSubmitting ? "Menyimpan..." : "Simpan"}
+                                    </Button>
                                 </DialogFooter>
                             </DialogContent>
                         </Dialog>
