@@ -27,39 +27,6 @@ const initialPondState: Omit<Pond, 'id'> = {
     gmaps_url: '',
 };
 
-const tutorialSteps = [
-    {
-        title: "Langkah 1: Buka Google Maps & Cari Lokasi",
-        description: "Buka Google Maps di browser Anda dan cari lokasi spesifik dari kolam atau tambak Anda.",
-        image: "https://picsum.photos/seed/gmaps1/1280/720",
-        hint: "google maps search"
-    },
-    {
-        title: "Langkah 2: Klik 'Bagikan'",
-        description: "Setelah pin lokasi muncul, klik tombol 'Bagikan' (Share) yang ada di panel informasi lokasi.",
-        image: "https://picsum.photos/seed/gmaps2/1280/720",
-        hint: "google maps share"
-    },
-    {
-        title: "Langkah 3: Pilih 'Sematkan Peta'",
-        description: "Sebuah jendela pop-up akan muncul. Pilih tab 'Sematkan peta' (Embed a map).",
-        image: "https://picsum.photos/seed/gmaps3/1280/720",
-        hint: "google maps embed"
-    },
-    {
-        title: "Langkah 4: Salin Kode HTML",
-        description: "Klik tombol 'SALIN HTML' (COPY HTML) untuk menyalin kode <iframe> ke clipboard Anda.",
-        image: "https://picsum.photos/seed/gmaps4/1280/720",
-        hint: "copy html code"
-    },
-    {
-        title: "Langkah 5: Tempel di Sini",
-        description: "Kembali ke aplikasi ini dan tempel (paste) seluruh kode yang sudah disalin ke dalam kotak input URL.",
-        image: "https://picsum.photos/seed/gmaps5/1280/720",
-        hint: "paste code"
-    },
-];
-
 export default function ManagePondsPage() {
     const { ponds, loading, fetchInitialData } = usePond();
     const { user } = useUser();
@@ -262,53 +229,6 @@ export default function ManagePondsPage() {
                             </Label>
                             <div className="col-span-3 flex items-center gap-1">
                                 <Input id="gmaps_url" value={formData.gmaps_url || ''} onChange={handleFormChange} className="flex-grow" placeholder="Tempel kode <iframe>"/>
-                                <Dialog>
-                                    <DialogTrigger asChild>
-                                        <Button variant="ghost" size="icon" className="shrink-0">
-                                            <Info className="h-5 w-5 text-muted-foreground" />
-                                        </Button>
-                                    </DialogTrigger>
-                                    <DialogContent className="w-[90vw] max-w-lg p-4 sm:p-6">
-                                        <DialogHeader className="text-left">
-                                            <DialogTitle>Cara Mendapatkan Kode Semat Peta</DialogTitle>
-                                            <DialogDescription>
-                                                Ikuti langkah-langkah ini untuk menyalin kode dari Google Maps.
-                                            </DialogDescription>
-                                        </DialogHeader>
-                                        <Carousel className="w-full" opts={{ loop: true }}>
-                                            <CarouselContent>
-                                                {tutorialSteps.map((step, index) => (
-                                                    <CarouselItem key={index}>
-                                                        <div className="flex flex-col items-center justify-center text-center space-y-4 p-2">
-                                                            <div className="aspect-video w-full relative">
-                                                                <Image
-                                                                    src={step.image}
-                                                                    alt={step.title}
-                                                                    fill
-                                                                    className="object-contain rounded-md"
-                                                                    data-ai-hint={step.hint}
-                                                                />
-                                                            </div>
-                                                            <div className="px-1">
-                                                                <h3 className="font-semibold text-base sm:text-lg">{step.title}</h3>
-                                                                <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-sm mx-auto">{step.description}</p>
-                                                            </div>
-                                                        </div>
-                                                    </CarouselItem>
-                                                ))}
-                                            </CarouselContent>
-                                            <div className="flex items-center justify-center gap-4 mt-4">
-                                                <CarouselPrevious variant="outline" size="icon" />
-                                                <CarouselNext variant="outline" size="icon" />
-                                            </div>
-                                        </Carousel>
-                                        <DialogFooter className="mt-2">
-                                            <DialogClose asChild>
-                                                <Button type="button" className="w-full">Tutup</Button>
-                                            </DialogClose>
-                                        </DialogFooter>
-                                    </DialogContent>
-                                </Dialog>
                             </div>
                         </div>
                     </div>
@@ -344,5 +264,8 @@ export default function ManagePondsPage() {
         </div>
     );
 }
+
+    
+
 
     
