@@ -8,152 +8,106 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Power, CalendarDays, Wifi } from 'lucide-react';
+import { Power, Wind, WifiOff, Loader2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
 import { database } from '@/lib/firebase';
 import { ref, onValue, set, off, DatabaseReference } from 'firebase/database';
 import { useUser } from '@/hooks/use-user';
 import { usePond } from '@/context/PondContext';
 import { PondSelector } from '@/components/dashboard/pond-selector';
+import { Skeleton } from '@/components/ui/skeleton';
 
-type Day = 'Sun' | 'Mon' | 'Tue' | 'Wed' | 'Thu' | 'Fri' | 'Sat';
-
-type DailySchedule = {
-  onTime: string;
-  offTime: string;
-  enabled: boolean;
+type AeratorDevice = {
+  id: string;
+  name: string;
+  isAeratorOn: boolean;
+  displayStatus: string;
 };
-
-type ScheduleState = Record<Day, DailySchedule>;
-
-const initialScheduleState: ScheduleState = {
-  Sun: { onTime: '', offTime: '', enabled: false },
-  Mon: { onTime: '', offTime: '', enabled: false },
-  Tue: { onTime: '', offTime: '', enabled: false },
-  Wed: { onTime: '', offTime: '', enabled: false },
-  Thu: { onTime: '', offTime: '', enabled: false },
-  Fri: { onTime: '', offTime: '', enabled: false },
-  Sat: { onTime: '', offTime: '', enabled: false },
-};
-
-const daysOfWeek: { key: Day; label: string }[] = [
-  { key: 'Sun', label: 'Sunday' },
-  { key: 'Mon', label: 'Monday' },
-  { key: 'Tue', label: 'Tuesday' },
-  { key: 'Wed', label: 'Wednesday' },
-  { key: 'Thu', label: 'Thursday' },
-  { key: 'Fri', label: 'Friday' },
-  { key: 'Sat', label: 'Saturday' },
-];
 
 export default function AeratorControlPage() {
   const { user } = useUser();
-  const { selectedPondId, allDevices, pondDevices, scDevices } = usePond();
+  const { selectedPondId, allDevices, pondDevices, scDevices, loading: pondLoading } = usePond();
+  const { toast } = useToast();
+  
+  const [aeratorDevices, setAeratorDevices] = useState<AeratorDevice[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const aeratorDeviceId = useMemo(() => {
+  // 1. Find the Smart Controller (SC) for the selected pond
+  const smartControllerId = useMemo(() => {
     if (!selectedPondId || !pondDevices[selectedPondId]) return null;
-
-    const scDeviceKey = Object.keys(pondDevices[selectedPondId] || {}).find(
+    return Object.keys(pondDevices[selectedPondId]).find(
       key => allDevices[key]?.tipe === 'SC'
     );
-    
-    if (!scDeviceKey || !scDevices[scDeviceKey]) return null;
+  }, [selectedPondId, pondDevices, allDevices]);
 
-    const aeratorKey = Object.keys(scDevices[scDeviceKey]).find(
-        key => allDevices[key]?.tipe === 'AERATOR'
+  // 2. Get all aerator IDs managed by that Smart Controller
+  const aeratorDeviceIds = useMemo(() => {
+    if (!smartControllerId || !scDevices[smartControllerId]) return [];
+    return Object.keys(scDevices[smartControllerId]).filter(
+        key => allDevices[key]?.tipe === 'AE'
     );
+  }, [smartControllerId, scDevices, allDevices]);
 
-    return aeratorKey || null;
-
-  }, [selectedPondId, allDevices, pondDevices, scDevices]);
-
-  const [isAeratorOn, setIsAeratorOn] = useState(false);
-  const [aeratorDisplayStatus, setAeratorDisplayStatus] = useState('OFF');
-  const [timeoutInput, setTimeoutInput] = useState('');
-  const [countdown, setCountdown] = useState(0);
-  const [isTimerRunning, setIsTimerRunning] = useState(false);
-  const [schedule, setSchedule] = useState<ScheduleState>(initialScheduleState);
-  const { toast } = useToast();
-  const [mounted, setMounted] = useState(false);
-
+  // 3. Effect to set up listeners for all aerators
   useEffect(() => {
-    setMounted(true);
-  }, []);
+    setLoading(true);
 
-  useEffect(() => {
-    setIsAeratorOn(false);
-    setAeratorDisplayStatus('OFF');
-
-    if (!aeratorDeviceId) {
+    if (aeratorDeviceIds.length === 0) {
+      setAeratorDevices([]);
+      setLoading(false);
       return;
     }
-
-    const aeratorDataRef: DatabaseReference = ref(database, `/device_data/${aeratorDeviceId}`);
     
-    const listener = onValue(
-      aeratorDataRef,
-      (snapshot) => {
+    // Initialize state
+    const initialAerators = aeratorDeviceIds.map(id => ({
+        id,
+        name: allDevices[id]?.name || id,
+        isAeratorOn: false,
+        displayStatus: 'Offline'
+    }));
+    setAeratorDevices(initialAerators);
+
+
+    const listeners: { ref: DatabaseReference, listener: any }[] = [];
+
+    aeratorDeviceIds.forEach((deviceId, index) => {
+      const aeratorDataRef = ref(database, `/device_data/${deviceId}`);
+      const listener = onValue(aeratorDataRef, (snapshot) => {
         const value = snapshot.val();
-        if (value) {
-          setIsAeratorOn(value.power || false);
-          setAeratorDisplayStatus(value.status || 'OFF');
-        } else {
-          setIsAeratorOn(false);
-          setAeratorDisplayStatus('OFF');
-        }
-      },
-      (error) => {
-        console.error('Firebase status read failed:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Connection Error',
-          description: 'Could not fetch aerator status.',
-        });
-        setIsAeratorOn(false);
-        setAeratorDisplayStatus('OFF');
-      }
-    );
+        setAeratorDevices(prevDevices => 
+            prevDevices.map(device => 
+                device.id === deviceId 
+                ? {
+                    ...device,
+                    isAeratorOn: value?.power || false,
+                    displayStatus: value?.status || 'Offline',
+                }
+                : device
+            )
+        );
+      });
+      listeners.push({ ref: aeratorDataRef, listener });
+    });
 
+    setLoading(false);
+
+    // Cleanup function
     return () => {
-      off(aeratorDataRef, 'value', listener);
+      listeners.forEach(({ ref: r, listener: l }) => off(r, 'value', l));
     };
-  }, [aeratorDeviceId, toast]);
 
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isTimerRunning && countdown > 0) {
-      timer = setInterval(() => {
-        setCountdown((prevCountdown) => prevCountdown - 1);
-      }, 1000);
-    } else if (isTimerRunning && countdown <= 0) {
-        toast({
-          title: 'Timer Finished',
-          description: 'Aerator has been turned off.',
-        });
-        handleToggleAerator(false);
-        setIsTimerRunning(false);
-        setCountdown(0);
-    }
-    return () => clearInterval(timer);
-  }, [isTimerRunning, countdown, toast]);
+  }, [aeratorDeviceIds, allDevices]);
 
-  if (!mounted) {
-    return null;
-  }
 
-  const handleToggleAerator = (forceStatus?: boolean) => {
-    if (!user || !aeratorDeviceId) return;
+  const handleToggleAerator = (deviceId: string, currentStatus: boolean) => {
+    if (!user) return;
 
-    const newStatus = forceStatus !== undefined ? forceStatus : !isAeratorOn;
-    const aeratorCommandRef = ref(database, `/device_commands/${aeratorDeviceId}/power`);
+    const newStatus = !currentStatus;
+    const aeratorCommandRef = ref(database, `/device_commands/${deviceId}/power`);
     
     set(aeratorCommandRef, newStatus)
       .then(() => {
@@ -172,62 +126,21 @@ export default function AeratorControlPage() {
       });
   };
 
-  const handleApplyTimeout = () => {
-    const minutes = parseInt(timeoutInput, 10);
-    if (isNaN(minutes) || minutes <= 0) {
-      toast({
-        variant: 'destructive',
-        title: 'Invalid Input',
-        description: 'Please enter a valid number of minutes.',
-      });
-      return;
-    }
-
-    handleToggleAerator(true);
-    setCountdown(minutes * 60);
-    setIsTimerRunning(true);
-    toast({
-      title: 'Timer Set',
-      description: `Aerator turned ON. It will turn off automatically in ${minutes} minute(s).`,
-    });
-  };
-
-  const handleCancelTimer = () => {
-    setIsTimerRunning(false);
-    setCountdown(0);
-    toast({
-      title: 'Timer Cancelled',
-      description: 'The auto-off timer has been cancelled.',
-    });
-  };
-
-  const handleScheduleChange = (
-    day: Day,
-    field: keyof DailySchedule,
-    value: string | boolean
-  ) => {
-    setSchedule((prev) => ({
-      ...prev,
-      [day]: {
-        ...prev[day],
-        [field]: value,
-      },
-    }));
-  };
-
-  const handleSaveSchedule = () => {
-    console.log('Saving schedule:', schedule);
-    toast({
-      title: 'Schedule Saved (Placeholder)',
-      description: 'Your daily aerator schedules have been updated.',
-    });
-  };
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-  };
+  const renderSkeletons = () => (
+     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+        {Array(4).fill(0).map((_, i) => (
+            <Card key={i}>
+                <CardHeader>
+                   <Skeleton className="h-6 w-3/4" />
+                </CardHeader>
+                <CardContent className="flex items-center justify-between">
+                    <Skeleton className="h-8 w-20" />
+                    <Skeleton className="h-8 w-14" />
+                </CardContent>
+            </Card>
+        ))}
+    </div>
+  );
 
   return (
     <div className="space-y-4">
@@ -240,213 +153,57 @@ export default function AeratorControlPage() {
                 <CardDescription>Please log in to manage the aerator system.</CardDescription>
                 </CardHeader>
             </Card>
-        ) : !aeratorDeviceId ? (
-            <Card className="border-primary">
-                <CardHeader>
-                <CardTitle className="text-primary">Aerator Control</CardTitle>
-                <CardDescription>No aerator device found for the selected pond.</CardDescription>
-                </CardHeader>
-            </Card>
         ) : (
             <Card className="border-primary">
                 <CardHeader>
-                    <CardTitle className="text-primary">Aerator Control</CardTitle>
-                    <CardDescription>
-                    Remotely manage the main aerator system for the selected pond.
-                    </CardDescription>
+                    <div className="flex items-center gap-3">
+                         <Wind className="h-6 w-6 text-primary" />
+                        <div>
+                            <CardTitle className="text-primary">Aerator Bulk Control</CardTitle>
+                            <CardDescription>
+                            Remotely manage all aerator systems for the selected pond.
+                            </CardDescription>
+                        </div>
+                    </div>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between pb-4">
-                        <CardTitle className="text-base font-medium">Live Status</CardTitle>
-                        <Wifi className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                        <div
-                            className={cn(
-                            'text-4xl font-bold',
-                            aeratorDisplayStatus === 'ON'
-                                ? 'text-green-600'
-                                : 'text-destructive'
-                            )}
-                        >
-                            {aeratorDisplayStatus}
-                        </div>
-                        <p className="text-xs text-muted-foreground pt-1">
-                            Current status reported by the device
-                        </p>
-                        </CardContent>
-                    </Card>
-                    <Card>
-                        <CardHeader className="flex flex-row items-center justify-between pb-4">
-                        <CardTitle className="text-base font-medium">Master Control</CardTitle>
-                        <Power className="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent className="flex items-center justify-between">
-                        <div>
-                            <p className="text-base font-medium">Send Command</p>
-                            <p className="text-xs text-muted-foreground">
-                            Turn Aerator {isAeratorOn ? 'OFF' : 'ON'}
-                            </p>
-                        </div>
-                        <Button
-                            onClick={() => handleToggleAerator()}
-                            size="icon"
-                            className={cn(
-                            'rounded-full w-16 h-16 text-primary-foreground transition-colors duration-300',
-                            isAeratorOn
-                                ? 'bg-red-500 hover:bg-red-600'
-                                : 'bg-green-500 hover:bg-green-600'
-                            )}
-                            aria-label="Toggle Aerator Power"
-                        >
-                            <Power className="h-8 w-8" />
-                        </Button>
-                        </CardContent>
-                    </Card>
-                    </div>
-
-                    <Tabs defaultValue="timer">
-                    <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="timer">Auto-off Timer</TabsTrigger>
-                        <TabsTrigger value="schedule">Daily Schedule</TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="timer" className="mt-4">
-                        <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="aerator-timeout">Set Duration</Label>
-                            <div className="flex space-x-2">
-                            <Input
-                                id="aerator-timeout"
-                                type="number"
-                                placeholder="e.g., 30"
-                                value={timeoutInput}
-                                onChange={(e) => setTimeoutInput(e.target.value)}
-                                disabled={isTimerRunning}
-                            />
-                            <Button
-                                onClick={handleApplyTimeout}
-                                className="whitespace-nowrap"
-                                disabled={isTimerRunning}
-                            >
-                                Set (minutes)
-                            </Button>
-                            </div>
-                            <p className="text-xs text-muted-foreground">
-                            The aerator will turn on and then turn off after the timer ends.
-                            </p>
-                        </div>
-                        {isTimerRunning && (
-                            <div className="space-y-2 rounded-lg border border-dashed p-4 text-center">
-                            <p className="text-sm text-muted-foreground">Turning off in:</p>
-                            <p className="text-4xl font-bold font-mono">
-                                {formatTime(countdown)}
-                            </p>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={handleCancelTimer}
-                            >
-                                Cancel Timer
-                            </Button>
-                            </div>
-                        )}
-                        </div>
-                    </TabsContent>
-                    <TabsContent value="schedule" className="mt-4">
-                        <div className="space-y-4">
-                        <Card className="border-dashed">
-                            <CardHeader className="p-4">
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                                <CalendarDays className="h-5 w-5" />
-                                <h3 className="font-semibold text-foreground">
-                                Set Weekly Schedule
-                                </h3>
-                            </div>
-                            </CardHeader>
-                            <CardContent className="p-4 pt-0 space-y-4">
-                            {daysOfWeek.map((day, index) => (
-                                <div key={day.key}>
-                                <div className="flex items-center justify-between">
-                                    <Label
-                                    htmlFor={`schedule-switch-${day.key}`}
-                                    className="font-medium"
-                                    >
-                                    {day.label}
-                                    </Label>
-                                    <Switch
-                                    id={`schedule-switch-${day.key}`}
-                                    checked={schedule[day.key].enabled}
-                                    onCheckedChange={(checked) =>
-                                        handleScheduleChange(day.key, 'enabled', checked)
-                                    }
-                                    />
-                                </div>
-                                <div
-                                    className={cn(
-                                    'grid grid-cols-2 gap-2 mt-2 transition-all duration-300 ease-in-out',
-                                    schedule[day.key].enabled
-                                        ? 'max-h-20 opacity-100'
-                                        : 'max-h-0 opacity-0 overflow-hidden'
-                                    )}
-                                >
-                                    <div className="space-y-1">
-                                    <Label
-                                        htmlFor={`on-time-${day.key}`}
-                                        className="text-xs"
-                                    >
-                                        Turn On
-                                    </Label>
-                                    <Input
-                                        id={`on-time-${day.key}`}
-                                        type="time"
-                                        value={schedule[day.key].onTime}
-                                        onChange={(e) =>
-                                        handleScheduleChange(
-                                            day.key,
-                                            'onTime',
-                                            e.target.value
-                                        )
-                                        }
-                                        disabled={!schedule[day.key].enabled}
-                                    />
-                                    </div>
-                                    <div className="space-y-1">
-                                    <Label
-                                        htmlFor={`off-time-${day.key}`}
-                                        className="text-xs"
-                                    >
-                                        Turn Off
-                                    </Label>
-                                    <Input
-                                        id={`off-time-${day.key}`}
-                                        type="time"
-                                        value={schedule[day.key].offTime}
-                                        onChange={(e) =>
-                                        handleScheduleChange(
-                                            day.key,
-                                            'offTime',
-                                            e.target.value
-                                        )
-                                        }
-                                        disabled={!schedule[day.key].enabled}
-                                    />
-                                    </div>
-                                </div>
-                                {index < daysOfWeek.length - 1 && (
-                                    <Separator className="mt-4" />
-                                )}
-                                </div>
+                    {pondLoading || loading ? renderSkeletons() : 
+                        aeratorDevices.length > 0 ? (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                            {aeratorDevices.map(device => (
+                                <Card key={device.id} className="flex flex-col">
+                                    <CardHeader className="pb-4">
+                                        <CardTitle className="text-lg">{device.name}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="flex-grow flex items-center justify-between">
+                                        <div
+                                            className={cn(
+                                            'text-xl font-bold',
+                                            device.isAeratorOn
+                                                ? 'text-green-600'
+                                                : 'text-destructive'
+                                            )}
+                                        >
+                                            {device.displayStatus}
+                                        </div>
+                                        <Switch
+                                            checked={device.isAeratorOn}
+                                            onCheckedChange={() => handleToggleAerator(device.id, device.isAeratorOn)}
+                                            aria-label={`Toggle ${device.name}`}
+                                        />
+                                    </CardContent>
+                                </Card>
                             ))}
-                            </CardContent>
-                        </Card>
-                        <Button onClick={handleSaveSchedule} className="w-full">
-                            Save All Schedules
-                        </Button>
                         </div>
-                    </TabsContent>
-                    </Tabs>
+                    ) : (
+                         <div className="flex flex-col items-center justify-center text-center p-8 border-2 border-dashed rounded-lg">
+                            <WifiOff className="h-12 w-12 text-muted-foreground mb-4" />
+                            <h3 className="text-xl font-semibold">No Aerator Devices Found</h3>
+                            <p className="text-muted-foreground mt-2">
+                                There are no aerator devices associated with the selected pond.
+                            </p>
+                        </div>
+                    )}
                 </CardContent>
             </Card>
         )}
