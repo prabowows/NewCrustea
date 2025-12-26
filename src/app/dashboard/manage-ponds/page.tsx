@@ -292,7 +292,7 @@ export default function ManagePondsPage() {
                                                                 </CardContent>
                                                             </Card>
                                                             <h3 className="font-semibold mt-4 text-lg">{step.title}</h3>
-                                                            <p className="text-sm text-muted-foreground mt-1">{step.description}</p>
+                                                            <p className="text-sm text-muted-foreground mt-1 max-w-xs mx-auto">{step.description}</p>
                                                         </div>
                                                     </CarouselItem>
                                                 ))}
@@ -342,5 +342,3 @@ export default function ManagePondsPage() {
         </div>
     );
 }
-
-    
