@@ -36,21 +36,28 @@ export default function AeratorControlPage() {
   const [aeratorDevices, setAeratorDevices] = useState<AeratorDevice[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 1. Find the Smart Controller (SC) for the selected pond
-  const smartControllerId = useMemo(() => {
-    if (!selectedPondId || !pondDevices[selectedPondId]) return null;
-    return Object.keys(pondDevices[selectedPondId]).find(
-      key => allDevices[key]?.tipe === 'SC'
-    );
-  }, [selectedPondId, pondDevices, allDevices]);
+  // 1. Dynamically find the Smart Controller KEY for the selected pond.
+  // This key is present in both pond_devices and sc_devices.
+  const smartControllerKey = useMemo(() => {
+    if (!selectedPondId || !pondDevices[selectedPondId] || !scDevices) return null;
+    
+    const devicesInPond = Object.keys(pondDevices[selectedPondId]);
+    // Find a key from this pond's devices that also exists as a key in the main sc_devices list.
+    return devicesInPond.find(key => scDevices[key]);
 
-  // 2. Get all aerator IDs managed by that Smart Controller
+  }, [selectedPondId, pondDevices, scDevices]);
+
+  // 2. Get all aerator IDs managed by that Smart Controller key.
   const aeratorDeviceIds = useMemo(() => {
-    if (!smartControllerId || !scDevices[smartControllerId]) return [];
-    return Object.keys(scDevices[smartControllerId]).filter(
-        key => allDevices[key]?.tipe === 'AE'
-    );
-  }, [smartControllerId, scDevices, allDevices]);
+    if (!smartControllerKey || !scDevices[smartControllerKey]) return [];
+    
+    // Get the aerator IDs from sc_devices using the found key
+    const aeratorIds = Object.keys(scDevices[smartControllerKey]);
+    
+    // Filter to ensure these devices are of type 'AE'
+    return aeratorIds.filter(id => allDevices[id]?.tipe === 'AE');
+
+  }, [smartControllerKey, scDevices, allDevices]);
 
   // 3. Effect to set up listeners for all aerators
   useEffect(() => {
@@ -74,7 +81,7 @@ export default function AeratorControlPage() {
 
     const listeners: { ref: DatabaseReference, listener: any }[] = [];
 
-    aeratorDeviceIds.forEach((deviceId, index) => {
+    aeratorDeviceIds.forEach((deviceId) => {
       const aeratorDataRef = ref(database, `/device_data/${deviceId}`);
       const listener = onValue(aeratorDataRef, (snapshot) => {
         const value = snapshot.val();
