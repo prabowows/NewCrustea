@@ -261,18 +261,18 @@ export default function PondDetailPage() {
                                             <Info className="h-5 w-5 text-muted-foreground" />
                                         </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="w-[90vw] max-w-xl">
-                                        <DialogHeader>
+                                    <DialogContent className="w-[90vw] max-w-lg p-4 sm:p-6">
+                                        <DialogHeader className="text-left">
                                             <DialogTitle>Cara Mendapatkan Kode Semat Peta</DialogTitle>
                                             <DialogDescription>
-                                                Ikuti langkah-langkah berikut untuk mendapatkan dan menempelkan kode dari Google Maps.
+                                                Ikuti langkah-langkah ini untuk menyalin kode dari Google Maps.
                                             </DialogDescription>
                                         </DialogHeader>
-                                        <Carousel className="w-full p-4">
+                                        <Carousel className="w-full" opts={{ loop: true }}>
                                             <CarouselContent>
                                                 {tutorialSteps.map((step, index) => (
                                                     <CarouselItem key={index}>
-                                                        <div className="flex flex-col items-center justify-center text-center space-y-4">
+                                                        <div className="flex flex-col items-center justify-center text-center space-y-4 p-2">
                                                             <div className="aspect-video w-full relative">
                                                                 <Image
                                                                     src={step.image}
@@ -282,9 +282,9 @@ export default function PondDetailPage() {
                                                                     data-ai-hint={step.hint}
                                                                 />
                                                             </div>
-                                                            <div>
-                                                                <h3 className="font-semibold text-lg">{step.title}</h3>
-                                                                <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">{step.description}</p>
+                                                            <div className="px-1">
+                                                                <h3 className="font-semibold text-base sm:text-lg">{step.title}</h3>
+                                                                <p className="text-xs sm:text-sm text-muted-foreground mt-1 max-w-sm mx-auto">{step.description}</p>
                                                             </div>
                                                         </div>
                                                     </CarouselItem>
@@ -295,9 +295,9 @@ export default function PondDetailPage() {
                                                 <CarouselNext variant="outline" size="icon" />
                                             </div>
                                         </Carousel>
-                                        <DialogFooter className="mt-4">
+                                        <DialogFooter className="mt-2">
                                             <DialogClose asChild>
-                                                <Button type="button">Tutup</Button>
+                                                <Button type="button" className="w-full">Tutup</Button>
                                             </DialogClose>
                                         </DialogFooter>
                                     </DialogContent>
@@ -403,3 +403,4 @@ export default function PondDetailPage() {
 }
 
     
+
