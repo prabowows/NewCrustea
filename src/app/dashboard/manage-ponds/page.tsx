@@ -275,25 +275,21 @@ export default function ManagePondsPage() {
                                                 Ikuti langkah-langkah berikut untuk mendapatkan dan menempelkan kode dari Google Maps.
                                             </DialogDescription>
                                         </DialogHeader>
-                                         <Carousel className="w-full p-4 relative">
+                                        <Carousel className="w-full p-4">
                                             <CarouselContent>
                                                 {tutorialSteps.map((step, index) => (
                                                     <CarouselItem key={index}>
-                                                        <div className="flex flex-col items-center justify-center text-center">
-                                                            <Card className="overflow-hidden border-0 w-full">
-                                                                <CardContent className="p-0">
-                                                                    <div className="aspect-video w-full relative">
-                                                                        <Image
-                                                                            src={step.image}
-                                                                            alt={step.title}
-                                                                            fill
-                                                                            className="object-contain rounded-md"
-                                                                            data-ai-hint={step.hint}
-                                                                        />
-                                                                    </div>
-                                                                </CardContent>
-                                                            </Card>
-                                                            <div className="mt-4">
+                                                        <div className="flex flex-col items-center justify-center text-center space-y-4">
+                                                            <div className="aspect-video w-full relative">
+                                                                <Image
+                                                                    src={step.image}
+                                                                    alt={step.title}
+                                                                    fill
+                                                                    className="object-contain rounded-md"
+                                                                    data-ai-hint={step.hint}
+                                                                />
+                                                            </div>
+                                                            <div>
                                                                 <h3 className="font-semibold text-lg">{step.title}</h3>
                                                                 <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">{step.description}</p>
                                                             </div>
@@ -301,14 +297,12 @@ export default function ManagePondsPage() {
                                                     </CarouselItem>
                                                 ))}
                                             </CarouselContent>
-                                             <CarouselPrevious className="absolute left-[-20px] top-1/2 -translate-y-1/2 hidden md:inline-flex" />
-                                             <CarouselNext className="absolute right-[-20px] top-1/2 -translate-y-1/2 hidden md:inline-flex" />
-                                             <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-4 md:hidden">
+                                            <div className="flex items-center justify-center gap-4 mt-4">
                                                 <CarouselPrevious variant="outline" size="icon" />
-                                                <CarouselNext variant="outline" size="icon"/>
+                                                <CarouselNext variant="outline" size="icon" />
                                             </div>
                                         </Carousel>
-                                        <DialogFooter className="mt-8 sm:mt-4">
+                                        <DialogFooter className="mt-4">
                                             <DialogClose asChild>
                                                 <Button type="button">Tutup</Button>
                                             </DialogClose>
