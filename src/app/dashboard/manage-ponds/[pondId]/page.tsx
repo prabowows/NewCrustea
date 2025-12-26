@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -260,14 +261,14 @@ export default function PondDetailPage() {
                                             <Info className="h-5 w-5 text-muted-foreground" />
                                         </Button>
                                     </DialogTrigger>
-                                    <DialogContent className="max-w-xl">
+                                    <DialogContent className="max-w-lg w-[90vw]">
                                         <DialogHeader>
                                             <DialogTitle>Cara Mendapatkan Kode Semat Peta</DialogTitle>
                                             <DialogDescription>
                                                 Ikuti langkah-langkah berikut untuk mendapatkan dan menempelkan kode dari Google Maps.
                                             </DialogDescription>
                                         </DialogHeader>
-                                        <Carousel className="w-full p-4">
+                                        <Carousel className="w-full p-4 relative">
                                             <CarouselContent>
                                                 {tutorialSteps.map((step, index) => (
                                                     <CarouselItem key={index}>
@@ -293,10 +294,14 @@ export default function PondDetailPage() {
                                                     </CarouselItem>
                                                 ))}
                                             </CarouselContent>
-                                            <CarouselPrevious className="absolute left-[-20px] top-1/2 -translate-y-1/2" />
-                                            <CarouselNext className="absolute right-[-20px] top-1/2 -translate-y-1/2" />
+                                            <div className="absolute bottom-[-20px] left-1/2 -translate-x-1/2 flex gap-4 md:hidden">
+                                                <CarouselPrevious variant="default" />
+                                                <CarouselNext variant="default" />
+                                            </div>
+                                             <CarouselPrevious className="absolute left-[-20px] top-1/2 -translate-y-1/2 hidden md:inline-flex" />
+                                             <CarouselNext className="absolute right-[-20px] top-1/2 -translate-y-1/2 hidden md:inline-flex" />
                                         </Carousel>
-                                        <DialogFooter>
+                                        <DialogFooter className="mt-4">
                                             <DialogClose asChild>
                                                 <Button type="button">Tutup</Button>
                                             </DialogClose>
@@ -402,3 +407,6 @@ export default function PondDetailPage() {
         </div>
     );
 }
+
+
+    
