@@ -114,10 +114,10 @@ export default function AeratorControlPage() {
   }, [aeratorDeviceIds, allDevices]);
 
 
-  const handleSetAerator = (deviceId: string, command: boolean) => {
+  const handleSetAerator = (deviceId: string, currentCommandStatus: boolean) => {
     if (!user) return;
     const aeratorCommandRef = ref(database, `/device_commands/${deviceId}/power`);
-    set(aeratorCommandRef, command).catch((error) => {
+    set(aeratorCommandRef, !currentCommandStatus).catch((error) => {
         console.error('Firebase write failed:', error);
         toast({
           variant: 'destructive',
@@ -213,7 +213,7 @@ export default function AeratorControlPage() {
                              <Card>
                                 <CardHeader>
                                     <CardTitle className="text-lg">Individual Device Status</CardTitle>
-                                    <CardDescription>Live status reported by each device.</CardDescription>
+                                    <CardDescription>Live status and individual control for each device.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="rounded-md border">
@@ -222,7 +222,6 @@ export default function AeratorControlPage() {
                                                 <TableRow>
                                                     <TableHead>Aerator</TableHead>
                                                     <TableHead>Live Status</TableHead>
-                                                    <TableHead>Command Status</TableHead>
                                                     <TableHead className="text-right">Actions</TableHead>
                                                 </TableRow>
                                             </TableHeader>
@@ -235,32 +234,19 @@ export default function AeratorControlPage() {
                                                                 {device.liveStatus ? 'ON' : 'OFF'}
                                                             </Badge>
                                                         </TableCell>
-                                                        <TableCell>
-                                                             <Badge variant={device.commandStatus ? 'default' : 'destructive'} className="bg-opacity-80">
-                                                                {device.commandStatus ? 'ON' : 'OFF'}
-                                                            </Badge>
-                                                        </TableCell>
                                                         <TableCell className="text-right">
-                                                            <div className="flex gap-2 justify-end">
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant="outline"
-                                                                    onClick={() => handleSetAerator(device.id, true)}
-                                                                    disabled={device.commandStatus}
-                                                                    className="border-green-500 text-green-500 hover:bg-green-500 hover:text-white"
+                                                            <Button
+                                                                onClick={() => handleSetAerator(device.id, device.commandStatus)}
+                                                                size="icon"
+                                                                className={cn(
+                                                                    'h-10 w-10 rounded-full shadow-md transition-colors duration-300',
+                                                                    device.commandStatus
+                                                                    ? 'bg-green-500 hover:bg-green-600 text-white'
+                                                                    : 'bg-red-500 hover:bg-red-600 text-white'
+                                                                )}
                                                                 >
-                                                                    ON
-                                                                </Button>
-                                                                <Button
-                                                                    size="sm"
-                                                                    variant="outline"
-                                                                    onClick={() => handleSetAerator(device.id, false)}
-                                                                    disabled={!device.commandStatus}
-                                                                     className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white"
-                                                                >
-                                                                    OFF
-                                                                </Button>
-                                                            </div>
+                                                                <Power className="h-5 w-5" />
+                                                            </Button>
                                                         </TableCell>
                                                     </TableRow>
                                                 ))}
@@ -285,5 +271,3 @@ export default function AeratorControlPage() {
     </div>
   );
 }
-
-    
