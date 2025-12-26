@@ -6,6 +6,7 @@
       }
     },
     "device_commands": {
+      ".read": "auth != null",
       ".write": "auth != null"
     },
     "devices": {
