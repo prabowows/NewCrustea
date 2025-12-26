@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { useState, useEffect, useMemo } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
-import { Wind, WifiOff, Power } from 'lucide-react';
+import { Wind, WifiOff } from 'lucide-react';
 import { database } from '@/lib/firebase';
 import { ref, onValue, set, off, DatabaseReference } from 'firebase/database';
 import { useUser } from '@/hooks/use-user';
@@ -48,6 +48,7 @@ export default function AeratorControlPage() {
     
     const aeratorIds = Object.keys(scDevices[smartControllerKey]);
     
+    // Make sure we only get devices with type 'AE' from the main devices list
     return aeratorIds.filter(id => allDevices[id]?.tipe === 'AE');
 
   }, [smartControllerKey, scDevices, allDevices]);
@@ -81,6 +82,7 @@ export default function AeratorControlPage() {
                 device.id === deviceId 
                 ? {
                     ...device,
+                    // The UI status is read from device_data
                     isAeratorOn: value?.power || false,
                     displayStatus: value?.status || 'Offline',
                 }
@@ -100,17 +102,17 @@ export default function AeratorControlPage() {
   }, [aeratorDeviceIds, allDevices]);
 
 
-  const handleSetAerator = (deviceId: string, currentStatus: boolean) => {
+  // This function now sends a specific boolean value to the database
+  const handleSetAerator = (deviceId: string, command: boolean) => {
     if (!user) return;
 
-    const newStatus = !currentStatus;
     const aeratorCommandRef = ref(database, `/device_commands/${deviceId}/power`);
     
-    set(aeratorCommandRef, newStatus)
+    set(aeratorCommandRef, command)
       .then(() => {
         toast({
           title: 'Success',
-          description: `Command sent to turn aerator ${newStatus ? 'ON' : 'OFF'}.`,
+          description: `Command sent to turn aerator ${command ? 'ON' : 'OFF'}.`,
         });
       })
       .catch((error) => {
@@ -132,7 +134,10 @@ export default function AeratorControlPage() {
                 </CardHeader>
                 <CardContent className="flex items-center justify-between">
                     <Skeleton className="h-8 w-20" />
-                    <Skeleton className="h-16 w-16 rounded-full" />
+                    <div className="flex gap-2">
+                        <Skeleton className="h-10 w-16" />
+                        <Skeleton className="h-10 w-16" />
+                    </div>
                 </CardContent>
             </Card>
         ))}
@@ -183,19 +188,24 @@ export default function AeratorControlPage() {
                                         >
                                             {device.isAeratorOn ? 'ON' : 'OFF'}
                                         </div>
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            onClick={() => handleSetAerator(device.id, device.isAeratorOn)}
-                                            className={cn(
-                                                'h-16 w-16 rounded-full transition-colors',
-                                                device.isAeratorOn
-                                                ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                                : 'bg-red-100 text-red-700 hover:bg-red-200'
-                                            )}
+                                        <div className="flex gap-2">
+                                           <Button
+                                                onClick={() => handleSetAerator(device.id, true)}
+                                                disabled={device.isAeratorOn}
+                                                className="bg-green-600 hover:bg-green-700 text-white"
+                                                size="sm"
                                             >
-                                            <Power className="h-8 w-8" />
-                                        </Button>
+                                                ON
+                                            </Button>
+                                            <Button
+                                                onClick={() => handleSetAerator(device.id, false)}
+                                                disabled={!device.isAeratorOn}
+                                                variant="destructive"
+                                                size="sm"
+                                            >
+                                                OFF
+                                            </Button>
+                                        </div>
                                     </CardContent>
                                 </Card>
                             ))}
