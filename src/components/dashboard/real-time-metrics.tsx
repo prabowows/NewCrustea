@@ -230,7 +230,7 @@ export function RealTimeMetrics() {
                 <div className="flex items-baseline gap-2">
                     <div className="text-2xl font-bold">{metric.value}</div>
                     {status === 'warning' && (
-                        <AlertTriangle className="h-4 w-4 text-destructive" />
+                        <AlertTriangle className="h-5 w-5 text-destructive" />
                     )}
                 </div>
             </CardContent>
