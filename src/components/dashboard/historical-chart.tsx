@@ -9,7 +9,7 @@ import { useUser } from "@/hooks/use-user";
 import { usePond } from "@/context/PondContext";
 import { database } from '@/lib/firebase';
 import { ref, onValue, off, query, orderByChild, limitToLast, startAt } from 'firebase/database';
-import { CartesianGrid, Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { AreaChart, CartesianGrid, Area, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { ChartContainer, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 
 type ParameterKey = 'do' | 'ph' | 'temp' | 'tds';
@@ -169,7 +169,13 @@ export function HistoricalChart() {
         ) : historicalData.length > 0 ? (
           <ChartContainer config={chartConfig} className="h-[250px] w-full">
             <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={historicalData}>
+                <AreaChart data={historicalData}>
+                    <defs>
+                        <linearGradient id={`color-${selectedParameter}`} x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={`var(--color-${selectedParameter})`} stopOpacity={0.8} />
+                        <stop offset="95%" stopColor={`var(--color-${selectedParameter})`} stopOpacity={0.1} />
+                        </linearGradient>
+                    </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                     <XAxis
                         dataKey="time"
@@ -206,16 +212,17 @@ export function HistoricalChart() {
                             />
                         }
                     />
-                    <Line
+                    <Area
                         dataKey={selectedParameter}
                         name={selectedParamConfig?.label}
                         type="monotone"
                         stroke={`var(--color-${selectedParameter})`}
+                        fill={`url(#color-${selectedParameter})`}
                         strokeWidth={2}
-                        dot={{ r: 4, fill: `var(--color-${selectedParameter})` }}
-                        activeDot={{ r: 6 }}
+                        dot={{ r: 0 }}
+                        activeDot={{ r: 6, strokeWidth: 1, fill: 'white' }}
                     />
-                </LineChart>
+                </AreaChart>
             </ResponsiveContainer>
           </ChartContainer>
         ) : (
