@@ -8,11 +8,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/hooks/use-user";
 import { usePond } from "@/context/PondContext";
 import { database } from '@/lib/firebase';
-import { ref, onValue, off, query, orderByKey, limitToLast } from 'firebase/database';
+import { ref, onValue, off, query, orderByKey, limitToLast, startAt } from 'firebase/database';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { ChartContainer, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 
 type ParameterKey = 'do' | 'ph' | 'temp' | 'tds';
+type TimeframeKey = 'hour' | 'day' | 'week' | 'month' | 'year';
 
 type HistoricalReading = {
   do: number;
@@ -29,6 +30,15 @@ const parameterOptions: { value: ParameterKey, label: string, unit: string }[] =
     { value: 'temp', label: 'Temperature', unit: '°C' },
     { value: 'tds', label: 'Total Dissolved Solids (TDS)', unit: 'ppm' },
 ];
+
+const timeframeOptions: { value: TimeframeKey, label: string, duration: number }[] = [
+    { value: 'hour', label: '1 Jam Terakhir', duration: 60 * 60 * 1000 },
+    { value: 'day', label: '24 Jam Terakhir', duration: 24 * 60 * 60 * 1000 },
+    { value: 'week', label: '7 Hari Terakhir', duration: 7 * 24 * 60 * 60 * 1000 },
+    { value: 'month', label: '30 Hari Terakhir', duration: 30 * 24 * 60 * 60 * 1000 },
+    { value: 'year', label: '1 Tahun Terakhir', duration: 365 * 24 * 60 * 60 * 1000 },
+];
+
 
 const chartConfig = {
   do: {
@@ -56,6 +66,7 @@ export function HistoricalChart() {
   const [loading, setLoading] = useState(true);
   const [historicalData, setHistoricalData] = useState<HistoricalReading[]>([]);
   const [selectedParameter, setSelectedParameter] = useState<ParameterKey>('do');
+  const [selectedTimeframe, setSelectedTimeframe] = useState<TimeframeKey>('day');
 
   const ebiiDeviceId = useMemo(() => {
     if (!selectedPondId || !pondDevices[selectedPondId]) return null;
@@ -72,7 +83,17 @@ export function HistoricalChart() {
     setLoading(true);
 
     const historicalDataRef = ref(database, `/Historical/${ebiiDeviceId}`);
-    const dataQuery = query(historicalDataRef, orderByKey(), limitToLast(20));
+    const timeframe = timeframeOptions.find(t => t.value === selectedTimeframe);
+    const now = Date.now();
+    const startTime = timeframe ? now - timeframe.duration : 0;
+    
+    // Firebase timestamps are in milliseconds, so we can query directly
+    const dataQuery = query(
+        historicalDataRef, 
+        orderByChild('ts'), 
+        startAt(startTime),
+        limitToLast(200) // Limit to 200 data points to avoid performance issues
+    );
     
     const listener = onValue(dataQuery, (snapshot) => {
         const data = snapshot.val();
@@ -99,7 +120,7 @@ export function HistoricalChart() {
     return () => {
         off(dataQuery, 'value', listener);
     }
-  }, [ebiiDeviceId]);
+  }, [ebiiDeviceId, selectedTimeframe]);
 
   const selectedParamConfig = useMemo(() => {
       return parameterOptions.find(p => p.value === selectedParameter);
@@ -117,13 +138,23 @@ export function HistoricalChart() {
                 }
             </CardDescription>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Select value={selectedParameter} onValueChange={(value) => setSelectedParameter(value as ParameterKey)}>
-                <SelectTrigger className="w-full sm:w-[220px]">
+                <SelectTrigger className="w-full sm:w-[180px]">
                     <SelectValue placeholder="Select Parameter" />
                 </SelectTrigger>
                 <SelectContent>
                     {parameterOptions.map(option => (
+                         <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            <Select value={selectedTimeframe} onValueChange={(value) => setSelectedTimeframe(value as TimeframeKey)}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Select Timeframe" />
+                </SelectTrigger>
+                <SelectContent>
+                    {timeframeOptions.map(option => (
                          <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
                     ))}
                 </SelectContent>
