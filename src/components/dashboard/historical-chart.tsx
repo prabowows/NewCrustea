@@ -1,36 +1,41 @@
 
 "use client";
 
-import { useEffect, useState, useRef, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/hooks/use-user";
 import { usePond } from "@/context/PondContext";
 import { database } from '@/lib/firebase';
-import { ref, onValue, off } from 'firebase/database';
+import { ref, onValue, off, query, orderByKey, limitToLast } from 'firebase/database';
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
+import { ChartTooltipContent } from "@/components/ui/chart";
 
 type ParameterKey = 'do' | 'ph' | 'temp' | 'tds';
 
-type RealtimeReading = {
+type HistoricalReading = {
   do: number;
   ph: number;
   tds: number;
   temp: number;
+  ts: number;
+  time: string; // Formatted timestamp
 };
 
-const parameterOptions: { value: ParameterKey, label: string }[] = [
-    { value: 'do', label: 'Dissolved Oxygen (DO)' },
-    { value: 'ph', label: 'pH' },
-    { value: 'temp', label: 'Temperature' },
-    { value: 'tds', label: 'Total Dissolved Solids (TDS)' },
+const parameterOptions: { value: ParameterKey, label: string, unit: string }[] = [
+    { value: 'do', label: 'Dissolved Oxygen (DO)', unit: 'mg/L' },
+    { value: 'ph', label: 'pH', unit: '' },
+    { value: 'temp', label: 'Temperature', unit: '°C' },
+    { value: 'tds', label: 'Total Dissolved Solids (TDS)', unit: 'ppm' },
 ];
 
 
 export function HistoricalChart() {
   const { user } = useUser();
   const { selectedPondId, allDevices, pondDevices } = usePond();
-  const [loading] = useState(false); // Kept for consistency, but feature is disabled.
+  const [loading, setLoading] = useState(true);
+  const [historicalData, setHistoricalData] = useState<HistoricalReading[]>([]);
   const [selectedParameter, setSelectedParameter] = useState<ParameterKey>('do');
 
   const ebiiDeviceId = useMemo(() => {
@@ -38,48 +43,64 @@ export function HistoricalChart() {
     const devicesInPond = pondDevices[selectedPondId];
     return Object.keys(devicesInPond).find(key => allDevices[key]?.tipe === 'EBII') || null;
   }, [selectedPondId, allDevices, pondDevices]);
-  
-  const readingsBufferRef = useRef<RealtimeReading[]>([]);
-  
-  // This useEffect now correctly cleans up the RTDB listener.
-  useEffect(() => {
-    // 1. Guard clause: Do nothing if user or device ID is missing.
-    if (!user || !ebiiDeviceId || !selectedPondId) {
-      readingsBufferRef.current = [];
-      return;
-    }
 
-    // 2. Define the specific path for the listener.
-    const deviceDataRef = ref(database, `/device_data/${ebiiDeviceId}`);
+  useEffect(() => {
+    if (!ebiiDeviceId) {
+        setHistoricalData([]);
+        setLoading(false);
+        return;
+    }
+    setLoading(true);
+
+    const historicalDataRef = ref(database, `/Historical/${ebiiDeviceId}`);
+    // Query to get the last 20 entries, ordered by key (which is chronological for push IDs)
+    const dataQuery = query(historicalDataRef, orderByKey(), limitToLast(20));
     
-    // 3. Set up the new listener to populate a buffer (logic is paused but listener is managed).
-    const rt_listener = onValue(deviceDataRef, (snapshot) => {
-      const value = snapshot.val();
-      if (value && typeof value.do === 'number') { 
-        // NOTE: This buffer is not currently used to save data, 
-        // but the listener management is crucial.
-        readingsBufferRef.current.push(value);
-      }
+    const listener = onValue(dataQuery, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+            const processedData: HistoricalReading[] = Object.values(data).map((entry: any) => {
+                 const date = new Date(entry.ts);
+                 return {
+                    ...entry,
+                    time: date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }),
+                 };
+            }).sort((a,b) => a.ts - b.ts); // Ensure it's sorted by timestamp asc
+            
+            setHistoricalData(processedData);
+        } else {
+             setHistoricalData([]);
+        }
+        setLoading(false);
+    }, (error) => {
+        console.error("Failed to fetch historical data:", error);
+        setHistoricalData([]);
+        setLoading(false);
     });
 
-    // 4. MANDATORY CLEANUP FUNCTION: This is critical.
-    // It runs when the component unmounts or before the effect runs again.
     return () => {
-      off(deviceDataRef, 'value', rt_listener);
-    };
-    
-  }, [user, ebiiDeviceId, selectedPondId]);
+        off(historicalDataRef, 'value', listener);
+    }
+  }, [ebiiDeviceId]);
 
+  const selectedParamConfig = useMemo(() => {
+      return parameterOptions.find(p => p.value === selectedParameter);
+  }, [selectedParameter]);
 
   return (
     <Card className="border-primary">
       <CardHeader className="flex flex-col items-start gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <CardTitle className="text-primary">Historical Data</CardTitle>
-            <CardDescription>Displaying historical readings from the selected pond.</CardDescription>
+            <CardDescription>
+                {ebiiDeviceId 
+                    ? `Displaying recent readings from device ${ebiiDeviceId}.`
+                    : 'No EBII device found for this pond.'
+                }
+            </CardDescription>
         </div>
         <div className="flex gap-2 w-full sm:w-auto">
-            <Select value={selectedParameter} onValueChange={(value) => setSelectedParameter(value as ParameterKey)} disabled>
+            <Select value={selectedParameter} onValueChange={(value) => setSelectedParameter(value as ParameterKey)}>
                 <SelectTrigger className="w-full sm:w-[220px]">
                     <SelectValue placeholder="Select Parameter" />
                 </SelectTrigger>
@@ -96,10 +117,60 @@ export function HistoricalChart() {
             <div className="h-[250px] w-full flex items-center justify-center">
                 <Skeleton className="h-full w-full" />
             </div>
+        ) : historicalData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+                <LineChart data={historicalData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                    <XAxis
+                        dataKey="time"
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                    />
+                    <YAxis
+                        tickLine={false}
+                        axisLine={false}
+                        tickMargin={8}
+                        tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                        unit={selectedParamConfig?.unit}
+                        domain={['dataMin - 1', 'dataMax + 1']}
+                    />
+                     <Tooltip
+                        cursor={{ stroke: 'hsl(var(--primary))', strokeWidth: 1, strokeDasharray: '3 3' }}
+                        content={
+                            <ChartTooltipContent
+                                formatter={(value, name) => (
+                                    <div className="flex flex-col">
+                                        <span className="text-muted-foreground">{name}</span>
+                                        <span className="font-bold">{`${Number(value).toFixed(2)} ${selectedParamConfig?.unit}`}</span>
+                                    </div>
+                                )}
+                                labelFormatter={(label, payload) => {
+                                    if(payload && payload.length > 0) {
+                                        const date = new Date(payload[0].payload.ts);
+                                        return date.toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+                                    }
+                                    return label;
+                                }}
+                            />
+                        }
+                    />
+                    <Line
+                        dataKey={selectedParameter}
+                        name={selectedParamConfig?.label}
+                        type="monotone"
+                        stroke="hsl(var(--primary))"
+                        strokeWidth={2}
+                        dot={{ r: 4, fill: "hsl(var(--primary))" }}
+                        activeDot={{ r: 6 }}
+                    />
+                </LineChart>
+            </ResponsiveContainer>
         ) : (
             <div className="h-[250px] w-full flex flex-col items-center justify-center text-center bg-muted/50 rounded-lg">
-                <p className="font-medium text-muted-foreground">Historical Chart Disabled</p>
-                <p className="text-sm text-muted-foreground">This feature is temporarily unavailable pending database migration.</p>
+                <p className="font-medium text-muted-foreground">No Historical Data Found</p>
+                <p className="text-sm text-muted-foreground">There is no historical data available for this device yet.</p>
             </div>
         )}
       </CardContent>
