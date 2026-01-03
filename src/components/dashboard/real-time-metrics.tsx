@@ -27,6 +27,8 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { usePond } from '@/context/PondContext';
+import { cn } from '@/lib/utils';
+
 
 const iconMap = {
   Power,
@@ -47,6 +49,28 @@ const formatValue = (value: any, unit: string) => {
   return `${value}${unit ? ` ${unit}` : ''}`;
 };
 
+// Define a type that includes the raw value for comparison
+type MetricWithRawValue = Metric & { rawValue: number | 'N/A' };
+
+const getMetricStatus = (metric: MetricWithRawValue): 'normal' | 'warning' | 'neutral' => {
+    if (metric.rawValue === 'N/A' || typeof metric.rawValue !== 'number') {
+        return 'neutral';
+    }
+
+    const value = metric.rawValue;
+
+    switch (metric.id) {
+        case 'ph':
+            return value >= 7.5 && value <= 8.5 ? 'normal' : 'warning';
+        case 'do':
+            return value >= 4 && value <= 8 ? 'normal' : 'warning';
+        case 'temperature':
+            return value >= 26 && value <= 32 ? 'normal' : 'warning';
+        default:
+            return 'neutral';
+    }
+};
+
 type GroupedMetric = {
   name: string;
   icon: string;
@@ -58,7 +82,10 @@ type GroupedMetric = {
   }[];
 };
 
-const initialEbiiMetrics = initialMetrics.filter((m) => m.source === 'water_quality');
+const initialEbiiMetrics: MetricWithRawValue[] = initialMetrics
+  .filter((m) => m.source === 'water_quality')
+  .map(m => ({ ...m, rawValue: 'N/A' }));
+
 const initialEnergyMetrics = initialMetrics.filter((m) => m.source === 'listrik');
 
 
@@ -66,7 +93,7 @@ export function RealTimeMetrics() {
   const { toast } = useToast();
   const { selectedPondId, allDevices, pondDevices, loading: isPondContextLoading } = usePond();
 
-  const [ebiiMetrics, setEbiiMetrics] = useState<Metric[]>(initialEbiiMetrics);
+  const [ebiiMetrics, setEbiiMetrics] = useState<MetricWithRawValue[]>(initialEbiiMetrics);
   const [energyMetrics, setEnergyMetrics] = useState<Metric[]>(initialEnergyMetrics);
   const [isSwitching, setIsSwitching] = useState(false);
   const pondIdRef = useRef(selectedPondId);
@@ -121,8 +148,14 @@ export function RealTimeMetrics() {
       setEbiiMetrics(prevMetrics => 
         prevMetrics.map(metric => {
           const firebaseKey = metric.firebaseKey || metric.id;
-          const metricValue = readingData?.[firebaseKey];
-          return { ...metric, value: formatValue(metricValue, metric.unit) };
+          const rawValue = readingData?.[firebaseKey];
+          const numericValue = (rawValue !== undefined && rawValue !== null && !isNaN(parseFloat(rawValue))) ? parseFloat(rawValue) : 'N/A';
+          
+          return { 
+            ...metric, 
+            value: formatValue(rawValue, metric.unit),
+            rawValue: numericValue
+          };
         })
       );
     }, (error) => {
@@ -177,13 +210,17 @@ export function RealTimeMetrics() {
   }, [deviceIds.se, toast]);
 
 
-  const renderMetricCard = (metric: Metric) => {
+  const renderMetricCard = (metric: MetricWithRawValue) => {
     const Icon = iconMap[metric.icon as keyof typeof iconMap] || Power;
+    const status = getMetricStatus(metric);
 
     return (
       <Dialog key={metric.id}>
         <DialogTrigger asChild>
-          <Card className="cursor-pointer hover:bg-muted/80 transition-colors border-primary">
+          <Card className={cn(
+            "cursor-pointer hover:bg-muted/80 transition-colors border-primary",
+            status === 'warning' && 'bg-red-100/50 dark:bg-red-900/20'
+            )}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{metric.name}</CardTitle>
               <Icon className="h-4 w-4 text-muted-foreground" />
@@ -351,5 +388,3 @@ export function RealTimeMetrics() {
     </div>
   );
 }
-
-    
