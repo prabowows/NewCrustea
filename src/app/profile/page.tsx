@@ -9,8 +9,9 @@ import { Button } from "@/components/ui/button";
 import { useUser } from "@/hooks/use-user";
 import { useEffect, useState, useRef } from "react";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db, storage } from "@/lib/firebase";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { db, storage, database } from "@/lib/firebase";
+import { ref as storageRef, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref as databaseRef, update as updateDatabase } from "firebase/database";
 import { updateProfile as updateAuthProfile } from "firebase/auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
@@ -130,6 +131,7 @@ export default function ProfilePage() {
 
   const handleSave = async () => {
     if (!user) return;
+    
     const docRef = doc(db, "users", user.uid);
     const updatedData = {
         name: formData.name,
@@ -137,27 +139,28 @@ export default function ProfilePage() {
         phoneNumber: formData.phoneNumber
     };
 
-    updateDoc(docRef, updatedData)
-      .then(async () => {
-          if (user.displayName !== formData.name) {
-              await updateAuthProfile(user, { displayName: formData.name });
-          }
-          // Optimistically update local state
-          setProfile(prev => prev ? { ...prev, ...updatedData } : null);
-          setIsEditing(false);
-          toast({
-              title: "Profil Diperbarui",
-              description: "Informasi profil Anda telah berhasil disimpan."
-          });
-      })
-      .catch((serverError) => {
-          const permissionError = new FirestorePermissionError({
-            path: docRef.path,
-            operation: 'update',
-            requestResourceData: updatedData,
-          });
-          errorEmitter.emit('permission-error', permissionError);
+    const rtdbRef = databaseRef(database, `users/${user.uid}`);
+    const rtdbUpdates = { name: formData.name };
+
+    Promise.all([
+      updateDoc(docRef, updatedData),
+      updateDatabase(rtdbRef, rtdbUpdates),
+      user.displayName !== formData.name ? updateAuthProfile(user, { displayName: formData.name }) : Promise.resolve(),
+    ]).then(() => {
+      setProfile(prev => prev ? { ...prev, ...updatedData } : null);
+      setIsEditing(false);
+      toast({
+        title: "Profil Diperbarui",
+        description: "Informasi profil Anda telah berhasil disimpan."
       });
+    }).catch((serverError) => {
+        const permissionError = new FirestorePermissionError({
+          path: docRef.path,
+          operation: 'update',
+          requestResourceData: updatedData,
+        });
+        errorEmitter.emit('permission-error', permissionError);
+    });
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -167,21 +170,21 @@ export default function ProfilePage() {
     setIsUploading(true);
 
     try {
-      // Compress the image before uploading
       const compressedBlob = await compressImage(file);
       
-      const storageRef = ref(storage, `profile_images/${user.uid}`);
-      const snapshot = await uploadBytes(storageRef, compressedBlob);
+      const fileStorageRef = storageRef(storage, `profile_images/${user.uid}`);
+      const snapshot = await uploadBytes(fileStorageRef, compressedBlob);
       const downloadURL = await getDownloadURL(snapshot.ref);
 
-      // Update Firebase Auth profile
-      await updateAuthProfile(user, { photoURL: downloadURL });
-
-      // Update Firestore document
       const docRef = doc(db, "users", user.uid);
-      await updateDoc(docRef, { photoURL: downloadURL });
+      const rtdbRef = databaseRef(database, `users/${user.uid}`);
 
-      // Update local state to re-render avatar
+      await Promise.all([
+        updateAuthProfile(user, { photoURL: downloadURL }),
+        updateDoc(docRef, { photoURL: downloadURL }),
+        updateDatabase(rtdbRef, { photoURL: downloadURL })
+      ]);
+      
       setProfile(p => p ? { ...p, photoURL: downloadURL } : null);
       
       toast({
@@ -198,7 +201,6 @@ export default function ProfilePage() {
       });
     } finally {
       setIsUploading(false);
-      // Reset the file input so the user can upload the same file again if they want
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
