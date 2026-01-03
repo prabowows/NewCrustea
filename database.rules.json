@@ -26,14 +26,18 @@
     },
     "device_data": {
       "$deviceId": {
-        // Izinkan baca jika pengguna memiliki akses ke kolam tempat perangkat ini berada.
         ".read": "root.child('devices/' + $deviceId + '/pond_id').exists() && root.child('user_ponds/' + auth.uid + '/' + root.child('devices/' + $deviceId + '/pond_id').val()).exists()"
       }
     },
     "device_commands": {
       "$deviceId": {
-        // Izinkan tulis jika pengguna memiliki akses ke kolam tempat perangkat ini berada.
         ".write": "root.child('devices/' + $deviceId + '/pond_id').exists() && root.child('user_ponds/' + auth.uid + '/' + root.child('devices/' + $deviceId + '/pond_id').val()).exists()",
+        ".read": "root.child('devices/' + $deviceId + '/pond_id').exists() && root.child('user_ponds/' + auth.uid + '/' + root.child('devices/' + $deviceId + '/pond_id').val()).exists()"
+      }
+    },
+    "Historical": {
+      "$deviceId": {
+        // Izinkan baca jika pengguna memiliki akses ke kolam tempat perangkat ini berada.
         ".read": "root.child('devices/' + $deviceId + '/pond_id').exists() && root.child('user_ponds/' + auth.uid + '/' + root.child('devices/' + $deviceId + '/pond_id').val()).exists()"
       }
     }
