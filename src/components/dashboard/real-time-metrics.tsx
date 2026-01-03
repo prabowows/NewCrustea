@@ -220,7 +220,7 @@ export function RealTimeMetrics() {
         <DialogTrigger asChild>
           <Card className={cn(
             "cursor-pointer hover:bg-muted/80 transition-colors border-primary",
-            status === 'warning' && 'border-destructive bg-destructive/20 dark:bg-destructive/30'
+            status === 'warning' && 'border-destructive bg-destructive/30 dark:bg-destructive/30'
             )}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{metric.name}</CardTitle>
