@@ -97,7 +97,8 @@ export default function PondDetailPage() {
     
     const handleAddDevice = async () => {
         setIsSubmitting(true);
-        if (!pondId || !newDeviceId) {
+        const pondIdStr = pondId as string;
+        if (!pondIdStr || !newDeviceId) {
             toast({ variant: 'destructive', title: 'Error', description: 'ID Perangkat tidak boleh kosong.' });
             setIsSubmitting(false);
             return;
@@ -120,9 +121,10 @@ export default function PondDetailPage() {
                  return;
             }
 
-            // Add device to pond_devices and update the pond_id in devices
+            // Atomically update both locations
             const updates: { [key: string]: any } = {};
-            updates[`/pond_devices/${pondId}/${newDeviceId}`] = true;
+            updates[`/pond_devices/${pondIdStr}/${newDeviceId}`] = true;
+            updates[`/devices/${newDeviceId}/pond_id`] = pondIdStr;
             
             await update(ref(database), updates);
 
@@ -318,9 +320,5 @@ export default function PondDetailPage() {
         </div>
     );
 }
-
-    
-
-
 
     
