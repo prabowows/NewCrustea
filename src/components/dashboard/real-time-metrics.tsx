@@ -224,15 +224,15 @@ export function RealTimeMetrics() {
             )}>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{metric.name}</CardTitle>
-              <div className="flex items-center gap-2">
-                {status === 'warning' && (
-                    <AlertTriangle className="h-4 w-4 text-destructive" />
-                )}
-                <Icon className="h-4 w-4 text-muted-foreground" />
-              </div>
+              <Icon className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{metric.value}</div>
+                <div className="flex items-baseline gap-2">
+                    <div className="text-2xl font-bold">{metric.value}</div>
+                    {status === 'warning' && (
+                        <AlertTriangle className="h-4 w-4 text-destructive" />
+                    )}
+                </div>
             </CardContent>
           </Card>
         </DialogTrigger>
