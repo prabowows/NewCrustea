@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/hooks/use-user";
 import { usePond } from "@/context/PondContext";
 import { database } from '@/lib/firebase';
-import { ref, onValue, off, query, orderByKey, limitToLast, startAt } from 'firebase/database';
+import { ref, onValue, off, query, orderByChild, limitToLast, startAt } from 'firebase/database';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { ChartContainer, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 
