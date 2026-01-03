@@ -10,7 +10,7 @@ import { usePond } from "@/context/PondContext";
 import { database } from '@/lib/firebase';
 import { ref, onValue, off, query, orderByKey, limitToLast } from 'firebase/database';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
-import { ChartTooltipContent } from "@/components/ui/chart";
+import { ChartContainer, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 
 type ParameterKey = 'do' | 'ph' | 'temp' | 'tds';
 
@@ -29,6 +29,25 @@ const parameterOptions: { value: ParameterKey, label: string, unit: string }[] =
     { value: 'temp', label: 'Temperature', unit: '°C' },
     { value: 'tds', label: 'Total Dissolved Solids (TDS)', unit: 'ppm' },
 ];
+
+const chartConfig = {
+  do: {
+    label: 'DO',
+    color: 'hsl(var(--chart-1))',
+  },
+  ph: {
+    label: 'pH',
+    color: 'hsl(var(--chart-2))',
+  },
+  temp: {
+    label: 'Temp',
+    color: 'hsl(var(--chart-3))',
+  },
+  tds: {
+    label: 'TDS',
+    color: 'hsl(var(--chart-4))',
+  },
+} satisfies ChartConfig;
 
 
 export function HistoricalChart() {
@@ -53,7 +72,6 @@ export function HistoricalChart() {
     setLoading(true);
 
     const historicalDataRef = ref(database, `/Historical/${ebiiDeviceId}`);
-    // Query to get the last 20 entries, ordered by key (which is chronological for push IDs)
     const dataQuery = query(historicalDataRef, orderByKey(), limitToLast(20));
     
     const listener = onValue(dataQuery, (snapshot) => {
@@ -65,7 +83,7 @@ export function HistoricalChart() {
                     ...entry,
                     time: date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false }),
                  };
-            }).sort((a,b) => a.ts - b.ts); // Ensure it's sorted by timestamp asc
+            }).sort((a,b) => a.ts - b.ts);
             
             setHistoricalData(processedData);
         } else {
@@ -79,7 +97,7 @@ export function HistoricalChart() {
     });
 
     return () => {
-        off(historicalDataRef, 'value', listener);
+        off(dataQuery, 'value', listener);
     }
   }, [ebiiDeviceId]);
 
@@ -118,7 +136,8 @@ export function HistoricalChart() {
                 <Skeleton className="h-full w-full" />
             </div>
         ) : historicalData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={250}>
+          <ChartContainer config={chartConfig} className="h-[250px] w-full">
+            <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={historicalData}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
                     <XAxis
@@ -142,7 +161,7 @@ export function HistoricalChart() {
                             <ChartTooltipContent
                                 formatter={(value, name) => (
                                     <div className="flex flex-col">
-                                        <span className="text-muted-foreground">{name}</span>
+                                        <span className="text-muted-foreground capitalize">{name}</span>
                                         <span className="font-bold">{`${Number(value).toFixed(2)} ${selectedParamConfig?.unit}`}</span>
                                     </div>
                                 )}
@@ -160,13 +179,14 @@ export function HistoricalChart() {
                         dataKey={selectedParameter}
                         name={selectedParamConfig?.label}
                         type="monotone"
-                        stroke="hsl(var(--primary))"
+                        stroke={`var(--color-${selectedParameter})`}
                         strokeWidth={2}
-                        dot={{ r: 4, fill: "hsl(var(--primary))" }}
+                        dot={{ r: 4, fill: `var(--color-${selectedParameter})` }}
                         activeDot={{ r: 6 }}
                     />
                 </LineChart>
             </ResponsiveContainer>
+          </ChartContainer>
         ) : (
             <div className="h-[250px] w-full flex flex-col items-center justify-center text-center bg-muted/50 rounded-lg">
                 <p className="font-medium text-muted-foreground">No Historical Data Found</p>
