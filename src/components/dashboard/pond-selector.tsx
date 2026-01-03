@@ -1,3 +1,4 @@
+
 'use client';
 
 import { Card, CardContent } from "@/components/ui/card";
@@ -28,7 +29,7 @@ export function PondSelector() {
             onValueChange={(value) => setSelectedPondId(value)}
             disabled={ponds.length === 0}
             >
-            <SelectTrigger className="w-full">
+            <SelectTrigger className="w-full border-primary border-2">
                 <SelectValue placeholder="Pilih Kolam..." />
             </SelectTrigger>
             <SelectContent>
