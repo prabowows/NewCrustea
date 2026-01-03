@@ -8,12 +8,11 @@
     },
     "ponds": {
       ".read": "auth != null",
-      // Izinkan tulis (buat/hapus) jika pengguna terautentikasi.
-      // Untuk hapus, periksa apakah pengguna adalah pemiliknya.
-      // Untuk buat, aturan di user_ponds akan mengamankan siapa pemiliknya.
-      ".write": "auth != null && (newData.exists() || root.child('user_ponds/' + auth.uid + '/' + $pondId).exists())",
       "$pondId": {
-         ".read": "auth != null"
+        ".read": "auth != null",
+        // Izinkan tulis jika pengguna membuat data baru ATAU
+        // jika pengguna sudah menjadi pemilik data yang ada (untuk update/delete).
+        ".write": "auth != null && (!data.exists() || root.child('user_ponds/' + auth.uid + '/' + $pondId).exists())"
       }
     },
     "devices": {
@@ -29,7 +28,7 @@
       }
     },
     "pond_devices": {
-       // Izinkan pengguna yang memiliki kolam untuk membaca atau menulis daftar perangkat di dalamnya.
+      // Izinkan pengguna yang memiliki kolam untuk membaca atau menulis daftar perangkat di dalamnya.
       "$pondId": {
         ".read": "root.child('user_ponds/' + auth.uid + '/' + $pondId).exists()",
         ".write": "root.child('user_ponds/' + auth.uid + '/' + $pondId).exists()"
