@@ -8,6 +8,7 @@
     },
     "ponds": {
       ".read": "auth != null",
+      ".write": "auth != null",
       "$pondId": {
         ".read": "auth != null",
         ".write": "auth != null && (!data.exists() || root.child('user_ponds/' + auth.uid + '/' + $pondId).exists())"
@@ -27,6 +28,7 @@
     },
     "pond_devices": {
       ".read": "auth != null",
+      ".write": "auth != null",
       "$pondId": {
         ".read": "root.child('user_ponds/' + auth.uid + '/' + $pondId).exists()",
         ".write": "root.child('user_ponds/' + auth.uid + '/' + $pondId).exists()"
