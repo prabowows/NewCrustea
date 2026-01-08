@@ -13,7 +13,6 @@ import { AreaChart, CartesianGrid, Area, ResponsiveContainer, XAxis, YAxis, Tool
 import { ChartContainer, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 
 type ParameterKey = 'do' | 'ph' | 'temp' | 'tds';
-type TimeframeKey = 'hour' | 'day' | 'week' | 'month' | 'year';
 
 type HistoricalReading = {
   do: number;
@@ -30,15 +29,6 @@ const parameterOptions: { value: ParameterKey, label: string, unit: string }[] =
     { value: 'temp', label: 'Temperature', unit: '°C' },
     { value: 'tds', label: 'Total Dissolved Solids (TDS)', unit: 'ppm' },
 ];
-
-const timeframeOptions: { value: TimeframeKey, label: string, duration: number }[] = [
-    { value: 'hour', label: '1 Jam Terakhir', duration: 60 * 60 * 1000 },
-    { value: 'day', label: '24 Jam Terakhir', duration: 24 * 60 * 60 * 1000 },
-    { value: 'week', label: '7 Hari Terakhir', duration: 7 * 24 * 60 * 60 * 1000 },
-    { value: 'month', label: '30 Hari Terakhir', duration: 30 * 24 * 60 * 60 * 1000 },
-    { value: 'year', label: '1 Tahun Terakhir', duration: 365 * 24 * 60 * 60 * 1000 },
-];
-
 
 const chartConfig = {
   do: {
@@ -66,7 +56,6 @@ export function HistoricalChart() {
   const [loading, setLoading] = useState(true);
   const [historicalData, setHistoricalData] = useState<HistoricalReading[]>([]);
   const [selectedParameter, setSelectedParameter] = useState<ParameterKey>('do');
-  const [selectedTimeframe, setSelectedTimeframe] = useState<TimeframeKey>('day');
 
   const ebiiDeviceId = useMemo(() => {
     if (!selectedPondId || !pondDevices[selectedPondId]) return null;
@@ -117,7 +106,7 @@ export function HistoricalChart() {
     return () => {
         off(dataQuery, 'value', listener);
     }
-  }, [ebiiDeviceId, selectedTimeframe]);
+  }, [ebiiDeviceId]);
 
   const selectedParamConfig = useMemo(() => {
       return parameterOptions.find(p => p.value === selectedParameter);
@@ -137,21 +126,11 @@ export function HistoricalChart() {
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Select value={selectedParameter} onValueChange={(value) => setSelectedParameter(value as ParameterKey)}>
-                <SelectTrigger className="w-full sm:w-[180px]">
+                <SelectTrigger className="w-full sm:w-[240px]">
                     <SelectValue placeholder="Select Parameter" />
                 </SelectTrigger>
                 <SelectContent>
                     {parameterOptions.map(option => (
-                         <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
-                    ))}
-                </SelectContent>
-            </Select>
-            <Select value={selectedTimeframe} onValueChange={(value) => setSelectedTimeframe(value as TimeframeKey)}>
-                <SelectTrigger className="w-full sm:w-[180px]">
-                    <SelectValue placeholder="Select Timeframe" />
-                </SelectTrigger>
-                <SelectContent>
-                    {timeframeOptions.map(option => (
                          <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
                     ))}
                 </SelectContent>
@@ -232,3 +211,5 @@ export function HistoricalChart() {
     </Card>
   );
 }
+
+    
