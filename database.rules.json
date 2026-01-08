@@ -26,6 +26,7 @@
       }
     },
     "pond_devices": {
+      ".read": "auth != null",
       "$pondId": {
         ".read": "root.child('user_ponds/' + auth.uid + '/' + $pondId).exists()",
         ".write": "root.child('user_ponds/' + auth.uid + '/' + $pondId).exists()"
