@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/hooks/use-user";
 import { usePond } from "@/context/PondContext";
 import { database } from '@/lib/firebase';
-import { ref, onValue, off, query, orderByChild, limitToLast, startAt } from 'firebase/database';
+import { ref, onValue, off, query, orderByChild, limitToLast } from 'firebase/database';
 import { AreaChart, CartesianGrid, Area, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { ChartContainer, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 
@@ -83,16 +83,13 @@ export function HistoricalChart() {
     setLoading(true);
 
     const historicalDataRef = ref(database, `/Historical/${ebiiDeviceId}`);
-    const timeframe = timeframeOptions.find(t => t.value === selectedTimeframe);
-    const now = Date.now();
-    const startTime = timeframe ? now - timeframe.duration : 0;
     
-    // Firebase timestamps are in milliseconds, so we can query directly
+    // Fetch the last 200 data points, ordered by timestamp.
+    // This avoids issues with incorrect future timestamps while still showing recent data.
     const dataQuery = query(
         historicalDataRef, 
         orderByChild('ts'), 
-        startAt(startTime),
-        limitToLast(200) // Limit to 200 data points to avoid performance issues
+        limitToLast(200) 
     );
     
     const listener = onValue(dataQuery, (snapshot) => {
