@@ -33,13 +33,17 @@
     },
     "device_data": {
       "$deviceId": {
+        // Izinkan pengguna terotentikasi untuk membaca data perangkat apa pun.
+        // Ini diperlukan untuk halaman aerator untuk memeriksa status.
         ".read": "auth != null"
       }
     },
     "device_commands": {
       "$deviceId": {
+        // Aturan tulis yang ketat: Hanya pemilik kolam yang bisa mengirim perintah.
         ".write": "root.child('devices/' + $deviceId + '/pond_id').exists() && root.child('user_ponds/' + auth.uid + '/' + root.child('devices/' + $deviceId + '/pond_id').val()).exists()",
-        "read": "root.child('devices/' + $deviceId + '/pond_id').exists() && root.child('user_ponds/' + auth.uid + '/' + root.child('devices/' + $deviceId + '/pond_id').val()).exists()"
+        // Aturan baca yang lebih longgar: Pengguna terotentikasi dapat membaca status perintah.
+        ".read": "auth != null"
       }
     },
     "Historical": {
