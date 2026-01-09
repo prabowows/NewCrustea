@@ -8,11 +8,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/hooks/use-user";
 import { usePond } from "@/context/PondContext";
 import { database } from '@/lib/firebase';
-import { ref, onValue, off, query, orderByChild, limitToLast } from 'firebase/database';
+import { ref, onValue, off, query, orderByChild, startAt } from 'firebase/database';
 import { AreaChart, CartesianGrid, Area, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { ChartContainer, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 
 type ParameterKey = 'do' | 'ph' | 'temp' | 'tds';
+type TimeRangeKey = '1h' | '24h' | '7d' | '30d' | '1y';
 
 type HistoricalReading = {
   do: number;
@@ -28,6 +29,14 @@ const parameterOptions: { value: ParameterKey, label: string, unit: string }[] =
     { value: 'ph', label: 'pH', unit: '' },
     { value: 'temp', label: 'Temperature', unit: '°C' },
     { value: 'tds', label: 'Total Dissolved Solids (TDS)', unit: 'ppm' },
+];
+
+const timeRangeOptions: { value: TimeRangeKey, label: string }[] = [
+    { value: '1h', label: '1 Jam Terakhir' },
+    { value: '24h', label: '24 Jam Terakhir' },
+    { value: '7d', label: '7 Hari Terakhir' },
+    { value: '30d', label: '30 Hari Terakhir' },
+    { value: '1y', label: '1 Tahun Terakhir' },
 ];
 
 const chartConfig = {
@@ -56,6 +65,7 @@ export function HistoricalChart() {
   const [loading, setLoading] = useState(true);
   const [historicalData, setHistoricalData] = useState<HistoricalReading[]>([]);
   const [selectedParameter, setSelectedParameter] = useState<ParameterKey>('do');
+  const [selectedTimeRange, setSelectedTimeRange] = useState<TimeRangeKey>('24h');
 
   const ebiiDeviceId = useMemo(() => {
     if (!selectedPondId || !pondDevices[selectedPondId]) return null;
@@ -71,14 +81,22 @@ export function HistoricalChart() {
     }
     setLoading(true);
 
+    const now = Date.now();
+    let startTime = 0;
+    switch (selectedTimeRange) {
+        case '1h': startTime = now - 3600 * 1000; break;
+        case '24h': startTime = now - 24 * 3600 * 1000; break;
+        case '7d': startTime = now - 7 * 24 * 3600 * 1000; break;
+        case '30d': startTime = now - 30 * 24 * 3600 * 1000; break;
+        case '1y': startTime = now - 365 * 24 * 3600 * 1000; break;
+    }
+
     const historicalDataRef = ref(database, `/Historical/${ebiiDeviceId}`);
     
-    // Fetch the last 200 data points, ordered by timestamp.
-    // This avoids issues with incorrect future timestamps while still showing recent data.
     const dataQuery = query(
         historicalDataRef, 
-        orderByChild('ts'), 
-        limitToLast(200) 
+        orderByChild('ts'),
+        startAt(startTime)
     );
     
     const listener = onValue(dataQuery, (snapshot) => {
@@ -106,7 +124,7 @@ export function HistoricalChart() {
     return () => {
         off(dataQuery, 'value', listener);
     }
-  }, [ebiiDeviceId]);
+  }, [ebiiDeviceId, selectedTimeRange]);
 
   const selectedParamConfig = useMemo(() => {
       return parameterOptions.find(p => p.value === selectedParameter);
@@ -126,11 +144,21 @@ export function HistoricalChart() {
         </div>
         <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Select value={selectedParameter} onValueChange={(value) => setSelectedParameter(value as ParameterKey)}>
-                <SelectTrigger className="w-full sm:w-[240px]">
+                <SelectTrigger className="w-full sm:w-[200px]">
                     <SelectValue placeholder="Select Parameter" />
                 </SelectTrigger>
                 <SelectContent>
                     {parameterOptions.map(option => (
+                         <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                    ))}
+                </SelectContent>
+            </Select>
+            <Select value={selectedTimeRange} onValueChange={(value) => setSelectedTimeRange(value as TimeRangeKey)}>
+                <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Select Time Range" />
+                </SelectTrigger>
+                <SelectContent>
+                    {timeRangeOptions.map(option => (
                          <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
                     ))}
                 </SelectContent>
@@ -204,12 +232,10 @@ export function HistoricalChart() {
         ) : (
             <div className="h-[250px] w-full flex flex-col items-center justify-center text-center bg-muted/50 rounded-lg">
                 <p className="font-medium text-muted-foreground">No Historical Data Found</p>
-                <p className="text-sm text-muted-foreground">There is no historical data available for this device yet.</p>
+                <p className="text-sm text-muted-foreground">There is no historical data available for this device or time range.</p>
             </div>
         )}
       </CardContent>
     </Card>
   );
 }
-
-    
