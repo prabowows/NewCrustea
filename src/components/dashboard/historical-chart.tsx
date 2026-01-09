@@ -8,12 +8,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useUser } from "@/hooks/use-user";
 import { usePond } from "@/context/PondContext";
 import { database } from '@/lib/firebase';
-import { ref, onValue, off, query, orderByChild, startAt } from 'firebase/database';
+import { ref, onValue, off, query, orderByChild, startAt, get, limitToLast } from 'firebase/database';
 import { AreaChart, CartesianGrid, Area, ResponsiveContainer, XAxis, YAxis, Tooltip } from 'recharts';
 import { ChartContainer, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
 
 type ParameterKey = 'do' | 'ph' | 'temp' | 'tds';
-type TimeRangeKey = '1h' | '24h' | '7d' | '30d' | '1y';
+type TimeRangeKey = '1h' | '24h' | '7d' | '30d' | 'all';
 
 type HistoricalReading = {
   do: number;
@@ -36,7 +36,7 @@ const timeRangeOptions: { value: TimeRangeKey, label: string }[] = [
     { value: '24h', label: '24 Jam Terakhir' },
     { value: '7d', label: '7 Hari Terakhir' },
     { value: '30d', label: '30 Hari Terakhir' },
-    { value: '1y', label: '1 Tahun Terakhir' },
+    { value: 'all', label: 'Semua Data' },
 ];
 
 const chartConfig = {
@@ -81,25 +81,63 @@ export function HistoricalChart() {
     }
     setLoading(true);
 
-    const now = Date.now();
-    let startTime = 0;
-    switch (selectedTimeRange) {
-        case '1h': startTime = now - 3600 * 1000; break;
-        case '24h': startTime = now - 24 * 3600 * 1000; break;
-        case '7d': startTime = now - 7 * 24 * 3600 * 1000; break;
-        case '30d': startTime = now - 30 * 24 * 3600 * 1000; break;
-        case '1y': startTime = now - 365 * 24 * 3600 * 1000; break;
-    }
-
     const historicalDataRef = ref(database, `/Historical/${ebiiDeviceId}`);
+    let listener: any;
+
+    const fetchData = async () => {
+        try {
+            if (selectedTimeRange === 'all') {
+                const dataQuery = query(historicalDataRef, orderByChild('ts'));
+                 listener = onValue(dataQuery, (snapshot) => {
+                    handleSnapshot(snapshot);
+                });
+                return;
+            }
+
+            // 1. Get the latest timestamp
+            const latestQuery = query(historicalDataRef, orderByChild('ts'), limitToLast(1));
+            const latestSnap = await get(latestQuery);
+
+            if (!latestSnap.exists()) {
+                setHistoricalData([]);
+                setLoading(false);
+                return;
+            }
+
+            let latestTimestamp = 0;
+            latestSnap.forEach((child) => {
+                latestTimestamp = child.val().ts;
+            });
+            
+            // 2. Calculate startTime based on the latest timestamp
+            let startTime = 0;
+            switch (selectedTimeRange) {
+                case '1h': startTime = latestTimestamp - 3600 * 1000; break;
+                case '24h': startTime = latestTimestamp - 24 * 3600 * 1000; break;
+                case '7d': startTime = latestTimestamp - 7 * 24 * 3600 * 1000; break;
+                case '30d': startTime = latestTimestamp - 30 * 24 * 3600 * 1000; break;
+            }
+
+            // 3. Query data within the calculated range
+            const dataQuery = query(
+                historicalDataRef, 
+                orderByChild('ts'),
+                startAt(startTime)
+            );
+            
+            listener = onValue(dataQuery, handleSnapshot, (error) => {
+                console.error("Failed to fetch historical data:", error);
+                setHistoricalData([]);
+                setLoading(false);
+            });
+        } catch (error) {
+            console.error("Failed to set up historical data fetch:", error);
+            setHistoricalData([]);
+            setLoading(false);
+        }
+    };
     
-    const dataQuery = query(
-        historicalDataRef, 
-        orderByChild('ts'),
-        startAt(startTime)
-    );
-    
-    const listener = onValue(dataQuery, (snapshot) => {
+    const handleSnapshot = (snapshot: any) => {
         const data = snapshot.val();
         if (data) {
             const processedData: HistoricalReading[] = Object.values(data).map((entry: any) => {
@@ -115,14 +153,14 @@ export function HistoricalChart() {
              setHistoricalData([]);
         }
         setLoading(false);
-    }, (error) => {
-        console.error("Failed to fetch historical data:", error);
-        setHistoricalData([]);
-        setLoading(false);
-    });
+    }
+
+    fetchData();
 
     return () => {
-        off(dataQuery, 'value', listener);
+        if(listener) {
+             off(historicalDataRef, 'value', listener);
+        }
     }
   }, [ebiiDeviceId, selectedTimeRange]);
 
