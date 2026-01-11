@@ -58,6 +58,63 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const aggregateData = (data: HistoricalReading[], timeRange: TimeRangeKey): HistoricalReading[] => {
+    if (!data || data.length === 0) return [];
+
+    switch (timeRange) {
+        case '1h':
+            return data; // No aggregation for 1 hour
+
+        case '24h': {
+            const hourlyData: { [key: string]: HistoricalReading } = {};
+            data.forEach(d => {
+                const date = new Date(d.ts);
+                const hourKey = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}-${date.getHours()}`;
+                // Keep the last reading for each hour
+                hourlyData[hourKey] = {
+                    ...d,
+                    time: date.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+                };
+            });
+            return Object.values(hourlyData);
+        }
+
+        case '7d':
+        case '30d':
+        case 'all': {
+            const dailyAverages: { [key: string]: { sum: { [k in ParameterKey]: number }, count: number, ts: number } } = {};
+            data.forEach(d => {
+                const date = new Date(d.ts);
+                const dayKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+                
+                if (!dailyAverages[dayKey]) {
+                    dailyAverages[dayKey] = { sum: { do: 0, ph: 0, temp: 0, tds: 0 }, count: 0, ts: d.ts };
+                }
+                dailyAverages[dayKey].sum.do += d.do;
+                dailyAverages[dayKey].sum.ph += d.ph;
+                dailyAverages[dayKey].sum.temp += d.temp;
+                dailyAverages[dayKey].sum.tds += d.tds;
+                dailyAverages[dayKey].count += 1;
+            });
+            
+            return Object.entries(dailyAverages).map(([dayKey, value]) => {
+                 const avgDate = new Date(value.ts);
+                 return {
+                    do: value.sum.do / value.count,
+                    ph: value.sum.ph / value.count,
+                    temp: value.sum.temp / value.count,
+                    tds: value.sum.tds / value.count,
+                    ts: value.ts,
+                    time: avgDate.toLocaleDateString('en-GB', { month: 'short', day: 'numeric' }), // e.g., 'Aug 05'
+                 };
+            }).sort((a,b) => a.ts - b.ts);
+        }
+        
+        default:
+            return data;
+    }
+}
+
 
 export function HistoricalChart() {
   const { user } = useUser();
@@ -90,11 +147,14 @@ export function HistoricalChart() {
                 const dataQuery = query(historicalDataRef, orderByChild('ts'));
                  listener = onValue(dataQuery, (snapshot) => {
                     handleSnapshot(snapshot);
+                }, (error) => {
+                    console.error("Failed to fetch all historical data:", error);
+                    setHistoricalData([]);
+                    setLoading(false);
                 });
                 return;
             }
 
-            // 1. Get the latest timestamp
             const latestQuery = query(historicalDataRef, orderByChild('ts'), limitToLast(1));
             const latestSnap = await get(latestQuery);
 
@@ -109,7 +169,6 @@ export function HistoricalChart() {
                 latestTimestamp = child.val().ts;
             });
             
-            // 2. Calculate startTime based on the latest timestamp
             let startTime = 0;
             switch (selectedTimeRange) {
                 case '1h': startTime = latestTimestamp - 3600 * 1000; break;
@@ -118,7 +177,6 @@ export function HistoricalChart() {
                 case '30d': startTime = latestTimestamp - 30 * 24 * 3600 * 1000; break;
             }
 
-            // 3. Query data within the calculated range
             const dataQuery = query(
                 historicalDataRef, 
                 orderByChild('ts'),
@@ -140,7 +198,7 @@ export function HistoricalChart() {
     const handleSnapshot = (snapshot: any) => {
         const data = snapshot.val();
         if (data) {
-            const processedData: HistoricalReading[] = Object.values(data).map((entry: any) => {
+            const rawData: HistoricalReading[] = Object.values(data).map((entry: any) => {
                  const date = new Date(entry.ts);
                  return {
                     ...entry,
@@ -148,7 +206,8 @@ export function HistoricalChart() {
                  };
             }).sort((a,b) => a.ts - b.ts);
             
-            setHistoricalData(processedData);
+            const aggregated = aggregateData(rawData, selectedTimeRange);
+            setHistoricalData(aggregated);
         } else {
              setHistoricalData([]);
         }
@@ -159,7 +218,8 @@ export function HistoricalChart() {
 
     return () => {
         if(listener) {
-             off(historicalDataRef, 'value', listener);
+             const queryRef = query(historicalDataRef, orderByChild('ts'));
+             off(queryRef, 'value', listener);
         }
     }
   }, [ebiiDeviceId, selectedTimeRange]);
