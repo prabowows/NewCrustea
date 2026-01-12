@@ -238,6 +238,7 @@ export default function AeratorControlPage() {
                                                                 onClick={() => handleSetAerator(device.id, device.commandStatus)}
                                                                 size="icon"
                                                                 variant="outline"
+                                                                disabled
                                                                 className={cn(
                                                                     'h-10 w-10 rounded-full shadow-md transition-colors duration-300',
                                                                     device.commandStatus
