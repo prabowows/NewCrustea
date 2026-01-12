@@ -50,6 +50,7 @@ export default function AeratorControlPage() {
     if (!smartControllerKey || !scDevices[smartControllerKey]) return [];
     
     const aeratorIds = Object.keys(scDevices[smartControllerKey]);
+    // Also check if the device actually exists in allDevices to prevent errors
     return aeratorIds.filter(id => allDevices[id]?.tipe === 'AE');
 
   }, [smartControllerKey, scDevices, allDevices]);
@@ -177,9 +178,9 @@ export default function AeratorControlPage() {
                     <div className="flex items-center gap-3">
                          <Wind className="h-6 w-6 text-primary" />
                         <div>
-                            <CardTitle className="text-primary">Aerator Bulk Control</CardTitle>
+                            <CardTitle className="text-primary">Kontrol Aerator (Kincir)</CardTitle>
                             <CardDescription>
-                            Remotely manage all aerator systems for the selected pond.
+                            Kelola semua sistem kincir untuk tambak yang dipilih.
                             </CardDescription>
                         </div>
                     </div>
@@ -190,9 +191,9 @@ export default function AeratorControlPage() {
                         <div className="grid grid-cols-1 gap-6">
                             {/* Master Control */}
                             <Card className={cn("flex flex-col items-center justify-center p-6", isBulkCommandOn ? "bg-green-100/50 dark:bg-green-900/20" : "bg-red-100/50 dark:bg-red-900/20")}>
-                                <h3 className="text-lg font-medium text-muted-foreground">Master Control</h3>
+                                <h3 className="text-lg font-medium text-muted-foreground">Kontrol Utama (Semua Kincir)</h3>
                                 <p className="text-sm text-muted-foreground mb-4">
-                                   Command: <span className={cn("font-bold", isBulkCommandOn ? "text-green-600" : "text-red-600")}>{isBulkCommandOn ? 'ON' : 'OFF'}</span>
+                                   Perintah: <span className={cn("font-bold", isBulkCommandOn ? "text-green-600" : "text-red-600")}>{isBulkCommandOn ? 'ON' : 'OFF'}</span>
                                 </p>
                                 <Button
                                     onClick={handleBulkToggle}
@@ -206,23 +207,23 @@ export default function AeratorControlPage() {
                                 >
                                     <Power className="h-10 w-10" />
                                 </Button>
-                                <p className="text-xs text-muted-foreground mt-4">Controls all aerators in this pond.</p>
+                                <p className="text-xs text-muted-foreground mt-4">Mengontrol semua kincir di tambak ini.</p>
                             </Card>
 
                             {/* Individual Status */}
                              <Card>
                                 <CardHeader>
-                                    <CardTitle className="text-lg">Individual Device Status</CardTitle>
-                                    <CardDescription>Live status and individual control for each device.</CardDescription>
+                                    <CardTitle className="text-lg">Status Kincir Individual</CardTitle>
+                                    <CardDescription>Status langsung dan kontrol individual untuk setiap kincir.</CardDescription>
                                 </CardHeader>
                                 <CardContent>
                                     <div className="rounded-md border">
                                         <Table>
                                             <TableHeader>
                                                 <TableRow>
-                                                    <TableHead>Aerator</TableHead>
-                                                    <TableHead>Live Status</TableHead>
-                                                    <TableHead className="text-right">Actions</TableHead>
+                                                    <TableHead>Kincir</TableHead>
+                                                    <TableHead>Status Langsung</TableHead>
+                                                    <TableHead className="text-right">Aksi Kontrol</TableHead>
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
@@ -230,7 +231,7 @@ export default function AeratorControlPage() {
                                                     <TableRow key={device.id}>
                                                         <TableCell className="font-medium">{device.name}</TableCell>
                                                         <TableCell>
-                                                            <Badge variant={device.liveStatus ? 'default' : 'destructive'}>
+                                                            <Badge variant={device.liveStatus ? 'default' : 'destructive'} className={cn(device.liveStatus && 'bg-success text-success-foreground')}>
                                                                 {device.liveStatus ? 'ON' : 'OFF'}
                                                             </Badge>
                                                         </TableCell>
@@ -238,11 +239,12 @@ export default function AeratorControlPage() {
                                                             <Button
                                                                 onClick={() => handleSetAerator(device.id, device.commandStatus)}
                                                                 size="icon"
+                                                                variant="outline"
                                                                 className={cn(
                                                                     'h-10 w-10 rounded-full shadow-md transition-colors duration-300',
                                                                     device.commandStatus
-                                                                    ? 'bg-green-500 hover:bg-green-600 text-white'
-                                                                    : 'bg-red-500 hover:bg-red-600 text-white'
+                                                                    ? 'border-green-500 text-green-500 hover:bg-green-500 hover:text-white'
+                                                                    : 'border-red-500 text-red-500 hover:bg-red-500 hover:text-white'
                                                                 )}
                                                                 >
                                                                 <Power className="h-5 w-5" />
@@ -259,9 +261,9 @@ export default function AeratorControlPage() {
                     ) : (
                          <div className="flex flex-col items-center justify-center text-center p-8 border-2 border-dashed rounded-lg">
                             <WifiOff className="h-12 w-12 text-muted-foreground mb-4" />
-                            <h3 className="text-xl font-semibold">No Aerator Devices Found</h3>
+                            <h3 className="text-xl font-semibold">Tidak Ada Kincir Ditemukan</h3>
                             <p className="text-muted-foreground mt-2">
-                                There are no aerator devices associated with the selected pond.
+                                Tidak ada perangkat kincir (aerator) yang terhubung ke tambak yang dipilih.
                             </p>
                         </div>
                     )}
@@ -271,3 +273,5 @@ export default function AeratorControlPage() {
     </div>
   );
 }
+
+    
