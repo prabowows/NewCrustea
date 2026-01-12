@@ -31,34 +31,27 @@ type AeratorDevice = {
 
 export default function AeratorControlPage() {
   const { user } = useUser();
-  const { selectedPondId, allDevices, pondDevices, scDevices, loading: pondLoading } = usePond();
+  const { selectedPondId, allDevices, pondDevices, loading: pondLoading } = usePond();
   const { toast } = useToast();
   
   const [aeratorDevices, setAeratorDevices] = useState<AeratorDevice[]>([]);
   const [loading, setLoading] = useState(true);
   const [isBulkCommandOn, setIsBulkCommandOn] = useState(false);
 
-  const smartControllerKey = useMemo(() => {
-    if (!selectedPondId || !pondDevices[selectedPondId] || !scDevices) return null;
-
-    const devicesInPond = Object.keys(pondDevices[selectedPondId]);
-    return devicesInPond.find(key => scDevices[key]);
-
-  }, [selectedPondId, pondDevices, scDevices]);
-
+  // Simplified logic to directly find all aerators ('AE') in the selected pond.
   const aeratorDeviceIds = useMemo(() => {
-    if (!smartControllerKey || !scDevices[smartControllerKey]) return [];
-    
-    const aeratorIds = Object.keys(scDevices[smartControllerKey]);
-    // Also check if the device actually exists in allDevices to prevent errors
-    return aeratorIds.filter(id => allDevices[id]?.tipe === 'AE');
+    if (!selectedPondId || !pondDevices[selectedPondId] || !allDevices) {
+      return [];
+    }
+    const devicesInPond = Object.keys(pondDevices[selectedPondId]);
+    return devicesInPond.filter(id => allDevices[id]?.tipe === 'AE');
+  }, [selectedPondId, pondDevices, allDevices]);
 
-  }, [smartControllerKey, scDevices, allDevices]);
 
   useEffect(() => {
     setLoading(true);
 
-    if (aeratorDeviceIds.length === 0) {
+    if (!user || aeratorDeviceIds.length === 0) {
       setAeratorDevices([]);
       setLoading(false);
       return;
@@ -73,29 +66,34 @@ export default function AeratorControlPage() {
             const commandRef = ref(database, `/device_commands/${deviceId}/power`);
             const dataRef = ref(database, `/device_data/${deviceId}/power`);
 
-            const [commandSnap, dataSnap] = await Promise.all([
-                get(commandRef),
-                get(dataRef)
-            ]);
+            try {
+                const [commandSnap, dataSnap] = await Promise.all([
+                    get(commandRef),
+                    get(dataRef)
+                ]);
 
-            const newAerator: AeratorDevice = {
-                id: deviceId,
-                name: allDevices[deviceId]?.name || deviceId,
-                liveStatus: dataSnap.val() || false,
-                commandStatus: commandSnap.val() || false,
-            };
-            initialAerators.push(newAerator);
-            
-            // Set up listeners
-            const commandListener = onValue(commandRef, (snapshot) => {
-                setAeratorDevices(prev => prev.map(d => d.id === deviceId ? { ...d, commandStatus: snapshot.val() || false } : d));
-            });
-            listeners.push({ ref: commandRef, listener: commandListener });
+                const newAerator: AeratorDevice = {
+                    id: deviceId,
+                    name: allDevices[deviceId]?.name || deviceId,
+                    liveStatus: dataSnap.val() || false,
+                    commandStatus: commandSnap.val() || false,
+                };
+                initialAerators.push(newAerator);
+                
+                // Set up listeners
+                const commandListener = onValue(commandRef, (snapshot) => {
+                    setAeratorDevices(prev => prev.map(d => d.id === deviceId ? { ...d, commandStatus: snapshot.val() || false } : d));
+                });
+                listeners.push({ ref: commandRef, listener: commandListener });
 
-            const dataListener = onValue(dataRef, (snapshot) => {
-                setAeratorDevices(prev => prev.map(d => d.id === deviceId ? { ...d, liveStatus: snapshot.val() || false } : d));
-            });
-            listeners.push({ ref: dataRef, listener: dataListener });
+                const dataListener = onValue(dataRef, (snapshot) => {
+                    setAeratorDevices(prev => prev.map(d => d.id === deviceId ? { ...d, liveStatus: snapshot.val() || false } : d));
+                });
+                listeners.push({ ref: dataRef, listener: dataListener });
+            } catch (error) {
+                console.error(`Failed to fetch or listen for device ${deviceId}`, error);
+                // Optionally add a toast message for the failed device
+            }
         }
         
         setAeratorDevices(initialAerators);
@@ -112,7 +110,7 @@ export default function AeratorControlPage() {
         cleanupPromise.then(cleanup => cleanup && cleanup());
     };
 
-  }, [aeratorDeviceIds, allDevices]);
+  }, [aeratorDeviceIds, allDevices, user]);
 
 
   const handleSetAerator = (deviceId: string, currentCommandStatus: boolean) => {
@@ -273,5 +271,3 @@ export default function AeratorControlPage() {
     </div>
   );
 }
-
-    
