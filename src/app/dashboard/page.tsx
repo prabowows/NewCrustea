@@ -8,6 +8,7 @@ import { ParameterAnalysis } from "@/components/dashboard/parameter-analysis";
 import { LocationOverview } from "@/components/dashboard/location-overview";
 import { PondSelector } from "@/components/dashboard/pond-selector";
 import { usePond } from '@/context/PondContext';
+import { SavingsOverview } from "@/components/dashboard/savings-overview";
 
 export default function DashboardPage() {
   const { selectedPondId } = usePond();
@@ -27,6 +28,7 @@ export default function DashboardPage() {
 
       <div className="lg:col-span-2 space-y-4 md:space-y-8">
         <HistoricalChart key={`hc-${selectedPondId}`} />
+        <SavingsOverview />
         <ParameterAnalysis />
         <AlarmsTable />
       </div>
