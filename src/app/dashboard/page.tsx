@@ -27,8 +27,8 @@ export default function DashboardPage() {
 
 
       <div className="lg:col-span-2 space-y-4 md:space-y-8">
-        <HistoricalChart key={`hc-${selectedPondId}`} />
         <SavingsOverview />
+        <HistoricalChart key={`hc-${selectedPondId}`} />
         <ParameterAnalysis />
         <AlarmsTable />
       </div>
