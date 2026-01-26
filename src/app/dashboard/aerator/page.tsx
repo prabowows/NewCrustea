@@ -38,13 +38,16 @@ export default function AeratorControlPage() {
   const [loading, setLoading] = useState(true);
   const [isBulkCommandOn, setIsBulkCommandOn] = useState(false);
 
-  // Simplified logic to directly find all aerators ('AE') in the selected pond.
+  // Find all aerators ('AE') and relays ('RELAY') in the selected pond.
   const aeratorDeviceIds = useMemo(() => {
     if (!selectedPondId || !pondDevices[selectedPondId] || !allDevices) {
       return [];
     }
     const devicesInPond = Object.keys(pondDevices[selectedPondId]);
-    return devicesInPond.filter(id => allDevices[id]?.tipe === 'AE');
+    return devicesInPond.filter(id => {
+      const deviceType = allDevices[id]?.tipe;
+      return deviceType === 'AE' || deviceType === 'RELAY';
+    });
   }, [selectedPondId, pondDevices, allDevices]);
 
 
