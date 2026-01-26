@@ -12,7 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, HardDrive, Edit, PlusCircle, Info } from 'lucide-react';
+import { ArrowLeft, HardDrive, Edit, PlusCircle, AlertTriangle } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
@@ -31,6 +31,10 @@ export default function PondDetailPage() {
     const [isAddDeviceOpen, setIsAddDeviceOpen] = useState(false);
     const [newDeviceId, setNewDeviceId] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    // State for remove device dialog
+    const [isRemoveDeviceOpen, setIsRemoveDeviceOpen] = useState(false);
+    const [deviceToRemove, setDeviceToRemove] = useState<Device | null>(null);
 
 
     const currentPond = useMemo(() => {
@@ -140,6 +144,38 @@ export default function PondDetailPage() {
             setIsSubmitting(false);
         }
     }
+    
+    const handleRemoveDeviceConfirmation = (device: Device) => {
+        setDeviceToRemove(device);
+        setIsRemoveDeviceOpen(true);
+    };
+
+    const handleRemoveDevice = async () => {
+        if (!deviceToRemove || !pondId) return;
+
+        const pondIdStr = pondId as string;
+        const deviceId = deviceToRemove.id;
+        
+        setIsSubmitting(true);
+        try {
+            const updates: { [key: string]: any } = {};
+            updates[`/pond_devices/${pondIdStr}/${deviceId}`] = null;
+            updates[`/devices/${deviceId}/pond_id`] = null;
+            
+            await update(ref(database), updates);
+
+            toast({ title: 'Sukses', description: `Perangkat "${deviceId}" berhasil dilepas dari kolam.` });
+            
+            await fetchInitialData(); // Refresh data
+            setIsRemoveDeviceOpen(false); // Close dialog
+            setDeviceToRemove(null); // Reset state
+        } catch (error: any) {
+            console.error("Failed to remove device from pond: ", error);
+            toast({ variant: 'destructive', title: 'Gagal', description: `Gagal melepas perangkat: ${error.message}` });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
 
     if (contextLoading) {
@@ -292,6 +328,7 @@ export default function PondDetailPage() {
                                     <TableHead>ID Perangkat</TableHead>
                                     <TableHead>Tipe</TableHead>
                                     <TableHead>Nama</TableHead>
+                                    <TableHead className="text-right">Aksi</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -303,11 +340,16 @@ export default function PondDetailPage() {
                                                 <Badge variant="secondary">{device.tipe}</Badge>
                                             </TableCell>
                                             <TableCell>{device.name || '-'}</TableCell>
+                                            <TableCell className="text-right">
+                                                <Button variant="destructive" size="sm" onClick={() => handleRemoveDeviceConfirmation(device)}>
+                                                    Hapus
+                                                </Button>
+                                            </TableCell>
                                         </TableRow>
                                     ))
                                 ) : (
                                     <TableRow>
-                                        <TableCell colSpan={3} className="text-center">
+                                        <TableCell colSpan={4} className="text-center">
                                             Belum ada perangkat yang terhubung.
                                         </TableCell>
                                     </TableRow>
@@ -317,6 +359,31 @@ export default function PondDetailPage() {
                     </div>
                 </CardContent>
             </Card>
+
+            {/* Remove Device Confirmation Dialog */}
+            <Dialog open={isRemoveDeviceOpen} onOpenChange={setIsRemoveDeviceOpen}>
+                <DialogContent className="sm:max-w-md">
+                    <DialogHeader className="items-center text-center">
+                         <div className="rounded-full border border-destructive/20 bg-destructive/10 p-3">
+                            <AlertTriangle className="h-10 w-10 text-destructive" />
+                        </div>
+                        <DialogTitle className="text-2xl font-bold text-destructive">
+                           Konfirmasi Melepas Perangkat
+                        </DialogTitle>
+                        <DialogDescription className="text-base text-muted-foreground">
+                            Apakah Anda yakin ingin melepas perangkat "{deviceToRemove?.id}" dari kolam ini? Tindakan ini tidak akan menghapus perangkat dari sistem.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="flex-row justify-center gap-4 pt-4">
+                        <Button variant="outline" onClick={() => setIsRemoveDeviceOpen(false)} disabled={isSubmitting} className="w-full">
+                            Batal
+                        </Button>
+                        <Button variant="destructive" onClick={handleRemoveDevice} disabled={isSubmitting} className="w-full">
+                             {isSubmitting ? "Menghapus..." : "Ya, Lepaskan"}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 }
