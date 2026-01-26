@@ -25,8 +25,8 @@ import { Badge } from '@/components/ui/badge';
 type AeratorDevice = {
   id: string;
   name: string;
-  liveStatus: boolean; // from device_data.power
-  commandStatus: boolean; // from device_commands.power
+  liveStatus: 'ON' | 'OFF' | 'UNKNOWN';
+  commandStatus: boolean;
 };
 
 export default function AeratorControlPage() {
@@ -64,18 +64,20 @@ export default function AeratorControlPage() {
         for (const deviceId of aeratorDeviceIds) {
             // Fetch initial state
             const commandRef = ref(database, `/device_commands/${deviceId}/power`);
-            const dataRef = ref(database, `/device_data/${deviceId}/power`);
+            const dataRef = ref(database, `/device_data/${deviceId}`);
 
             try {
                 const [commandSnap, dataSnap] = await Promise.all([
                     get(commandRef),
                     get(dataRef)
                 ]);
+                
+                const deviceData = dataSnap.val();
 
                 const newAerator: AeratorDevice = {
                     id: deviceId,
                     name: allDevices[deviceId]?.name || deviceId,
-                    liveStatus: dataSnap.val() || false,
+                    liveStatus: deviceData?.status || 'UNKNOWN',
                     commandStatus: commandSnap.val() || false,
                 };
                 initialAerators.push(newAerator);
@@ -87,7 +89,8 @@ export default function AeratorControlPage() {
                 listeners.push({ ref: commandRef, listener: commandListener });
 
                 const dataListener = onValue(dataRef, (snapshot) => {
-                    setAeratorDevices(prev => prev.map(d => d.id === deviceId ? { ...d, liveStatus: snapshot.val() || false } : d));
+                    const updatedData = snapshot.val();
+                    setAeratorDevices(prev => prev.map(d => d.id === deviceId ? { ...d, liveStatus: updatedData?.status || 'UNKNOWN' } : d));
                 });
                 listeners.push({ ref: dataRef, listener: dataListener });
             } catch (error) {
@@ -229,8 +232,8 @@ export default function AeratorControlPage() {
                                                     <TableRow key={device.id}>
                                                         <TableCell className="font-medium">{device.name}</TableCell>
                                                         <TableCell>
-                                                            <Badge variant={device.liveStatus ? 'default' : 'destructive'} className={cn(device.liveStatus && 'bg-success text-success-foreground')}>
-                                                                {device.liveStatus ? 'ON' : 'OFF'}
+                                                            <Badge variant={device.liveStatus === 'ON' ? 'default' : 'destructive'} className={cn(device.liveStatus === 'ON' && 'bg-success text-success-foreground')}>
+                                                                {device.liveStatus}
                                                             </Badge>
                                                         </TableCell>
                                                         <TableCell className="text-right">
@@ -238,7 +241,6 @@ export default function AeratorControlPage() {
                                                                 onClick={() => handleSetAerator(device.id, device.commandStatus)}
                                                                 size="icon"
                                                                 variant="outline"
-                                                                disabled
                                                                 className={cn(
                                                                     'h-10 w-10 rounded-full shadow-md transition-colors duration-300',
                                                                     device.commandStatus
