@@ -374,7 +374,3 @@ export default function DeviceControlPage() {
     </div>
   );
 }
-
-    
-
-    
