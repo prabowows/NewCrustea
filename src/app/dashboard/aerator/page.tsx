@@ -48,14 +48,14 @@ export default function DeviceControlPage() {
   const aeratorDeviceIds = useMemo(() => {
     if (!selectedPondId || !pondDevices[selectedPondId] || !allDevices) return [];
     const devicesInPond = Object.keys(pondDevices[selectedPondId]);
-    return deviceIds.filter(id => allDevices[id]?.tipe === 'AE');
+    return devicesInPond.filter(id => allDevices[id]?.tipe === 'AE');
   }, [selectedPondId, pondDevices, allDevices]);
 
   // Find all smart controls ('RELAY') in the selected pond.
   const scDeviceIds = useMemo(() => {
     if (!selectedPondId || !pondDevices[selectedPondId] || !allDevices) return [];
     const devicesInPond = Object.keys(pondDevices[selectedPondId]);
-    return deviceIds.filter(id => allDevices[id]?.tipe === 'RELAY');
+    return devicesInPond.filter(id => allDevices[id]?.tipe === 'RELAY');
   }, [selectedPondId, pondDevices, allDevices]);
 
 
@@ -374,5 +374,7 @@ export default function DeviceControlPage() {
     </div>
   );
 }
+
+    
 
     
