@@ -51,11 +51,14 @@ export default function DeviceControlPage() {
     return devicesInPond.filter(id => allDevices[id]?.tipe === 'AE');
   }, [selectedPondId, pondDevices, allDevices]);
 
-  // Find all smart controls ('RELAY') in the selected pond.
+  // Find all smart controls ('RELAY' or 'SC') in the selected pond.
   const scDeviceIds = useMemo(() => {
     if (!selectedPondId || !pondDevices[selectedPondId] || !allDevices) return [];
     const devicesInPond = Object.keys(pondDevices[selectedPondId]);
-    return devicesInPond.filter(id => allDevices[id]?.tipe === 'RELAY');
+    return devicesInPond.filter(id => {
+        const device = allDevices[id];
+        return device?.tipe === 'RELAY' || device?.tipe === 'SC';
+    });
   }, [selectedPondId, pondDevices, allDevices]);
 
 
@@ -374,5 +377,3 @@ export default function DeviceControlPage() {
     </div>
   );
 }
-
-    
